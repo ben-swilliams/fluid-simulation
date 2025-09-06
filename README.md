@@ -1,2 +1,2 @@
-# fluid-simulation
-Dissertation project for CS5199
+# Fluid simulation using SPH
+My dissertation project for CS5199
