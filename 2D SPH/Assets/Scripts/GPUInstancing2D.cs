@@ -15,16 +15,13 @@ public class GPUInstancing2D : MonoBehaviour
     
     void Start()
     {
-        // Create quad mesh if not assigned
         if (quadMesh == null)
         {
             quadMesh = CreateQuadMesh();
         }
         
-        // Generate random positions for instances
         GenerateInstanceData();
         
-        // Setup compute buffers
         SetupBuffers();
     }
     
@@ -40,34 +37,28 @@ public class GPUInstancing2D : MonoBehaviour
                 0f
             );
             
-            // Create transformation matrix (position, rotation, scale)
             matrices[i] = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one);
         }
     }
     
     void SetupBuffers()
     {
-        // Position buffer
         positionBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 16);
         positionBuffer.SetData(matrices);
         
-        // Indirect args buffer
         argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
         
-        // Args: mesh index count, instance count, start index, base vertex, start instance
         args[0] = (uint)quadMesh.GetIndexCount(0);
         args[1] = (uint)instanceCount;
         args[2] = (uint)quadMesh.GetIndexStart(0);
         args[3] = (uint)quadMesh.GetBaseVertex(0);
         argsBuffer.SetData(args);
         
-        // Set buffer to material
         instanceMaterial.SetBuffer("_PositionBuffer", positionBuffer);
     }
     
     void Update()
     {
-        // Render all instances in one draw call
         Graphics.DrawMeshInstancedIndirect(
             quadMesh, 
             0, 
@@ -81,7 +72,6 @@ public class GPUInstancing2D : MonoBehaviour
     {
         Mesh mesh = new Mesh();
         
-        // Vertices for a unit quad
         Vector3[] vertices = new Vector3[]
         {
             new Vector3(-0.5f, -0.5f, 0f),
@@ -90,7 +80,6 @@ public class GPUInstancing2D : MonoBehaviour
             new Vector3(-0.5f, 0.5f, 0f)
         };
         
-        // UV coordinates
         Vector2[] uv = new Vector2[]
         {
             new Vector2(0, 0),
@@ -99,7 +88,6 @@ public class GPUInstancing2D : MonoBehaviour
             new Vector2(0, 1)
         };
         
-        // Triangle indices
         int[] triangles = new int[]
         {
             0, 1, 2,
@@ -116,7 +104,6 @@ public class GPUInstancing2D : MonoBehaviour
     
     void OnDestroy()
     {
-        // Clean up buffers
         if (positionBuffer != null)
             positionBuffer.Release();
         if (argsBuffer != null)

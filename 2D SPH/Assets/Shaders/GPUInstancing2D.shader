@@ -24,6 +24,7 @@ Shader "Custom/GPUInstancing2D"
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_instancing
+            #pragma instancing_options procedural:setup
             
             #include "UnityCG.cginc"
             
@@ -54,18 +55,17 @@ Shader "Custom/GPUInstancing2D"
                 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
                     unity_ObjectToWorld = _PositionBuffer[unity_InstanceID];
                     unity_WorldToObject = unity_ObjectToWorld;
-                    unity_WorldToObject._14_24_34 *= -1;
-                    unity_WorldToObject._11_22_33 = 1.0f / unity_WorldToObject._11_22_33;
+
+                    unity_WorldToObject._11_12_13_14 = unity_ObjectToWorld._11_21_31_41;
+                    unity_WorldToObject._21_22_23_24 = unity_ObjectToWorld._12_22_32_42;
+                    unity_WorldToObject._31_32_33_34 = unity_ObjectToWorld._13_23_33_43;
+                    unity_WorldToObject._41_42_43_44 = unity_ObjectToWorld._14_24_34_44;
                 #endif
             }
             
             v2f vert (appdata v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
-                
-                #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-                    setup();
-                #endif
                 
                 v2f o;
                 UNITY_TRANSFER_INSTANCE_ID(v, o);
