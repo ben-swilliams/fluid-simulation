@@ -71,33 +71,51 @@ public class GPUInstancing2D : MonoBehaviour
     Mesh CreateQuadMesh()
     {
         Mesh mesh = new Mesh();
+        mesh.name = "Procedural Quad";
         
-        Vector3[] vertices = new Vector3[]
+        Vector3[] vertices = new Vector3[4]
         {
-            new Vector3(-0.5f, -0.5f, 0f),
-            new Vector3(0.5f, -0.5f, 0f),
-            new Vector3(0.5f, 0.5f, 0f),
-            new Vector3(-0.5f, 0.5f, 0f)
+            new Vector3(-0.5f, -0.5f, 0),
+            new Vector3(0.5f, -0.5f, 0),
+            new Vector3(-0.5f, 0.5f, 0),
+            new Vector3(0.5f, 0.5f, 0)
         };
         
-        Vector2[] uv = new Vector2[]
+        Vector2[] uv = new Vector2[4]
         {
             new Vector2(0, 0),
             new Vector2(1, 0),
-            new Vector2(1, 1),
-            new Vector2(0, 1)
+            new Vector2(0, 1),
+            new Vector2(1, 1)
         };
         
-        int[] triangles = new int[]
+        int[] triangles = new int[6] { 0, 2, 1, 2, 3, 1 };
+        
+        Vector3[] normals = new Vector3[4]
         {
-            0, 1, 2,
-            0, 2, 3
+            -Vector3.forward,
+            -Vector3.forward,
+            -Vector3.forward,
+            -Vector3.forward
+        };
+        
+        Vector4[] tangents = new Vector4[4]
+        {
+            new Vector4(1f, 0f, 0f, -1f),
+            new Vector4(1f, 0f, 0f, -1f),
+            new Vector4(1f, 0f, 0f, -1f),
+            new Vector4(1f, 0f, 0f, -1f)
         };
         
         mesh.vertices = vertices;
         mesh.uv = uv;
         mesh.triangles = triangles;
+        mesh.normals = normals;
+        mesh.tangents = tangents;
+        
         mesh.RecalculateNormals();
+        mesh.RecalculateTangents();
+        mesh.RecalculateBounds();
         
         return mesh;
     }
