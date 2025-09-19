@@ -1,4 +1,4 @@
-Shader "Custom/GPUInstancing2D" {
+Shader "Custom/Particle" {
     Properties {
 
     }
