@@ -4,17 +4,22 @@ using UnityEngine;
 public class GPUInstancing2D : MonoBehaviour
 {
     [Header("Instancing Settings")]
-    [SerializeField] Material instanceMaterial;
+    [SerializeField] Shader shader;
     [SerializeField] Mesh mesh;
     [SerializeField] int instanceCount = 1000;
     [SerializeField] Vector2 spawnArea = new Vector2(10f, 10f);
-    
-    private ComputeBuffer positionBuffer;
-    private ComputeBuffer argsBuffer;
-    private uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
+    [SerializeField] float size = 1;
+
+
+    Material instanceMaterial;
+    ComputeBuffer positionBuffer;
+    ComputeBuffer argsBuffer;
+    uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
     
     void Start()
     {
+        instanceMaterial = new Material(shader); 
+        
         GenerateInstanceData();
         
         SetupBuffers();
@@ -52,6 +57,7 @@ public class GPUInstancing2D : MonoBehaviour
         argsBuffer.SetData(args);
         
         instanceMaterial.SetBuffer("Positions", positionBuffer);
+        instanceMaterial.SetFloat("size", size);
     }
     
     void Update()
