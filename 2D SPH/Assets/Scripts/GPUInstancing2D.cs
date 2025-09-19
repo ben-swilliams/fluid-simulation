@@ -1,3 +1,4 @@
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 public class GPUInstancing2D : MonoBehaviour
@@ -11,7 +12,6 @@ public class GPUInstancing2D : MonoBehaviour
     private ComputeBuffer positionBuffer;
     private ComputeBuffer argsBuffer;
     private uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
-    private Matrix4x4[] matrices;
     
     void Start()
     {
@@ -19,27 +19,29 @@ public class GPUInstancing2D : MonoBehaviour
         
         SetupBuffers();
     }
-    
-    void GenerateInstanceData()
+
+    Vector2[] GenerateInstanceData()
     {
-        matrices = new Matrix4x4[instanceCount];
-        
+        Vector2[] positions = new Vector2[instanceCount];
+
         for (int i = 0; i < instanceCount; i++)
         {
-            Vector3 position = new Vector3(
+            Vector2 position = new Vector2(
                 UnityEngine.Random.Range(-spawnArea.x, spawnArea.x),
-                UnityEngine.Random.Range(-spawnArea.y, spawnArea.y),
-                0f
+                UnityEngine.Random.Range(-spawnArea.y, spawnArea.y)
             );
-            
-            matrices[i] = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one);
+
+            positions[i] = position;
         }
+
+        return positions;
     }
     
     void SetupBuffers()
     {
-        positionBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 16);
-        positionBuffer.SetData(matrices);
+        Vector2[] positions = GenerateInstanceData();
+        positionBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
+        positionBuffer.SetData(positions);
         
         argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
         
@@ -49,7 +51,7 @@ public class GPUInstancing2D : MonoBehaviour
         args[3] = (uint)mesh.GetBaseVertex(0);
         argsBuffer.SetData(args);
         
-        instanceMaterial.SetBuffer("_PositionBuffer", positionBuffer);
+        instanceMaterial.SetBuffer("Positions", positionBuffer);
     }
     
     void Update()
