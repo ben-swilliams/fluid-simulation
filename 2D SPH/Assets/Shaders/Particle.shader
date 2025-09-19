@@ -41,7 +41,18 @@ Shader "Custom/Particle" {
             }
 
             float4 frag (v2f i) : SV_Target {
-                return float4(1, 1, 1, 1);
+                // UV -> -1..1 unit circle space
+                float2 p = (i.uv - 0.5) * 2;
+
+                float distSq = dot(p, p);
+                
+                // AA boundary - 0.5 makes it slightly sharper
+                float w = fwidth(distSq) * 0.5;
+                
+                // Anti-alias the edge of the circle
+                float alpha = 1 - smoothstep(1 - w, 1 + w, distSq);
+
+                return float4(1, 1, 1, alpha);
             }
             ENDCG
         }
