@@ -1,0 +1,18 @@
+#pragma kernel Gravity
+
+RWStructuredBuffer<float2> Positions;
+RWStructuredBuffer<float2> Velocities;
+
+float2 gravity;
+float deltaTime;
+
+uint instanceCount;
+
+[numthreads(64, 1, 1)]
+void Gravity(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    // Classic Euler stuff
+    Velocities[id.x] += gravity * deltaTime;
+    Positions[id.x] += Velocities[id.x] * deltaTime;
+}
