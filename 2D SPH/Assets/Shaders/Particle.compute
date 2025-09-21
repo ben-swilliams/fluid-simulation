@@ -6,13 +6,44 @@ RWStructuredBuffer<float2> Positions;
 RWStructuredBuffer<float2> Velocities;
 
 float2 gravity;
+float2 containerSize;
 float deltaTime;
+float size;
+float dampingFactor;
 
 uint instanceCount;
+
+void Collisions(uint id : SV_DispatchThreadID) {
+    // Bottom
+    if (Positions[id.x].y < -containerSize.y/2 + size/2){ 
+        Velocities[id.x].y = Velocities[id.x].y * -dampingFactor;
+        Positions[id.x].y = -containerSize.y/2 + size/2;
+    }
+
+    // Top
+    if (Positions[id.x].y > containerSize.y/2 - size/2) {
+        Velocities[id.x].y = Velocities[id.x].y * -dampingFactor;
+        Positions[id.x].y = containerSize.y/2 - size/2;
+    }
+
+    // Left
+    if (Positions[id.x].x < -containerSize.x/2 + size / 2) {
+        Velocities[id.x].x = Velocities[id.x].x * -dampingFactor;
+        Positions[id.x].x = -containerSize.x/2 + size/2;
+    }
+
+    // Right
+    if (Positions[id.x].x > containerSize.x/2 - size / 2) {
+        Velocities[id.x].x = Velocities[id.x].x * -dampingFactor;
+        Positions[id.x].x = containerSize.x/2 - size/2;
+    }
+}
 
 [numthreads(NumThreads, 1, 1)]
 void Gravity(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
+
+    Collisions(id);
 
     // Classic Euler stuff
     Velocities[id.x] += gravity * deltaTime;

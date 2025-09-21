@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering.Universal.Internal;
 
@@ -14,7 +15,10 @@ public class Particle : MonoBehaviour
     [SerializeField] float size = 1;
 
     [Header("Simulation Settings")]
+    [SerializeField] Container container;
     [SerializeField] Vector2 gravity = new Vector2(0, -9.8f);
+    [SerializeField] float initSpeed = 5f;
+    [SerializeField] float dampingFactor = 0.9f;
 
     static int threadGroupSize = 64;
     Material instanceMaterial;
@@ -40,8 +44,8 @@ public class Particle : MonoBehaviour
         for (int i = 0; i < instanceCount; i++)
         {
             Vector2 position = new Vector2(
-                UnityEngine.Random.Range(-spawnArea.x, spawnArea.x),
-                UnityEngine.Random.Range(-spawnArea.y, spawnArea.y)
+                UnityEngine.Random.Range(-spawnArea.x/2 + size/2, spawnArea.x/2 - size/2),
+                UnityEngine.Random.Range(-spawnArea.y/2 + size/2, spawnArea.y/2 - size/2)
             );
 
             positions[i] = position;
@@ -56,7 +60,9 @@ public class Particle : MonoBehaviour
 
         for (int i = 0; i < instanceCount; i++)
         {
-            velocities[i] = Vector2.zero;
+            float random = UnityEngine.Random.Range(0f, 2 * Mathf.PI);
+            Vector2 vel = new Vector2(Mathf.Cos(random), Mathf.Sin(random)) * initSpeed;
+            velocities[i] = vel;
         }
 
         return velocities;
@@ -93,6 +99,9 @@ public class Particle : MonoBehaviour
 
         kernel = computeShader.FindKernel("Gravity");
 
+        computeShader.SetFloat("size", size);
+        computeShader.SetFloat("dampingFactor", dampingFactor);
+        computeShader.SetVector("containerSize", container.size);
         computeShader.SetVector("gravity", gravity);
         computeShader.SetInt("instanceCount", instanceCount);
         computeShader.SetInt("threadGroupSize", threadGroupSize);
@@ -115,6 +124,13 @@ public class Particle : MonoBehaviour
             bounds,
             argsBuffer
         );
+    }
+
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.white;
+
+        Gizmos.DrawWireCube(transform.position, new Vector3(spawnArea.x, spawnArea.y, 0f));
     }
     
     void OnDestroy()
