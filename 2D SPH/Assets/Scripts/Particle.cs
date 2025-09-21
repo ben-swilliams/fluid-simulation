@@ -1,22 +1,27 @@
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using UnityEngine.Rendering.Universal.Internal;
 
 public class GPUInstancing2D : MonoBehaviour
 {
-    [Header("Instancing Settings")]
+    [Header("Shaders")]
     [SerializeField] Shader shader;
     [SerializeField] ComputeShader computeShader;
+
+    [Header("Instancing Settings")]
     [SerializeField] Mesh mesh;
     [SerializeField] int instanceCount = 1000;
     [SerializeField] Vector2 spawnArea = new Vector2(10f, 10f);
     [SerializeField] float size = 1;
+
+    [Header("Simulation Settings")]
     [SerializeField] Vector2 gravity = new Vector2(0, -9.8f);
 
-
+    static int threadGroupSize = 64;
     Material instanceMaterial;
     ComputeBuffer positionBuffer;
     ComputeBuffer velocityBuffer;
     ComputeBuffer argsBuffer;
+    Bounds bounds = new Bounds(Vector3.zero, Vector3.one * 1000f);
     uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
     int kernel;
     
@@ -25,6 +30,7 @@ public class GPUInstancing2D : MonoBehaviour
         instanceMaterial = new Material(shader);
         
         SetupBuffers();
+        InitialiseVariables();
     }
 
     Vector2[] GeneratePositionData()
@@ -66,6 +72,11 @@ public class GPUInstancing2D : MonoBehaviour
         velocityBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
         velocityBuffer.SetData(velocities);
 
+        InitialiseArgsBuffer();
+    }
+
+    void InitialiseArgsBuffer()
+    {
         argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
 
         args[0] = (uint)mesh.GetIndexCount(0);
@@ -73,29 +84,35 @@ public class GPUInstancing2D : MonoBehaviour
         args[2] = (uint)mesh.GetIndexStart(0);
         args[3] = (uint)mesh.GetBaseVertex(0);
         argsBuffer.SetData(args);
+    }
 
-        instanceMaterial.SetBuffer("Positions", positionBuffer);
+    void InitialiseVariables()
+    {
         instanceMaterial.SetFloat("size", size);
+        instanceMaterial.SetBuffer("Positions", positionBuffer);
 
         kernel = computeShader.FindKernel("Gravity");
-        computeShader.SetBuffer(kernel, "Positions", positionBuffer);
-        computeShader.SetBuffer(kernel, "Velocities", velocityBuffer);
+
         computeShader.SetVector("gravity", gravity);
         computeShader.SetInt("instanceCount", instanceCount);
+        computeShader.SetInt("threadGroupSize", threadGroupSize);
+
+        computeShader.SetBuffer(kernel, "Positions", positionBuffer);
+        computeShader.SetBuffer(kernel, "Velocities", velocityBuffer);
     }
     
     void Update()
     {
         computeShader.SetFloat("deltaTime", Time.deltaTime);
 
-        int threadGroups = Mathf.CeilToInt(instanceCount / 64f);
+        int threadGroups = Mathf.CeilToInt(instanceCount / (float)threadGroupSize);
         computeShader.Dispatch(kernel, threadGroups, 1, 1);
 
         Graphics.DrawMeshInstancedIndirect(
             mesh, 
             0,
             instanceMaterial, 
-            new Bounds(Vector3.zero, Vector3.one * 1000f), 
+            bounds,
             argsBuffer
         );
     }
@@ -104,7 +121,9 @@ public class GPUInstancing2D : MonoBehaviour
     {
         if (positionBuffer != null)
             positionBuffer.Release();
+        if (velocityBuffer != null)
+            velocityBuffer.Release();
         if (argsBuffer != null)
-            argsBuffer.Release();
+                argsBuffer.Release();
     }
 }

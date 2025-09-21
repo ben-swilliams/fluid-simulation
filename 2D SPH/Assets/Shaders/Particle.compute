@@ -1,5 +1,7 @@
 #pragma kernel Gravity
 
+static const uint NumThreads = 64;
+
 RWStructuredBuffer<float2> Positions;
 RWStructuredBuffer<float2> Velocities;
 
@@ -8,7 +10,7 @@ float deltaTime;
 
 uint instanceCount;
 
-[numthreads(64, 1, 1)]
+[numthreads(NumThreads, 1, 1)]
 void Gravity(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
