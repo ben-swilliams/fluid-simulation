@@ -40,8 +40,8 @@ public class Particle : MonoBehaviour
         for (int i = 0; i < instanceCount; i++)
         {
             Vector2 position = new Vector2(
-                UnityEngine.Random.Range(-spawnArea.x, spawnArea.x),
-                UnityEngine.Random.Range(-spawnArea.y, spawnArea.y)
+                UnityEngine.Random.Range(-spawnArea.x/2 + size/2, spawnArea.x/2 - size/2),
+                UnityEngine.Random.Range(-spawnArea.y/2 + size/2, spawnArea.y/2 - size/2)
             );
 
             positions[i] = position;
@@ -115,6 +115,13 @@ public class Particle : MonoBehaviour
             bounds,
             argsBuffer
         );
+    }
+
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.white;
+
+        Gizmos.DrawWireCube(transform.position, new Vector3(spawnArea.x, spawnArea.y, 0f));
     }
     
     void OnDestroy()
