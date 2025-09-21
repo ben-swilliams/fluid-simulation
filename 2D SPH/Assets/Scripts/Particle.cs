@@ -14,6 +14,7 @@ public class Particle : MonoBehaviour
     [SerializeField] float size = 1;
 
     [Header("Simulation Settings")]
+    [SerializeField] Container container;
     [SerializeField] Vector2 gravity = new Vector2(0, -9.8f);
 
     static int threadGroupSize = 64;
@@ -93,6 +94,8 @@ public class Particle : MonoBehaviour
 
         kernel = computeShader.FindKernel("Gravity");
 
+        computeShader.SetFloat("size", size);
+        computeShader.SetVector("containerSize", container.size);
         computeShader.SetVector("gravity", gravity);
         computeShader.SetInt("instanceCount", instanceCount);
         computeShader.SetInt("threadGroupSize", threadGroupSize);
