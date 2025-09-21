@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering.Universal.Internal;
 
-public class GPUInstancing2D : MonoBehaviour
+public class Particle : MonoBehaviour
 {
     [Header("Shaders")]
     [SerializeField] Shader shader;
