@@ -43,6 +43,8 @@ public class Draw : MonoBehaviour
 
     void InitialiseArgsBuffer()
     {
+        CleanupArgsBuffer();
+
         argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
 
         args[0] = (uint)mesh.GetIndexCount(0);
@@ -60,13 +62,17 @@ public class Draw : MonoBehaviour
         InitialiseArgsBuffer();
     }
 
+    void CleanupArgsBuffer()
+    {
+        if (argsBuffer == null) return;
+
+        argsBuffer.Release();
+        argsBuffer = null;
+    }
+
     void OnDestroy()
     {
-        if (argsBuffer != null)
-        {
-            argsBuffer.Release();
-            argsBuffer = null;
-        }
+        CleanupArgsBuffer();
     }
 
 }
