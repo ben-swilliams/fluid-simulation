@@ -93,7 +93,7 @@ public class Simulate : MonoBehaviour
         computeShader.SetBuffer(kernel, "Velocities", velocityBuffer);
     }
 
-    void UpdateVariables()
+    public void UpdateVariables()
     {
         computeShader.SetFloat("size", size);
         computeShader.SetFloat("dampingFactor", dampingFactor);
