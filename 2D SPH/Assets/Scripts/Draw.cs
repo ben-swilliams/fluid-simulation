@@ -27,7 +27,7 @@ public class Draw : MonoBehaviour
         instanceMaterial = new Material(shader);
         bounds = new Bounds(Vector2.zero, Vector2.one * 1000f);
         InitialiseArgsBuffer();
-        InitialiseVariables();
+        UpdateVariables();
     }
 
     void Update()
@@ -43,6 +43,8 @@ public class Draw : MonoBehaviour
 
     void InitialiseArgsBuffer()
     {
+        CleanupArgsBuffer();
+
         argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
 
         args[0] = (uint)mesh.GetIndexCount(0);
@@ -52,19 +54,25 @@ public class Draw : MonoBehaviour
         argsBuffer.SetData(args);
     }
 
-    void InitialiseVariables()
+    public void UpdateVariables()
     {
+        if (instanceMaterial == null) return;
         instanceMaterial.SetFloat("size", sim.Size);
         instanceMaterial.SetBuffer("Positions", sim.positionBuffer);
+        InitialiseArgsBuffer();
+    }
+
+    void CleanupArgsBuffer()
+    {
+        if (argsBuffer == null) return;
+
+        argsBuffer.Release();
+        argsBuffer = null;
     }
 
     void OnDestroy()
     {
-        if (argsBuffer != null)
-        {
-            argsBuffer.Release();
-            argsBuffer = null;
-        }
+        CleanupArgsBuffer();
     }
 
 }

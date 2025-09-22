@@ -332,6 +332,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
   computeShader: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
+  maxInstanceCount: 1000000
   instanceCount: 1000000
   spawnArea: {x: 45.9, y: 25.84}
   size: 0.1
