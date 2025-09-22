@@ -3,8 +3,10 @@ using UnityEngine.UIElements;
 
 public class Container : MonoBehaviour
 {
-    public Vector2 size = new Vector2(5f, 5f);
+    [SerializeField] Vector2 boundary = new Vector2(5f, 5f);
     LineRenderer lr;
+
+    public Vector2 Boundary => boundary;
     void Setup()
     {
         lr = GetComponent<LineRenderer>();
@@ -32,9 +34,9 @@ public class Container : MonoBehaviour
 
     void SetPoints()
     {
-        lr.SetPosition(0, new Vector3(-size.x / 2f, -size.y / 2f));
-        lr.SetPosition(1, new Vector3(size.x / 2f, -size.y / 2f));
-        lr.SetPosition(2, new Vector3(size.x / 2f, size.y / 2f));
-        lr.SetPosition(3, new Vector3(-size.x / 2f, size.y / 2f));
+        lr.SetPosition(0, new Vector3(-boundary.x / 2f, -boundary.y / 2f));
+        lr.SetPosition(1, new Vector3(boundary.x / 2f, -boundary.y / 2f));
+        lr.SetPosition(2, new Vector3(boundary.x / 2f, boundary.y / 2f));
+        lr.SetPosition(3, new Vector3(-boundary.x / 2f, boundary.y / 2f));
     }
 }
