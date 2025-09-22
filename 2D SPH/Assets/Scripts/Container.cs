@@ -40,6 +40,7 @@ public class Container : MonoBehaviour
     {
         Setup();
         SetPoints();
+        GetComponentInParent<Simulate>().UpdateVariables();
     }
 
     void SetPoints()
