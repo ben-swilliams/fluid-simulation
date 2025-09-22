@@ -3,9 +3,19 @@ using UnityEngine.UIElements;
 
 public class Container : MonoBehaviour
 {
+    /*
+    Inspector properties
+    */
     [SerializeField] Vector2 boundary = new Vector2(5f, 5f);
+
+    /*
+    Private properties
+    */
     LineRenderer lr;
 
+    /*
+    Public getters
+    */
     public Vector2 Boundary => boundary;
     void Setup()
     {

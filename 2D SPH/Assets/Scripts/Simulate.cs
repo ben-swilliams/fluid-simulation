@@ -1,8 +1,12 @@
 using UnityEngine;
 
-public class Simulation : MonoBehaviour
+public class Simulate : MonoBehaviour
 {
 
+    /*
+    Inspector properties
+    */
+    [Header("Shaders")]
     [SerializeField] ComputeShader computeShader;
 
     [Header("Instancing Settings")]
@@ -15,10 +19,15 @@ public class Simulation : MonoBehaviour
     [SerializeField] Vector2 gravity = new Vector2(0, -9.8f);
     [SerializeField] float dampingFactor = 0.9f;
 
+    /*
+    Private properties
+    */
     static int threadGroupSize = 64;
     int kernel;
 
-    // public getters
+    /*
+    Public getters
+    */
     public int InstanceCount => instanceCount;
     public float Size => size;
     public ComputeBuffer positionBuffer { get; private set; }

@@ -1,14 +1,20 @@
 using UnityEngine;
 
-public class PRenderer : MonoBehaviour
+public class Draw : MonoBehaviour
 {
+    /*
+    Inspector properties
+    */
     [Header("Shaders")]
     [SerializeField] Shader shader;
 
     [Header("Appearance Settings")]
     [SerializeField] Mesh mesh;
 
-    Simulation sim;
+    /*
+    Private properties
+    */
+    Simulate sim;
     Material instanceMaterial;
     Bounds bounds;
 
@@ -17,7 +23,7 @@ public class PRenderer : MonoBehaviour
 
     void Start()
     {
-        sim = GetComponentInParent<Simulation>();
+        sim = GetComponentInParent<Simulate>();
         instanceMaterial = new Material(shader);
         bounds = new Bounds(Vector2.zero, Vector2.one * 1000f);
         InitialiseArgsBuffer();
