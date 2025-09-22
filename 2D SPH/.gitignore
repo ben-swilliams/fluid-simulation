@@ -102,3 +102,6 @@ InitTestScene*.unity*
 
 /[Aa]ssets/Scripts/bin/
 /[Aa]ssets/Scripts/obj/
+
+/[Aa]ssets/_Recovery/
+/[Aa]ssets/_Recovery.meta
