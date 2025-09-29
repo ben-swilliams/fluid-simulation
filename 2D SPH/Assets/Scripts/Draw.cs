@@ -1,4 +1,3 @@
-using UnityEditor;
 using UnityEngine;
 
 public class Draw : MonoBehaviour
@@ -46,11 +45,6 @@ public class Draw : MonoBehaviour
             bounds,
             argsBuffer
         );
-
-        if (UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame && !sim.Started)
-        {
-            CleanupPositionBuffer();
-        }
     }
 
     void CleanupPositionBuffer()
@@ -67,7 +61,19 @@ public class Draw : MonoBehaviour
 
         InitialiseArgsBuffer();
 
-        positionsBuffer = sim.Started ? sim.positionBuffer : CreateSpawnBuffer();
+
+        if (sim.Started)
+        {
+            if (positionsBuffer != null && positionsBuffer != sim.positionBuffer)
+            {
+                positionsBuffer.Release();
+            }
+            positionsBuffer = sim.positionBuffer;
+        }
+        else
+        {
+            positionsBuffer = CreateSpawnBuffer();
+        }
 
         instanceMaterial.SetBuffer("positions", positionsBuffer);
     }

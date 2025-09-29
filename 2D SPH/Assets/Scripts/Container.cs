@@ -16,13 +16,6 @@ public class Container : MonoBehaviour
     Public getters
     */
     public Vector2 Boundary => boundary;
-    void Setup()
-    {
-        lr = GetComponent<LineRenderer>();
-        lr.useWorldSpace = true;
-        lr.loop = true;
-        lr.positionCount = 4;
-    }
     void Start()
     {
         Setup();
@@ -44,6 +37,14 @@ public class Container : MonoBehaviour
         {
             sim.UpdateVariables();
         }
+    }
+
+    void Setup()
+    {
+        lr = GetComponent<LineRenderer>();
+        lr.useWorldSpace = true;
+        lr.loop = true;
+        lr.positionCount = 4;
     }
 
     void SetPoints()
