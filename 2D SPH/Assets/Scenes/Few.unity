@@ -288,7 +288,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
   computeShader: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
-  initSpeed: 15
+  initSpeed: 0
   gravity: {x: 0, y: -9.8}
   dampingFactor: 0.9
 --- !u!4 &1274155412
@@ -319,10 +319,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90a21f46cb45640b88337bf5d5a09f85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawn
-  instanceCount: 10
+  instanceCount: 9940
   size: 0.1
   spawnArea: {x: 14.07, y: 7.18}
-  asGrid: 0
+  asGrid: 1
 --- !u!114 &1274155414
 MonoBehaviour:
   m_ObjectHideFlags: 0
