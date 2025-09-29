@@ -288,7 +288,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
   computeShader: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
-  initSpeed: 5
+  initSpeed: 15
   gravity: {x: 0, y: -9.8}
   dampingFactor: 0.9
 --- !u!4 &1274155412

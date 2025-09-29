@@ -5,13 +5,13 @@ static const uint NumThreads = 64;
 RWStructuredBuffer<float2> Positions;
 RWStructuredBuffer<float2> Velocities;
 
+uint instanceCount;
+
 float2 gravity;
 float2 containerSize;
 float deltaTime;
 float size;
 float dampingFactor;
-
-uint instanceCount;
 
 void Collisions(uint3 id : SV_DispatchThreadID) {
     // Bottom
@@ -41,9 +41,11 @@ void Collisions(uint3 id : SV_DispatchThreadID) {
 
 [numthreads(NumThreads, 1, 1)]
 void Gravity(uint3 id : SV_DispatchThreadID) {
-    Collisions(id);
+    if (id.x >= instanceCount) return;
 
     // Classic Euler stuff
     Velocities[id.x] += gravity * deltaTime;
     Positions[id.x] += Velocities[id.x] * deltaTime;
+
+    Collisions(id);
 }

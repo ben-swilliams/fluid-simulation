@@ -1,4 +1,3 @@
-using System.Transactions;
 using UnityEngine;
 
 public class Simulate : MonoBehaviour
@@ -88,6 +87,8 @@ public class Simulate : MonoBehaviour
     void InitialiseVariables()
     {
         computeShader.SetInt("threadGroupSize", threadGroupSize);
+        computeShader.SetFloat("size", spawner.Size);
+        computeShader.SetInt("instanceCount", spawner.InstanceCount);
         UpdateVariables();
 
         kernel = computeShader.FindKernel("Gravity");
