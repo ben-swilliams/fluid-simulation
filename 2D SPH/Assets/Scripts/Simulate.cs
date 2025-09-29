@@ -55,9 +55,9 @@ public class Simulate : MonoBehaviour
 
     void StartSimulation()
     {
-        started = true;
         SetupBuffers();
         InitialiseVariables();
+        started = true;
     }
 
     Vector2[] GenerateVelocityData()
@@ -102,6 +102,15 @@ public class Simulate : MonoBehaviour
         computeShader.SetFloat("dampingFactor", dampingFactor);
         computeShader.SetVector("containerSize", GetComponentInChildren<Container>().Boundary);
         computeShader.SetVector("gravity", gravity);
+    }
+
+    // Temporary
+    public Vector2[] GetPositions()
+    {
+        Vector2[] positions = new Vector2[positionBuffer.count];
+        positionBuffer.GetData(positions);
+
+        return positions;
     }
 
     void OnValidate()
