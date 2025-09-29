@@ -1,3 +1,4 @@
+using UnityEditor;
 using UnityEngine;
 
 public class Draw : MonoBehaviour
@@ -15,23 +16,27 @@ public class Draw : MonoBehaviour
     Private properties
     */
     Simulate sim;
+    Spawn spawner;
     Material instanceMaterial;
     Bounds bounds;
+    ComputeBuffer positionsBuffer;
 
     uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
     ComputeBuffer argsBuffer;
 
     void Start()
     {
-        sim = GetComponentInParent<Simulate>();
+        spawner = GetComponentInParent<Spawn>();
         instanceMaterial = new Material(shader);
         bounds = new Bounds(Vector2.zero, Vector2.one * 1000f);
         InitialiseArgsBuffer();
-        UpdateVariables();
+        UpdatePositions();
     }
 
     void Update()
     {
+        instanceMaterial.SetFloat("size", spawner.Size);
+
         Graphics.DrawMeshInstancedIndirect(
             mesh,
             0,
@@ -41,6 +46,29 @@ public class Draw : MonoBehaviour
         );
     }
 
+    void CleanupPositionBuffer()
+    {
+        if (positionsBuffer == null) return;
+
+        positionsBuffer.Release();
+        positionsBuffer = null;
+    }
+
+    public void UpdatePositions()
+    {
+        if (spawner == null) return;
+
+        // IF sim started, get from sim, else spawneriew
+
+        InitialiseArgsBuffer();
+
+        CleanupPositionBuffer();
+        positionsBuffer = new ComputeBuffer(spawner.InstanceCount, sizeof(float) * 2);
+        positionsBuffer.SetData(spawner.Positions);
+
+        instanceMaterial.SetBuffer("positions", positionsBuffer);
+    }
+
     void InitialiseArgsBuffer()
     {
         CleanupArgsBuffer();
@@ -48,18 +76,10 @@ public class Draw : MonoBehaviour
         argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
 
         args[0] = (uint)mesh.GetIndexCount(0);
-        args[1] = (uint)sim.InstanceCount;
+        args[1] = (uint)spawner.InstanceCount;
         args[2] = (uint)mesh.GetIndexStart(0);
         args[3] = (uint)mesh.GetBaseVertex(0);
         argsBuffer.SetData(args);
-    }
-
-    public void UpdateVariables()
-    {
-        if (instanceMaterial == null) return;
-        instanceMaterial.SetFloat("size", sim.Size);
-        instanceMaterial.SetBuffer("Positions", sim.positionBuffer);
-        InitialiseArgsBuffer();
     }
 
     void CleanupArgsBuffer()
@@ -73,6 +93,7 @@ public class Draw : MonoBehaviour
     void OnDestroy()
     {
         CleanupArgsBuffer();
+        CleanupPositionBuffer();
     }
 
 }

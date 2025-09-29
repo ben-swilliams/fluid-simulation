@@ -1,6 +1,5 @@
 Shader "Custom/Particle" {
     Properties {
-
     }
 
     SubShader {
@@ -19,7 +18,7 @@ Shader "Custom/Particle" {
 
             #include "UnityCG.cginc"
 
-            StructuredBuffer<float2> Positions;
+            StructuredBuffer<float2> positions;
             float size;
 
             struct v2f {
@@ -28,7 +27,7 @@ Shader "Custom/Particle" {
             };
 
             v2f vert (appdata_full v, uint id : SV_InstanceID) {
-                float3 centreWorld = float3(Positions[id], 0);
+                float3 centreWorld = float3(positions[id], 0);
                 float3 centreObj = mul(unity_WorldToObject, float4(centreWorld, 1)).xyz;
                 float3 vertObj = centreObj + v.vertex * size;
 

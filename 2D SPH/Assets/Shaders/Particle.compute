@@ -13,7 +13,7 @@ float dampingFactor;
 
 uint instanceCount;
 
-void Collisions(uint id : SV_DispatchThreadID) {
+void Collisions(uint3 id : SV_DispatchThreadID) {
     // Bottom
     if (Positions[id.x].y < -containerSize.y/2 + size/2){ 
         Velocities[id.x].y = Velocities[id.x].y * -dampingFactor;
