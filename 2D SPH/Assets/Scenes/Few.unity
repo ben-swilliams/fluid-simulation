@@ -288,8 +288,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
   computeShader: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
-  initSpeed: 100
-  gravity: {x: 0, y: -9.8}
+  initSpeed: 0
+  gravity: {x: 0, y: 0}
   dampingFactor: 0.9
 --- !u!4 &1274155412
 Transform:
@@ -319,10 +319,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90a21f46cb45640b88337bf5d5a09f85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawn
-  instanceCount: 1000000
+  instanceCount: 2912
   size: 0.1
-  spawnArea: {x: 14.07, y: 7.18}
-  asGrid: 0
+  spawnArea: {x: 5.7, y: 5.23}
+  asGrid: 1
 --- !u!114 &1274155414
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -367,6 +367,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 489bea07bb1ab4247ae8a60d9cff929c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Density
+  simObject: {fileID: 1274155410}
 --- !u!212 &1504014607
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -415,7 +416,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.49019608}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -435,8 +436,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 5.92, y: 5.92, z: 5.92}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
