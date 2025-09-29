@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class Container : MonoBehaviour
 {
@@ -40,7 +39,11 @@ public class Container : MonoBehaviour
     {
         Setup();
         SetPoints();
-        GetComponentInParent<Simulate>().UpdateVariables();
+        Simulate sim = GetComponent<Simulate>();
+        if (sim != null && sim.Started)
+        {
+            sim.UpdateVariables();
+        }
     }
 
     void SetPoints()
