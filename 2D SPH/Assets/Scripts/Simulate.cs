@@ -1,3 +1,4 @@
+using System.Transactions;
 using UnityEngine;
 
 public class Simulate : MonoBehaviour
@@ -21,16 +22,41 @@ public class Simulate : MonoBehaviour
     static int threadGroupSize = 64;
     int kernel;
     Spawn spawner;
+    bool started;
 
     /*
     Public getters
     */
     public ComputeBuffer positionBuffer { get; private set; }
     public ComputeBuffer velocityBuffer { get; private set; }
+    public bool Started => started;
     
     void Start()
     {
         spawner = GetComponent<Spawn>();
+    }
+
+    void Update()
+    {
+        if (UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame && !started)
+        {
+            StartSimulation();
+            Debug.Log("Simulation started!");
+        }
+
+        if (started)
+        {
+            computeShader.SetFloat("deltaTime", Time.deltaTime);
+
+            int threadGroups = Mathf.CeilToInt(spawner.InstanceCount / (float)threadGroupSize);
+            if (spawner.InstanceCount == 0) return;
+            computeShader.Dispatch(kernel, threadGroups, 1, 1);
+        }
+    }
+
+    void StartSimulation()
+    {
+        started = true;
         SetupBuffers();
         InitialiseVariables();
     }
@@ -76,20 +102,11 @@ public class Simulate : MonoBehaviour
         computeShader.SetVector("containerSize", GetComponentInChildren<Container>().Boundary);
         computeShader.SetVector("gravity", gravity);
     }
-    
-    void Update()
-    {
-        computeShader.SetFloat("deltaTime", Time.deltaTime);
-
-        int threadGroups = Mathf.CeilToInt(spawner.InstanceCount / (float)threadGroupSize);
-        if (spawner.InstanceCount == 0) return;
-        computeShader.Dispatch(kernel, threadGroups, 1, 1);
-    }
-
-
 
     void OnValidate()
     {
+        if (!started) return;
+
         UpdateVariables();
     }
     

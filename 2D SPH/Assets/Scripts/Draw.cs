@@ -26,6 +26,7 @@ public class Draw : MonoBehaviour
 
     void Start()
     {
+        sim = GetComponentInParent<Simulate>();
         spawner = GetComponentInParent<Spawn>();
         instanceMaterial = new Material(shader);
         bounds = new Bounds(Vector2.zero, Vector2.one * 1000f);
@@ -36,6 +37,7 @@ public class Draw : MonoBehaviour
     void Update()
     {
         instanceMaterial.SetFloat("size", spawner.Size);
+        if (sim.Started) UpdatePositions();
 
         Graphics.DrawMeshInstancedIndirect(
             mesh,
@@ -44,6 +46,11 @@ public class Draw : MonoBehaviour
             bounds,
             argsBuffer
         );
+
+        if (UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame && !sim.Started)
+        {
+            CleanupPositionBuffer();
+        }
     }
 
     void CleanupPositionBuffer()
@@ -58,15 +65,20 @@ public class Draw : MonoBehaviour
     {
         if (spawner == null) return;
 
-        // IF sim started, get from sim, else spawneriew
-
         InitialiseArgsBuffer();
 
+        positionsBuffer = sim.Started ? sim.positionBuffer : CreateSpawnBuffer();
+
+        instanceMaterial.SetBuffer("positions", positionsBuffer);
+    }
+
+    ComputeBuffer CreateSpawnBuffer()
+    {
         CleanupPositionBuffer();
         positionsBuffer = new ComputeBuffer(spawner.InstanceCount, sizeof(float) * 2);
         positionsBuffer.SetData(spawner.Positions);
 
-        instanceMaterial.SetBuffer("positions", positionsBuffer);
+        return positionsBuffer;
     }
 
     void InitialiseArgsBuffer()

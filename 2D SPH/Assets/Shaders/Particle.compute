@@ -41,8 +41,6 @@ void Collisions(uint3 id : SV_DispatchThreadID) {
 
 [numthreads(NumThreads, 1, 1)]
 void Gravity(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
     Collisions(id);
 
     // Classic Euler stuff
