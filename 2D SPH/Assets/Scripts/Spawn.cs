@@ -21,24 +21,40 @@ public class Spawn : MonoBehaviour
     Private properties
     */
     Vector2[] positions;
+    private bool prevGridMode = false;
 
     void Start()
     {
-        positions = asGrid ? GenerateGridPositions() : GeneratePositions();
+        prevGridMode = asGrid;
+        positions = GeneratePositions();
     }
 
     void OnValidate()
     {
+        instanceCount = Mathf.Max(0, instanceCount);
+
         Draw drawer = GetComponentInChildren<Draw>();
         if (drawer == null) return;
 
-        if (positions != null && positions.Length != instanceCount)
+        if (asGrid) instanceCount = Mathf.Min(calculateMaxInGrid(), instanceCount);
+
+        if ((positions != null && positions.Length != instanceCount) || asGrid || prevGridMode != asGrid)
         {
             positions = GeneratePositions();
             drawer.UpdatePositions();
         }
+
+        prevGridMode = asGrid;
     }
 
+    int calculateMaxInGrid()
+    {
+        int sizeX = (int)(spawnArea.x / size);
+        int sizeY = (int)(spawnArea.y / size);
+
+        return sizeX * sizeY;
+    }
+    
     Vector2[] GenerateRandomPositions()
     {
         Vector2[] positions = new Vector2[instanceCount];
@@ -83,7 +99,7 @@ public class Spawn : MonoBehaviour
 
     Vector2[] GeneratePositions()
     {
-        return GenerateRandomPositions();
+        return asGrid ? GenerateGridPositions() : GenerateRandomPositions();
     }
 
     void OnDrawGizmos()
