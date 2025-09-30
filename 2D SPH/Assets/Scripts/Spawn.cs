@@ -54,9 +54,11 @@ public class Spawn : MonoBehaviour
 
         if (!sim.Started)
         {
-            positions = GeneratePositions();
-
-            UpdateBuffer();
+            if (instanceCount != PositionBuffer.count)
+            {
+                positions = GeneratePositions();
+                UpdateBuffer();
+            }
 
             drawer.BindBuffer(PositionBuffer, size);
             density.BindBuffer(PositionBuffer);
