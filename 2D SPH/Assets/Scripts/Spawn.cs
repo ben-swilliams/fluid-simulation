@@ -14,7 +14,6 @@ public class Spawn : MonoBehaviour
     /*
     Private properties
     */
-    Vector2[] positions;
     bool prevGridMode = false;
     float sizeWithSpacing;
 
@@ -29,7 +28,6 @@ public class Spawn : MonoBehaviour
     void Start()
     {
         prevGridMode = asGrid;
-        positions = GeneratePositions();
         CreateBuffer();
         UpdateBuffer();
         BindExternalBuffers();
@@ -45,7 +43,6 @@ public class Spawn : MonoBehaviour
         {
             if (instanceCount != positionBuffer.count || prevGridMode != asGrid)
             {
-                positions = GeneratePositions();
                 UpdateBuffer();
             }
 
@@ -77,6 +74,8 @@ public class Spawn : MonoBehaviour
     {
         ReleaseBuffer();
         positionBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
+
+        Vector2[] positions = GeneratePositions();
         positionBuffer.SetData(positions);
     }
 
@@ -87,8 +86,9 @@ public class Spawn : MonoBehaviour
             ReleaseBuffer();
             CreateBuffer();
         }
-        else if (instanceCount > 0)
+        else
         {
+            Vector2[] positions = GeneratePositions();
             positionBuffer.SetData(positions);
         }
     }
