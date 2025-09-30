@@ -4,6 +4,7 @@ class Density : MonoBehaviour
 {
     [SerializeField] ComputeShader densityShader;
     [SerializeField] float smoothingRadius = 0.1f;
+    [SerializeField] Color color;
 
     float smoothingRadiusSq;
     float kernelConstant;
@@ -13,8 +14,8 @@ class Density : MonoBehaviour
 
     RenderTexture densityField;
 
-    const int TEX_WIDTH = 512;
-    const int TEX_HEIGHT = 512;
+    const int TEX_WIDTH = 1024;
+    const int TEX_HEIGHT = 1024;
 
     public RenderTexture DensityField => densityField;
 
@@ -67,5 +68,6 @@ class Density : MonoBehaviour
         densityShader.SetFloat("smoothingRadiusSq", smoothingRadiusSq);
         densityShader.SetFloat("kernelConstant", kernelConstant);
         densityShader.SetFloat("kernelVolume", kernelVolume);
+        densityShader.SetVector("color", color);
     }
 }

@@ -268,6 +268,7 @@ GameObject:
   - component: {fileID: 1274155411}
   - component: {fileID: 1274155413}
   - component: {fileID: 1274155414}
+  - component: {fileID: 1274155415}
   m_Layer: 0
   m_Name: Simulation
   m_TagString: Untagged
@@ -288,9 +289,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
   computeShader: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
-  initSpeed: 0
+  initSpeed: 10
   gravity: {x: 0, y: 0}
-  dampingFactor: 0.9
+  dampingFactor: 1
 --- !u!4 &1274155412
 Transform:
   m_ObjectHideFlags: 0
@@ -319,11 +320,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90a21f46cb45640b88337bf5d5a09f85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawn
-  instanceCount: 10212
+  instanceCount: 1000
   size: 0.1
   spacing: 0
   spawnArea: {x: 13.81, y: 7.49}
-  asGrid: 1
+  asGrid: 0
 --- !u!114 &1274155414
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -338,6 +339,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Draw
   shader: {fileID: 4800000, guid: 86f6b5b4233e64ce79e43b45f3e9e726, type: 3}
   mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1274155415
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1274155410}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 489bea07bb1ab4247ae8a60d9cff929c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Density
+  densityShader: {fileID: 7200000, guid: 79e6e3875e3024d93b22b0991c7fbd2b, type: 3}
+  smoothingRadius: 1.3
+  color: {r: 1, g: 0, b: 0, a: 0}
 --- !u!1 &1607714410
 GameObject:
   m_ObjectHideFlags: 0
@@ -349,6 +365,8 @@ GameObject:
   - component: {fileID: 1607714413}
   - component: {fileID: 1607714412}
   - component: {fileID: 1607714411}
+  - component: {fileID: 1607714415}
+  - component: {fileID: 1607714414}
   m_Layer: 0
   m_Name: Container
   m_TagString: Untagged
@@ -496,6 +514,62 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1274155412}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &1607714414
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1607714410}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1607714415
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1607714410}
+  m_Mesh: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
