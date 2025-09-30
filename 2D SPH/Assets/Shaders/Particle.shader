@@ -51,7 +51,7 @@ Shader "Custom/Particle" {
                 // Anti-alias the edge of the circle
                 float alpha = 1 - smoothstep(1 - w, 1 + w, distSq);
 
-                return float4(1, 1, 1, alpha);
+                return float4(1, 0, 0, alpha);
             }
             ENDCG
         }

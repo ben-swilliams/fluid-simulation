@@ -2,56 +2,70 @@ using UnityEngine;
 
 class Density : MonoBehaviour
 {
-    [SerializeField] GameObject simObject;
+    [SerializeField] ComputeShader densityShader;
+    [SerializeField] float smoothingRadius = 0.1f;
 
-    Simulate sim;
-    Spawn spawn;
+    float smoothingRadiusSq;
+    float kernelConstant;
+    float kernelVolume;
 
-    private float smoothingRadiusSq;
-    private float kernelConstant;
-    private float kernelVolume;
+    int kernel;
+
+    RenderTexture densityField;
+
+    const int TEX_WIDTH = 512;
+    const int TEX_HEIGHT = 512;
+
+    public RenderTexture DensityField => densityField;
 
     void Start()
     {
-        spawn = simObject.GetComponent<Spawn>();
-        sim = simObject.GetComponent<Simulate>();
+        kernel = densityShader.FindKernel("DensityField");
+        densityField = new RenderTexture(TEX_WIDTH, TEX_HEIGHT, 0, RenderTextureFormat.ARGBFloat);
+        densityField.enableRandomWrite = true;
+        densityField.Create();
+
+        densityShader.SetTexture(kernel, "Field", densityField);
+        densityShader.SetInts("fieldSize", new int[] { TEX_WIDTH, TEX_HEIGHT });
+        UpdateConstants();
+        UpdateBoundary();
     }
 
     void Update()
     {
-        CalculateConstants();
-        if (!sim.Started) return;
-
-        Debug.Log(CalculateDensity());
+        densityShader.Dispatch(kernel, TEX_WIDTH / 8, TEX_HEIGHT / 8, 1);
     }
 
-    void CalculateConstants()
+    void OnValidate()
     {
-        smoothingRadiusSq = Mathf.Pow(GetComponent<Transform>().localScale.x / 2, 2);
+        smoothingRadius = Mathf.Max(0, smoothingRadius);
+        UpdateConstants();
+    }
+
+    public void UpdateBoundary()
+    {
+        Vector2 bounds = GetComponentInChildren<Container>().Boundary;
+        Vector2 worldMin = -0.5f * bounds;
+        Vector2 worldMax = 0.5f * bounds;
+
+        densityShader.SetVector("worldMin", worldMin);
+        densityShader.SetVector("worldMax", worldMax);
+    }
+
+    public void BindBuffer(ComputeBuffer positionBuffer)
+    {
+        densityShader.SetBuffer(kernel, "Positions", positionBuffer);
+        densityShader.SetInt("instanceCount", positionBuffer.count);
+    }
+
+    void UpdateConstants()
+    {
+        smoothingRadiusSq = smoothingRadius * smoothingRadius;
         kernelConstant = 315 / (64 * Mathf.PI * Mathf.Pow(smoothingRadiusSq, 4.5f));
         kernelVolume = kernelConstant * Mathf.PI * Mathf.Pow(smoothingRadiusSq, 4) * 0.25f;
-    }
 
-    float CalculateDensity()
-    {
-        Vector2 centre = GetComponent<Transform>().position;
-        Vector2[] positions = sim.GetPositions();
-
-        float density = 0;
-
-        for (int p = 0; p < spawn.InstanceCount; p++)
-        {
-            Vector2 offset = positions[p] - centre;
-            density += SmoothingKernel(offset);
-        }
-
-        return density / kernelVolume;
-    }
-
-    float SmoothingKernel(Vector2 offset)
-    {
-        if (offset.sqrMagnitude > smoothingRadiusSq) return 0;
-
-        return kernelConstant * Mathf.Pow(smoothingRadiusSq - offset.sqrMagnitude, 3);
+        densityShader.SetFloat("smoothingRadiusSq", smoothingRadiusSq);
+        densityShader.SetFloat("kernelConstant", kernelConstant);
+        densityShader.SetFloat("kernelVolume", kernelVolume);
     }
 }

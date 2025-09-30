@@ -1,57 +1,76 @@
 using UnityEngine;
 
+[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class Container : MonoBehaviour
 {
-    /*
-    Inspector properties
-    */
     [SerializeField] Vector2 boundary = new Vector2(5f, 5f);
 
-    /*
-    Private properties
-    */
-    LineRenderer lr;
+    MeshFilter meshFilter;
+    MeshRenderer meshRenderer;
+    Mesh mesh;
 
-    /*
-    Public getters
-    */
     public Vector2 Boundary => boundary;
+
     void Start()
     {
-        Setup();
+        meshFilter = GetComponent<MeshFilter>();
+        meshRenderer = GetComponent<MeshRenderer>();
+        meshRenderer.material = new Material(Shader.Find("Unlit/Texture"));
 
-        SetPoints();
-    }
-
-    void Update()
-    {
-        SetPoints();
+        CreateQuad();
+        UpdateFieldSize();
+        ApplyTexture();
     }
 
     void OnValidate()
     {
-        Setup();
-        SetPoints();
-        Simulate sim = GetComponent<Simulate>();
-        if (sim != null && sim.Started)
+        if (!Application.isPlaying) return;
+
+        UpdateFieldSize();
+        ApplyTexture();
+    }
+
+    void CreateQuad()
+    {
+        mesh = new Mesh();
+        mesh.name = "ContainerQuad";
+
+        Vector3[] vertices = new Vector3[4]
         {
-            sim.UpdateVariables();
+            new Vector3(-0.5f, -0.5f, 0),
+            new Vector3(0.5f, -0.5f, 0),
+            new Vector3(-0.5f, 0.5f, 0),
+            new Vector3(0.5f, 0.5f, 0)
+        };
+
+        int[] triangles = new int[6] { 0, 2, 1, 2, 3, 1 };
+
+        Vector2[] uv = new Vector2[4]
+        {
+            new Vector2(0,0),
+            new Vector2(1,0),
+            new Vector2(0,1),
+            new Vector2(1,1)
+        };
+
+        mesh.vertices = vertices;
+        mesh.triangles = triangles;
+        mesh.uv = uv;
+
+        meshFilter.mesh = mesh;
+    }
+
+    void UpdateFieldSize()
+    {
+        transform.localScale = new Vector3(boundary.x, boundary.y, 1);
+    }
+
+    void ApplyTexture()
+    {
+        Density density = GetComponentInParent<Density>();
+        if (density != null && density.DensityField != null)
+        {
+            meshRenderer.material.mainTexture = density.DensityField;
         }
-    }
-
-    void Setup()
-    {
-        lr = GetComponent<LineRenderer>();
-        lr.useWorldSpace = true;
-        lr.loop = true;
-        lr.positionCount = 4;
-    }
-
-    void SetPoints()
-    {
-        lr.SetPosition(0, new Vector3(-boundary.x / 2f, -boundary.y / 2f));
-        lr.SetPosition(1, new Vector3(boundary.x / 2f, -boundary.y / 2f));
-        lr.SetPosition(2, new Vector3(boundary.x / 2f, boundary.y / 2f));
-        lr.SetPosition(3, new Vector3(-boundary.x / 2f, boundary.y / 2f));
     }
 }

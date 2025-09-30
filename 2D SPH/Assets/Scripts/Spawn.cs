@@ -16,7 +16,7 @@ public class Spawn : MonoBehaviour
     */
     public int InstanceCount => instanceCount;
     public float Size => size;
-    public Vector2[] Positions => positions;
+    public ComputeBuffer PositionBuffer { get; private set; }
 
     /*
     Private properties
@@ -29,34 +29,85 @@ public class Spawn : MonoBehaviour
     {
         prevGridMode = asGrid;
         positions = GeneratePositions();
+        CreateBuffer();
+        UpdateBuffer();
+        GetComponent<Draw>().BindBuffer(PositionBuffer, size);
+        GetComponent<Density>().BindBuffer(PositionBuffer);
     }
 
     void OnValidate()
     {
         instanceCount = Mathf.Max(0, instanceCount);
+        spacing = Mathf.Max(0, spacing);
+        size = Mathf.Max(0, size);
         sizeWithSpacing = size + spacing;
 
-        var drawer = GetComponentInChildren<Draw>();
-        if (drawer == null) return;
-
         if (asGrid)
-        {
-            int maxGrid = calculateMaxInGrid();
-            if (positions != null && instanceCount != positions.Length)
-                instanceCount = Mathf.Min(maxGrid, instanceCount);
-            else
-                instanceCount = maxGrid;
-        }
+            instanceCount = calculateMaxInGrid();
 
-        if (asGrid || positions == null || positions.Length != instanceCount || prevGridMode != asGrid)
+        if (!Application.isPlaying) return;
+
+        Draw drawer = GetComponentInChildren<Draw>();
+        Density density = GetComponentInChildren<Density>();
+        Simulate sim = GetComponentInChildren<Simulate>();
+        if (drawer == null || sim == null || density == null || PositionBuffer == null) return;
+
+        if (!sim.Started)
         {
-            positions = GeneratePositions();
-            drawer.UpdatePositions();
+            if (instanceCount != PositionBuffer.count)
+            {
+                positions = GeneratePositions();
+                UpdateBuffer();
+            }
+
+            drawer.BindBuffer(PositionBuffer, size);
+            density.BindBuffer(PositionBuffer);
         }
 
         prevGridMode = asGrid;
     }
 
+    void CreateBuffer()
+    {
+        ReleaseBuffer();
+        if (instanceCount > 0)
+        {
+            PositionBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
+            PositionBuffer.SetData(positions);
+        }
+    }
+
+    void UpdateBuffer()
+    {
+        if (PositionBuffer == null || PositionBuffer.count != instanceCount)
+        {
+            ReleaseBuffer();
+            CreateBuffer();
+        }
+        else if (instanceCount > 0)
+        {
+            PositionBuffer.SetData(positions);
+        }
+    }
+
+    void ReleaseBuffer()
+    {
+        if (PositionBuffer != null)
+        {
+            PositionBuffer.Release();
+            PositionBuffer = null;
+        }
+    }
+
+    void OnDestroy()
+    {
+        ReleaseBuffer();
+    }
+
+    void OnDisable()
+    {
+        ReleaseBuffer();
+    }
 
     int calculateMaxInGrid()
     {
@@ -65,7 +116,7 @@ public class Spawn : MonoBehaviour
 
         return sizeX * sizeY;
     }
-    
+
     Vector2[] GenerateRandomPositions()
     {
         Vector2[] positions = new Vector2[instanceCount];
@@ -86,13 +137,14 @@ public class Spawn : MonoBehaviour
         Vector2[] positions = new Vector2[instanceCount];
 
         Vector2 topLeft = new Vector2(
-            -spawnArea.x/2 + sizeWithSpacing / 2,
-            spawnArea.y/2 - sizeWithSpacing / 2
+            -spawnArea.x / 2 + sizeWithSpacing / 2,
+            spawnArea.y / 2 - sizeWithSpacing / 2
         );
 
         int sizeX = (int)(spawnArea.x / sizeWithSpacing);
         int sizeY = (int)(spawnArea.y / sizeWithSpacing);
-        for (int x = 0; x < sizeX; x++) {
+        for (int x = 0; x < sizeX; x++)
+        {
             for (int y = 0; y < sizeY; y++)
             {
                 int idx = y * sizeX + x;

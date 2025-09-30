@@ -23,11 +23,12 @@ public class Simulate : MonoBehaviour
     Spawn spawner;
     bool started;
 
+    int instanceCount;
+    ComputeBuffer positionBuffer;
+    ComputeBuffer velocityBuffer;
     /*
     Public getters
     */
-    public ComputeBuffer positionBuffer { get; private set; }
-    public ComputeBuffer velocityBuffer { get; private set; }
     public bool Started => started;
     
     void Start()
@@ -47,8 +48,7 @@ public class Simulate : MonoBehaviour
         {
             computeShader.SetFloat("deltaTime", Time.deltaTime);
 
-            int threadGroups = Mathf.CeilToInt(spawner.InstanceCount / (float)threadGroupSize);
-            if (spawner.InstanceCount == 0) return;
+            int threadGroups = Mathf.CeilToInt(instanceCount / (float)threadGroupSize);
             computeShader.Dispatch(kernel, threadGroups, 1, 1);
         }
     }
@@ -57,6 +57,9 @@ public class Simulate : MonoBehaviour
     {
         SetupBuffers();
         InitialiseVariables();
+        UpdateBoundary();
+        GetComponent<Draw>().BindBuffer(positionBuffer, spawner.Size);
+        GetComponent<Density>().BindBuffer(positionBuffer);
         started = true;
     }
 
@@ -77,7 +80,9 @@ public class Simulate : MonoBehaviour
     void SetupBuffers()
     {
         positionBuffer = new ComputeBuffer(spawner.InstanceCount, sizeof(float) * 2);
-        positionBuffer.SetData(spawner.Positions);
+        Vector2[] positions = new Vector2[spawner.InstanceCount];
+        spawner.PositionBuffer.GetData(positions);
+        positionBuffer.SetData(positions);
 
         Vector2[] velocities = GenerateVelocityData();
         velocityBuffer = new ComputeBuffer(spawner.InstanceCount, sizeof(float) * 2);
@@ -86,9 +91,10 @@ public class Simulate : MonoBehaviour
 
     void InitialiseVariables()
     {
+        instanceCount = spawner.InstanceCount;
         computeShader.SetInt("threadGroupSize", threadGroupSize);
         computeShader.SetFloat("size", spawner.Size);
-        computeShader.SetInt("instanceCount", spawner.InstanceCount);
+        computeShader.SetInt("instanceCount", instanceCount);
         UpdateVariables();
 
         kernel = computeShader.FindKernel("Gravity");
@@ -97,20 +103,15 @@ public class Simulate : MonoBehaviour
         computeShader.SetBuffer(kernel, "Velocities", velocityBuffer);
     }
 
-    public void UpdateVariables()
+    void UpdateVariables()
     {
         computeShader.SetFloat("dampingFactor", dampingFactor);
-        computeShader.SetVector("containerSize", GetComponentInChildren<Container>().Boundary);
         computeShader.SetVector("gravity", gravity);
     }
 
-    // Temporary
-    public Vector2[] GetPositions()
+    public void UpdateBoundary()
     {
-        Vector2[] positions = new Vector2[positionBuffer.count];
-        positionBuffer.GetData(positions);
-
-        return positions;
+        computeShader.SetVector("containerSize", GetComponentInChildren<Container>().Boundary);
     }
 
     void OnValidate()
