@@ -1,5 +1,6 @@
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Simulate : MonoBehaviour
 {
@@ -40,10 +41,16 @@ public class Simulate : MonoBehaviour
 
     void Update()
     {
-        if (UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame && !started)
+        if (UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame)
         {
-            StartSimulation();
-            Debug.Log("Simulation started!");
+            if (!started)
+            {
+                StartSimulation();
+            }
+            else
+            {
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            }
         }
 
         if (started)
