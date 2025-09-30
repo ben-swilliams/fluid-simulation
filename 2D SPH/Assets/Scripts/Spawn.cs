@@ -12,18 +12,19 @@ public class Spawn : MonoBehaviour
     [SerializeField] bool asGrid;
 
     /*
-    Public getters
-    */
-    public int InstanceCount => instanceCount;
-    public float Size => size;
-    public ComputeBuffer PositionBuffer { get; private set; }
-
-    /*
     Private properties
     */
     Vector2[] positions;
     bool prevGridMode = false;
     float sizeWithSpacing;
+
+    /*
+    Public getters
+    */
+    public int InstanceCount => instanceCount;
+    public float Size => size;
+    public ComputeBuffer positionBuffer { get; private set; }
+
 
     void Start()
     {
@@ -31,80 +32,83 @@ public class Spawn : MonoBehaviour
         positions = GeneratePositions();
         CreateBuffer();
         UpdateBuffer();
-        GetComponent<Draw>().BindBuffer(PositionBuffer, size);
-        GetComponent<Density>().BindBuffer(PositionBuffer);
+        BindExternalBuffers();
     }
 
     void OnValidate()
     {
-        instanceCount = Mathf.Max(0, instanceCount);
+        ValidateInspectorProperties();
+
+        if (!Application.isPlaying) return;
+
+        if (!GetComponent<Simulate>().Started)
+        {
+            if (instanceCount != positionBuffer.count || prevGridMode != asGrid)
+            {
+                positions = GeneratePositions();
+                UpdateBuffer();
+            }
+
+            BindExternalBuffers();
+        }
+
+        prevGridMode = asGrid;
+    }
+
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.white;
+
+        Gizmos.DrawWireCube(transform.position, new Vector3(spawnArea.x, spawnArea.y, 0f));
+    }
+
+    void ValidateInspectorProperties()
+    {
+        instanceCount = Mathf.Max(1, instanceCount);
         spacing = Mathf.Max(0, spacing);
         size = Mathf.Max(0, size);
         sizeWithSpacing = size + spacing;
 
         if (asGrid)
             instanceCount = calculateMaxInGrid();
-
-        if (!Application.isPlaying) return;
-
-        Draw drawer = GetComponentInChildren<Draw>();
-        Density density = GetComponentInChildren<Density>();
-        Simulate sim = GetComponentInChildren<Simulate>();
-        if (drawer == null || sim == null || density == null || PositionBuffer == null) return;
-
-        if (!sim.Started)
-        {
-            if (instanceCount != PositionBuffer.count)
-            {
-                positions = GeneratePositions();
-                UpdateBuffer();
-            }
-
-            drawer.BindBuffer(PositionBuffer, size);
-            density.BindBuffer(PositionBuffer);
-        }
-
-        prevGridMode = asGrid;
     }
 
     void CreateBuffer()
     {
         ReleaseBuffer();
-        if (instanceCount > 0)
-        {
-            PositionBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
-            PositionBuffer.SetData(positions);
-        }
+        positionBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
+        positionBuffer.SetData(positions);
     }
 
     void UpdateBuffer()
     {
-        if (PositionBuffer == null || PositionBuffer.count != instanceCount)
+        if (positionBuffer == null || positionBuffer.count != instanceCount)
         {
             ReleaseBuffer();
             CreateBuffer();
         }
         else if (instanceCount > 0)
         {
-            PositionBuffer.SetData(positions);
+            positionBuffer.SetData(positions);
         }
+    }
+
+    void BindExternalBuffers()
+    {
+        GetComponent<Draw>().BindBuffer(positionBuffer, size);
+        GetComponent<Density>().BindBuffer(positionBuffer);
     }
 
     void ReleaseBuffer()
     {
-        if (PositionBuffer != null)
+        if (positionBuffer != null)
         {
-            PositionBuffer.Release();
-            PositionBuffer = null;
+            positionBuffer.Release();
+            positionBuffer = null;
         }
     }
 
     void OnDestroy()
-    {
-        ReleaseBuffer();
-    }
-
-    void OnDisable()
     {
         ReleaseBuffer();
     }
@@ -165,10 +169,4 @@ public class Spawn : MonoBehaviour
         return asGrid ? GenerateGridPositions() : GenerateRandomPositions();
     }
 
-    void OnDrawGizmos()
-    {
-        Gizmos.color = Color.white;
-
-        Gizmos.DrawWireCube(transform.position, new Vector3(spawnArea.x, spawnArea.y, 0f));
-    }
 }

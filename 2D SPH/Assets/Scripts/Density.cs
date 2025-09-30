@@ -12,11 +12,9 @@ class Density : MonoBehaviour
     /*
     Private properties
     */
-    // Density fluid texture size
     const int TEX_WIDTH = 1024;
     const int TEX_HEIGHT = 1024;
 
-    // Kernel constants
     float smoothingRadiusSq;
     float kernelConstant;
     float kernelVolume;
@@ -29,13 +27,7 @@ class Density : MonoBehaviour
 
     void Start()
     {
-        kernel = densityShader.FindKernel("DensityField");
-        densityField = new RenderTexture(TEX_WIDTH, TEX_HEIGHT, 0, RenderTextureFormat.ARGBFloat);
-        densityField.enableRandomWrite = true;
-        densityField.Create();
-
-        densityShader.SetTexture(kernel, "Field", densityField);
-        densityShader.SetInts("fieldSize", new int[] { TEX_WIDTH, TEX_HEIGHT });
+        InitialiseShader();
         UpdateConstants();
         UpdateBoundary();
     }
@@ -49,6 +41,17 @@ class Density : MonoBehaviour
     {
         smoothingRadius = Mathf.Max(0, smoothingRadius);
         UpdateConstants();
+    }
+
+    void InitialiseShader()
+    {
+        kernel = densityShader.FindKernel("DensityField");
+        densityField = new RenderTexture(TEX_WIDTH, TEX_HEIGHT, 0, RenderTextureFormat.ARGBFloat);
+        densityField.enableRandomWrite = true;
+        densityField.Create();
+
+        densityShader.SetTexture(kernel, "Field", densityField);
+        densityShader.SetInts("fieldSize", new int[] { TEX_WIDTH, TEX_HEIGHT });
     }
 
     void UpdateConstants()

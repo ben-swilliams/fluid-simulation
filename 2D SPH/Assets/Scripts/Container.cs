@@ -22,11 +22,7 @@ public class Container : MonoBehaviour
 
     void Start()
     {
-        meshFilter = GetComponent<MeshFilter>();
-        meshFilter.mesh = mesh;
-        meshRenderer = GetComponent<MeshRenderer>();
-        meshRenderer.material = new Material(Shader.Find("Unlit/Texture"));
-
+        InitialiseMesh();
         UpdateFieldSize();
         ApplyTexture();
     }
@@ -47,6 +43,14 @@ public class Container : MonoBehaviour
         Gizmos.DrawWireCube(transform.position, new Vector3(boundary.x, boundary.y, 0f));
     }
 
+    void InitialiseMesh()
+    {
+        meshFilter = GetComponent<MeshFilter>();
+        meshFilter.mesh = mesh;
+        meshRenderer = GetComponent<MeshRenderer>();
+        meshRenderer.material = new Material(Shader.Find("Unlit/Texture"));
+    }
+
     void UpdateFieldSize()
     {
         transform.localScale = new Vector3(boundary.x, boundary.y, 1);
@@ -55,9 +59,6 @@ public class Container : MonoBehaviour
     void ApplyTexture()
     {
         Density density = GetComponentInParent<Density>();
-        if (density != null && density.densityField != null)
-        {
-            meshRenderer.material.mainTexture = density.densityField;
-        }
+        meshRenderer.material.mainTexture = density.densityField;
     }
 }

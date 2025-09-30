@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class Draw : MonoBehaviour
 {
@@ -39,12 +38,10 @@ public class Draw : MonoBehaviour
             argsBuffer
         );
     }
-
-    public void BindBuffer(ComputeBuffer positionBuffer, float size)
+    
+    void OnDestroy()
     {
-        InitialiseArgsBuffer(positionBuffer.count);
-        instanceMaterial.SetFloat("size", size);
-        instanceMaterial.SetBuffer("positions", positionBuffer);
+        CleanupArgsBuffer();
     }
 
     void InitialiseArgsBuffer(int instanceCount)
@@ -68,9 +65,10 @@ public class Draw : MonoBehaviour
         argsBuffer = null;
     }
 
-    void OnDestroy()
+    public void BindBuffer(ComputeBuffer positionBuffer, float size)
     {
-        CleanupArgsBuffer();
+        InitialiseArgsBuffer(positionBuffer.count);
+        instanceMaterial.SetFloat("size", size);
+        instanceMaterial.SetBuffer("positions", positionBuffer);
     }
-
 }
