@@ -7,13 +7,13 @@ public class Container : MonoBehaviour
     Inspector settings
     */
     [SerializeField] Vector2 boundary = new Vector2(5f, 5f);
+    [SerializeField] Mesh mesh;
 
     /*
     Private properties
     */
     MeshFilter meshFilter;
     MeshRenderer meshRenderer;
-    Mesh mesh;
 
     /*
     Public getters
@@ -23,10 +23,10 @@ public class Container : MonoBehaviour
     void Start()
     {
         meshFilter = GetComponent<MeshFilter>();
+        meshFilter.mesh = mesh;
         meshRenderer = GetComponent<MeshRenderer>();
         meshRenderer.material = new Material(Shader.Find("Unlit/Texture"));
 
-        CreateQuad();
         UpdateFieldSize();
         ApplyTexture();
     }
@@ -40,34 +40,11 @@ public class Container : MonoBehaviour
         GetComponentInParent<Density>().UpdateBoundary();
     }
 
-    void CreateQuad()
+    void OnDrawGizmos()
     {
-        mesh = new Mesh();
-        mesh.name = "ContainerQuad";
+        Gizmos.color = Color.red;
 
-        Vector3[] vertices = new Vector3[4]
-        {
-            new Vector3(-0.5f, -0.5f, 0),
-            new Vector3(0.5f, -0.5f, 0),
-            new Vector3(-0.5f, 0.5f, 0),
-            new Vector3(0.5f, 0.5f, 0)
-        };
-
-        int[] triangles = new int[6] { 0, 2, 1, 2, 3, 1 };
-
-        Vector2[] uv = new Vector2[4]
-        {
-            new Vector2(0,0),
-            new Vector2(1,0),
-            new Vector2(0,1),
-            new Vector2(1,1)
-        };
-
-        mesh.vertices = vertices;
-        mesh.triangles = triangles;
-        mesh.uv = uv;
-
-        meshFilter.mesh = mesh;
+        Gizmos.DrawWireCube(transform.position, new Vector3(boundary.x, boundary.y, 0f));
     }
 
     void UpdateFieldSize()
@@ -78,16 +55,9 @@ public class Container : MonoBehaviour
     void ApplyTexture()
     {
         Density density = GetComponentInParent<Density>();
-        if (density != null && density.DensityField != null)
+        if (density != null && density.densityField != null)
         {
-            meshRenderer.material.mainTexture = density.DensityField;
+            meshRenderer.material.mainTexture = density.densityField;
         }
-    }
-
-    void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-
-        Gizmos.DrawWireCube(transform.position, new Vector3(boundary.x, boundary.y, 0f));
     }
 }
