@@ -9,6 +9,7 @@ class Density : MonoBehaviour
 
     private float smoothingRadiusSq;
     private float kernelConstant;
+    private float kernelVolume;
 
     void Start()
     {
@@ -28,6 +29,7 @@ class Density : MonoBehaviour
     {
         smoothingRadiusSq = Mathf.Pow(GetComponent<Transform>().localScale.x / 2, 2);
         kernelConstant = 315 / (64 * Mathf.PI * Mathf.Pow(smoothingRadiusSq, 4.5f));
+        kernelVolume = kernelConstant * Mathf.PI * Mathf.Pow(smoothingRadiusSq, 4) * 0.25f;
     }
 
     float CalculateDensity()
@@ -43,7 +45,7 @@ class Density : MonoBehaviour
             density += SmoothingKernel(offset);
         }
 
-        return density;
+        return density / kernelVolume;
     }
 
     float SmoothingKernel(Vector2 offset)
@@ -51,6 +53,5 @@ class Density : MonoBehaviour
         if (offset.sqrMagnitude > smoothingRadiusSq) return 0;
 
         return kernelConstant * Mathf.Pow(smoothingRadiusSq - offset.sqrMagnitude, 3);
-
     }
 }
