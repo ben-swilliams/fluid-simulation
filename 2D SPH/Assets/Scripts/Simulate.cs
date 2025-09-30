@@ -44,13 +44,9 @@ public class Simulate : MonoBehaviour
         if (UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame)
         {
             if (!started)
-            {
                 StartSimulation();
-            }
             else
-            {
                 SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-            }
         }
 
         if (started)
