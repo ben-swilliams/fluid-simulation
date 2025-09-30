@@ -1,6 +1,6 @@
 #pragma kernel DensityField
 
-int instanceCount;
+uint instanceCount;
 float smoothingRadiusSq;
 float kernelConstant;
 float kernelVolume;
@@ -8,31 +8,32 @@ float kernelVolume;
 RWStructuredBuffer<float2> Positions;
 
 RWTexture2D<float4> Field;
-int2 fieldSize;
+uint2 fieldSize;
 
 float2 worldMin;
 float2 worldMax;
 
-float Kernel
+float SmoothingKernel(float2 offset) {
+    float oSquared = dot(offset, offset);
+    if (oSquared > smoothingRadiusSq) {
+        return 0;
+    } else {
+
+        float diff = smoothingRadiusSq - oSquared;
+
+        return kernelConstant * diff * diff * diff;
+    }
+}
 
 float CalculateDensity(float2 pointWorld) {
     float density = 0;
 
-    for (int i = 0; i < instanceCount; i++) {
+    for (uint i = 0; i < instanceCount; i++) {
         float2 offset = Positions[i] - pointWorld;
         density += SmoothingKernel(offset);
     }
 
     return density / kernelVolume;
-}
-
-float SmoothingKernel(float2 offset) {
-    float oSquared = dot(offset, offset);
-    if (dot(oSquared) > smoothingRadiusSq) return 0;
-
-    float diff = smoothingRadiusSq - oSquared;
-
-    return kernelConstant * diff * diff * diff;
 }
 
 [numthreads(8, 8, 1)]
@@ -44,5 +45,5 @@ void DensityField(uint3 id : SV_DispatchThreadID) {
 
     float density = CalculateDensity(pointWorld);
 
-    Field[id.xy] = float4(value, 0, 0, 1);
+    Field[id.xy] = float4(density, density, density, 0.5);
 }

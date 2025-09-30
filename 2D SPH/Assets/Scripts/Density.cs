@@ -13,14 +13,27 @@ class Density : MonoBehaviour
 
     RenderTexture densityField;
 
+    const int TEX_WIDTH = 512;
+    const int TEX_HEIGHT = 512;
+
+    public RenderTexture DensityField => densityField;
+
     void Start()
     {
         kernel = densityShader.FindKernel("DensityField");
+        densityField = new RenderTexture(TEX_WIDTH, TEX_HEIGHT, 0, RenderTextureFormat.ARGBFloat);
+        densityField.enableRandomWrite = true;
+        densityField.Create();
+
+        densityShader.SetTexture(kernel, "Field", densityField);
+        densityShader.SetInts("fieldSize", new int[] { TEX_WIDTH, TEX_HEIGHT });
+        UpdateConstants();
+        UpdateBoundary();
     }
 
     void Update()
     {
-        UpdateConstants();
+        densityShader.Dispatch(kernel, TEX_WIDTH / 8, TEX_HEIGHT / 8, 1);
     }
 
     void OnValidate()
@@ -29,9 +42,20 @@ class Density : MonoBehaviour
         UpdateConstants();
     }
 
+    public void UpdateBoundary()
+    {
+        Vector2 bounds = GetComponentInChildren<Container>().Boundary;
+        Vector2 worldMin = -0.5f * bounds;
+        Vector2 worldMax = 0.5f * bounds;
+
+        densityShader.SetVector("worldMin", worldMin);
+        densityShader.SetVector("worldMax", worldMax);
+    }
+
     public void BindBuffer(ComputeBuffer positionBuffer)
     {
         densityShader.SetBuffer(kernel, "Positions", positionBuffer);
+        densityShader.SetInt("instanceCount", positionBuffer.count);
     }
 
     void UpdateConstants()

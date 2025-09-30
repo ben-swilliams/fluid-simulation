@@ -32,6 +32,7 @@ public class Spawn : MonoBehaviour
         CreateBuffer();
         UpdateBuffer();
         GetComponent<Draw>().BindBuffer(PositionBuffer, size);
+        GetComponent<Density>().BindBuffer(PositionBuffer);
     }
 
     void OnValidate()
@@ -51,7 +52,7 @@ public class Spawn : MonoBehaviour
         Simulate sim = GetComponentInChildren<Simulate>();
         if (drawer == null || sim == null || density == null || PositionBuffer == null) return;
 
-        if ((asGrid || prevGridMode != asGrid) && !sim.Started)
+        if (!sim.Started)
         {
             positions = GeneratePositions();
 
