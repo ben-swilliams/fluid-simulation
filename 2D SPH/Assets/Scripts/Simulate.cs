@@ -24,12 +24,11 @@ public class Simulate : MonoBehaviour
     bool started;
 
     int instanceCount;
-
+    ComputeBuffer positionBuffer;
+    ComputeBuffer velocityBuffer;
     /*
     Public getters
     */
-    public ComputeBuffer positionBuffer { get; private set; }
-    public ComputeBuffer velocityBuffer { get; private set; }
     public bool Started => started;
     
     void Start()
@@ -103,11 +102,15 @@ public class Simulate : MonoBehaviour
         computeShader.SetBuffer(kernel, "Velocities", velocityBuffer);
     }
 
-    public void UpdateVariables()
+    void UpdateVariables()
     {
         computeShader.SetFloat("dampingFactor", dampingFactor);
-        computeShader.SetVector("containerSize", GetComponentInChildren<Container>().Boundary);
         computeShader.SetVector("gravity", gravity);
+    }
+
+    public void UpdateBoundary()
+    {
+        computeShader.SetVector("containerSize", GetComponentInChildren<Container>().Boundary);
     }
 
     void OnValidate()

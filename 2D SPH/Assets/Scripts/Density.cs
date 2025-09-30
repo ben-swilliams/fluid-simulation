@@ -3,7 +3,6 @@ using UnityEngine;
 class Density : MonoBehaviour
 {
     [SerializeField] ComputeShader densityShader;
-    [SerializeField] GameObject simObject;
     [SerializeField] float smoothingRadius = 0.1f;
 
     float smoothingRadiusSq;
@@ -11,6 +10,8 @@ class Density : MonoBehaviour
     float kernelVolume;
 
     int kernel;
+
+    RenderTexture densityField;
 
     void Start()
     {
@@ -22,9 +23,15 @@ class Density : MonoBehaviour
         UpdateConstants();
     }
 
+    void OnValidate()
+    {
+        smoothingRadius = Mathf.Max(0, smoothingRadius);
+        UpdateConstants();
+    }
+
     public void BindBuffer(ComputeBuffer positionBuffer)
     {
-        densityShader.SetBuffer(kernel, "Positions", positionBuffer); 
+        densityShader.SetBuffer(kernel, "Positions", positionBuffer);
     }
 
     void UpdateConstants()

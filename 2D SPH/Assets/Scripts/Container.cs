@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using UnityEngine;
 
 public class Container : MonoBehaviour
@@ -32,10 +33,10 @@ public class Container : MonoBehaviour
     {
         Setup();
         SetPoints();
-        Simulate sim = GetComponent<Simulate>();
+        Simulate sim = GetComponentInParent<Simulate>();
         if (sim != null && sim.Started)
         {
-            sim.UpdateVariables();
+            sim.UpdateBoundary();
         }
     }
 
