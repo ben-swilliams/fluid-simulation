@@ -15,29 +15,21 @@ public class Draw : MonoBehaviour
     /*
     Private properties
     */
-    Simulate sim;
-    Spawn spawner;
     Material instanceMaterial;
     Bounds bounds;
-    ComputeBuffer positionsBuffer;
 
     uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
     ComputeBuffer argsBuffer;
 
     void Start()
     {
-        sim = GetComponentInParent<Simulate>();
-        spawner = GetComponentInParent<Spawn>();
         instanceMaterial = new Material(shader);
         bounds = new Bounds(Vector2.zero, Vector2.one * 1000f);
-        InitialiseArgsBuffer();
-        UpdatePositions();
     }
 
     void Update()
     {
-        instanceMaterial.SetFloat("size", spawner.Size);
-        if (sim.Started) UpdatePositions();
+        if (argsBuffer == null) return;
 
         Graphics.DrawMeshInstancedIndirect(
             mesh,
@@ -48,46 +40,21 @@ public class Draw : MonoBehaviour
         );
     }
 
-    void CleanupPositionBuffer()
+    public void BindBuffer(ComputeBuffer positionBuffer, float size)
     {
-        if (positionsBuffer == null) return;
-
-        positionsBuffer.Release();
-        positionsBuffer = null;
+        InitialiseArgsBuffer(positionBuffer.count);
+        instanceMaterial.SetFloat("size", size);
+        instanceMaterial.SetBuffer("positions", positionBuffer);
     }
 
-    public void BindBuffer()
-    {
-        CleanupPositionBuffer();
-        instanceMaterial.SetBuffer("positions", sim.positionBuffer);
-    }
-
-    public void UpdatePositions()
-    {
-        if (spawner == null || sim.Started) return;
-
-        InitialiseArgsBuffer();
-        positionsBuffer = CreateSpawnBuffer();
-        instanceMaterial.SetBuffer("positions", positionsBuffer);
-    }
-
-    ComputeBuffer CreateSpawnBuffer()
-    {
-        CleanupPositionBuffer();
-        positionsBuffer = new ComputeBuffer(spawner.InstanceCount, sizeof(float) * 2);
-        positionsBuffer.SetData(spawner.Positions);
-
-        return positionsBuffer;
-    }
-
-    void InitialiseArgsBuffer()
+    void InitialiseArgsBuffer(int instanceCount)
     {
         CleanupArgsBuffer();
 
         argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
 
         args[0] = (uint)mesh.GetIndexCount(0);
-        args[1] = (uint)spawner.InstanceCount;
+        args[1] = (uint)instanceCount;
         args[2] = (uint)mesh.GetIndexStart(0);
         args[3] = (uint)mesh.GetBaseVertex(0);
         argsBuffer.SetData(args);
@@ -104,7 +71,6 @@ public class Draw : MonoBehaviour
     void OnDestroy()
     {
         CleanupArgsBuffer();
-        CleanupPositionBuffer();
     }
 
 }
