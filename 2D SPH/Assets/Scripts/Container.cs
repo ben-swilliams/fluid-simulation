@@ -3,21 +3,26 @@ using UnityEngine;
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class Container : MonoBehaviour
 {
+    /*
+    Inspector settings
+    */
     [SerializeField] Vector2 boundary = new Vector2(5f, 5f);
+    [SerializeField] Mesh mesh;
 
+    /*
+    Private properties
+    */
     MeshFilter meshFilter;
     MeshRenderer meshRenderer;
-    Mesh mesh;
 
+    /*
+    Public getters
+    */
     public Vector2 Boundary => boundary;
 
     void Start()
     {
-        meshFilter = GetComponent<MeshFilter>();
-        meshRenderer = GetComponent<MeshRenderer>();
-        meshRenderer.material = new Material(Shader.Find("Unlit/Texture"));
-
-        CreateQuad();
+        InitialiseMesh();
         UpdateFieldSize();
         ApplyTexture();
     }
@@ -27,37 +32,23 @@ public class Container : MonoBehaviour
         if (!Application.isPlaying) return;
 
         UpdateFieldSize();
-        ApplyTexture();
+        GetComponentInParent<Simulate>().UpdateBoundary();
+        GetComponentInParent<Density>().UpdateBoundary();
     }
 
-    void CreateQuad()
+    void OnDrawGizmos()
     {
-        mesh = new Mesh();
-        mesh.name = "ContainerQuad";
+        Gizmos.color = Color.red;
 
-        Vector3[] vertices = new Vector3[4]
-        {
-            new Vector3(-0.5f, -0.5f, 0),
-            new Vector3(0.5f, -0.5f, 0),
-            new Vector3(-0.5f, 0.5f, 0),
-            new Vector3(0.5f, 0.5f, 0)
-        };
+        Gizmos.DrawWireCube(transform.position, new Vector3(boundary.x, boundary.y, 0f));
+    }
 
-        int[] triangles = new int[6] { 0, 2, 1, 2, 3, 1 };
-
-        Vector2[] uv = new Vector2[4]
-        {
-            new Vector2(0,0),
-            new Vector2(1,0),
-            new Vector2(0,1),
-            new Vector2(1,1)
-        };
-
-        mesh.vertices = vertices;
-        mesh.triangles = triangles;
-        mesh.uv = uv;
-
+    void InitialiseMesh()
+    {
+        meshFilter = GetComponent<MeshFilter>();
         meshFilter.mesh = mesh;
+        meshRenderer = GetComponent<MeshRenderer>();
+        meshRenderer.material = new Material(Shader.Find("Unlit/Texture"));
     }
 
     void UpdateFieldSize()
@@ -68,9 +59,6 @@ public class Container : MonoBehaviour
     void ApplyTexture()
     {
         Density density = GetComponentInParent<Density>();
-        if (density != null && density.DensityField != null)
-        {
-            meshRenderer.material.mainTexture = density.DensityField;
-        }
+        meshRenderer.material.mainTexture = density.densityField;
     }
 }

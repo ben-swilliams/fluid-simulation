@@ -2,31 +2,32 @@ using UnityEngine;
 
 class Density : MonoBehaviour
 {
+    /*
+    Inspector settings
+    */
     [SerializeField] ComputeShader densityShader;
     [SerializeField] float smoothingRadius = 0.1f;
+    [SerializeField] Color color;
+
+    /*
+    Private properties
+    */
+    const int TEX_WIDTH = 1024;
+    const int TEX_HEIGHT = 1024;
 
     float smoothingRadiusSq;
     float kernelConstant;
     float kernelVolume;
-
     int kernel;
 
-    RenderTexture densityField;
-
-    const int TEX_WIDTH = 512;
-    const int TEX_HEIGHT = 512;
-
-    public RenderTexture DensityField => densityField;
+    /*
+    Public getters
+    */
+    public RenderTexture densityField { get; private set; }
 
     void Start()
     {
-        kernel = densityShader.FindKernel("DensityField");
-        densityField = new RenderTexture(TEX_WIDTH, TEX_HEIGHT, 0, RenderTextureFormat.ARGBFloat);
-        densityField.enableRandomWrite = true;
-        densityField.Create();
-
-        densityShader.SetTexture(kernel, "Field", densityField);
-        densityShader.SetInts("fieldSize", new int[] { TEX_WIDTH, TEX_HEIGHT });
+        InitialiseShader();
         UpdateConstants();
         UpdateBoundary();
     }
@@ -40,6 +41,29 @@ class Density : MonoBehaviour
     {
         smoothingRadius = Mathf.Max(0, smoothingRadius);
         UpdateConstants();
+    }
+
+    void InitialiseShader()
+    {
+        kernel = densityShader.FindKernel("DensityField");
+        densityField = new RenderTexture(TEX_WIDTH, TEX_HEIGHT, 0, RenderTextureFormat.ARGBFloat);
+        densityField.enableRandomWrite = true;
+        densityField.Create();
+
+        densityShader.SetTexture(kernel, "Field", densityField);
+        densityShader.SetInts("fieldSize", new int[] { TEX_WIDTH, TEX_HEIGHT });
+    }
+
+    void UpdateConstants()
+    {
+        smoothingRadiusSq = smoothingRadius * smoothingRadius;
+        kernelConstant = 315 / (64 * Mathf.PI * Mathf.Pow(smoothingRadiusSq, 4.5f));
+        kernelVolume = kernelConstant * Mathf.PI * Mathf.Pow(smoothingRadiusSq, 4) * 0.25f;
+
+        densityShader.SetFloat("smoothingRadiusSq", smoothingRadiusSq);
+        densityShader.SetFloat("kernelConstant", kernelConstant);
+        densityShader.SetFloat("kernelVolume", kernelVolume);
+        densityShader.SetVector("color", color);
     }
 
     public void UpdateBoundary()
@@ -58,14 +82,4 @@ class Density : MonoBehaviour
         densityShader.SetInt("instanceCount", positionBuffer.count);
     }
 
-    void UpdateConstants()
-    {
-        smoothingRadiusSq = smoothingRadius * smoothingRadius;
-        kernelConstant = 315 / (64 * Mathf.PI * Mathf.Pow(smoothingRadiusSq, 4.5f));
-        kernelVolume = kernelConstant * Mathf.PI * Mathf.Pow(smoothingRadiusSq, 4) * 0.25f;
-
-        densityShader.SetFloat("smoothingRadiusSq", smoothingRadiusSq);
-        densityShader.SetFloat("kernelConstant", kernelConstant);
-        densityShader.SetFloat("kernelVolume", kernelVolume);
-    }
 }

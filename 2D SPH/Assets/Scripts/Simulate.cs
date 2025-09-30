@@ -1,3 +1,4 @@
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 public class Simulate : MonoBehaviour
@@ -26,6 +27,7 @@ public class Simulate : MonoBehaviour
     int instanceCount;
     ComputeBuffer positionBuffer;
     ComputeBuffer velocityBuffer;
+
     /*
     Public getters
     */
@@ -53,14 +55,34 @@ public class Simulate : MonoBehaviour
         }
     }
 
+    void OnValidate()
+    {
+        if (!started) return;
+
+        UpdateVariables();
+    }
+    
+    void OnDestroy()
+    {
+        if (positionBuffer != null)
+            positionBuffer.Release();
+        if (velocityBuffer != null)
+            velocityBuffer.Release();
+    }
+
     void StartSimulation()
     {
         SetupBuffers();
         InitialiseVariables();
         UpdateBoundary();
+        BindExternalBuffers();
+        started = true;
+    }
+
+    void BindExternalBuffers()
+    {
         GetComponent<Draw>().BindBuffer(positionBuffer, spawner.Size);
         GetComponent<Density>().BindBuffer(positionBuffer);
-        started = true;
     }
 
     Vector2[] GenerateVelocityData()
@@ -79,14 +101,21 @@ public class Simulate : MonoBehaviour
 
     void SetupBuffers()
     {
-        positionBuffer = new ComputeBuffer(spawner.InstanceCount, sizeof(float) * 2);
-        Vector2[] positions = new Vector2[spawner.InstanceCount];
-        spawner.PositionBuffer.GetData(positions);
+        Vector2[] positions = ExtractSpawnData();
+        positionBuffer = new ComputeBuffer(positions.Length, sizeof(float) * 2);
         positionBuffer.SetData(positions);
 
         Vector2[] velocities = GenerateVelocityData();
         velocityBuffer = new ComputeBuffer(spawner.InstanceCount, sizeof(float) * 2);
         velocityBuffer.SetData(velocities);
+    }
+
+    Vector2[] ExtractSpawnData()
+    {
+        Vector2[] positions = new Vector2[spawner.InstanceCount];
+        spawner.positionBuffer.GetData(positions);
+
+        return positions;
     }
 
     void InitialiseVariables()
@@ -114,18 +143,4 @@ public class Simulate : MonoBehaviour
         computeShader.SetVector("containerSize", GetComponentInChildren<Container>().Boundary);
     }
 
-    void OnValidate()
-    {
-        if (!started) return;
-
-        UpdateVariables();
-    }
-    
-    void OnDestroy()
-    {
-        if (positionBuffer != null)
-            positionBuffer.Release();
-        if (velocityBuffer != null)
-            velocityBuffer.Release();
-    }
 }
