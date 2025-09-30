@@ -47,8 +47,9 @@ public class Spawn : MonoBehaviour
         if (!Application.isPlaying) return;
 
         Draw drawer = GetComponentInChildren<Draw>();
+        Density density = GetComponentInChildren<Density>();
         Simulate sim = GetComponentInChildren<Simulate>();
-        if (drawer == null || sim == null || PositionBuffer == null) return;
+        if (drawer == null || sim == null || density == null || PositionBuffer == null) return;
 
         if ((asGrid || prevGridMode != asGrid) && !sim.Started)
         {
@@ -57,6 +58,7 @@ public class Spawn : MonoBehaviour
             UpdateBuffer();
 
             drawer.BindBuffer(PositionBuffer, size);
+            density.BindBuffer(PositionBuffer);
         }
 
         prevGridMode = asGrid;

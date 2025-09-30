@@ -59,6 +59,7 @@ public class Simulate : MonoBehaviour
         SetupBuffers();
         InitialiseVariables();
         GetComponent<Draw>().BindBuffer(positionBuffer, spawner.Size);
+        GetComponent<Density>().BindBuffer(positionBuffer);
         started = true;
     }
 

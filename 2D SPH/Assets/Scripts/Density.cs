@@ -6,24 +6,25 @@ class Density : MonoBehaviour
     [SerializeField] GameObject simObject;
     [SerializeField] float smoothingRadius = 0.1f;
 
+    float smoothingRadiusSq;
+    float kernelConstant;
+    float kernelVolume;
 
-    Simulate sim;
-    Spawn spawn;
-
-    private float smoothingRadiusSq;
-    private float kernelConstant;
-    private float kernelVolume;
+    int kernel;
 
     void Start()
     {
-        spawn = simObject.GetComponent<Spawn>();
-        sim = simObject.GetComponent<Simulate>();
+        kernel = densityShader.FindKernel("DensityField");
     }
 
     void Update()
     {
         UpdateConstants();
-        if (!sim.Started) return;
+    }
+
+    public void BindBuffer(ComputeBuffer positionBuffer)
+    {
+        densityShader.SetBuffer(kernel, "Positions", positionBuffer); 
     }
 
     void UpdateConstants()
