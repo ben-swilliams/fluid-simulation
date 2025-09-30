@@ -7,6 +7,7 @@ public class Spawn : MonoBehaviour
     */
     [SerializeField] int instanceCount = 10;
     [SerializeField] float size = 0.1f;
+    [SerializeField] float spacing = 0f;
     [SerializeField] Vector2 spawnArea = new Vector2(10f, 10f);
     [SerializeField] bool asGrid;
 
@@ -21,7 +22,8 @@ public class Spawn : MonoBehaviour
     Private properties
     */
     Vector2[] positions;
-    private bool prevGridMode = false;
+    bool prevGridMode = false;
+    float sizeWithSpacing;
 
     void Start()
     {
@@ -32,13 +34,21 @@ public class Spawn : MonoBehaviour
     void OnValidate()
     {
         instanceCount = Mathf.Max(0, instanceCount);
+        sizeWithSpacing = size + spacing;
 
-        Draw drawer = GetComponentInChildren<Draw>();
+        var drawer = GetComponentInChildren<Draw>();
         if (drawer == null) return;
 
-        if (asGrid) instanceCount = Mathf.Min(calculateMaxInGrid(), instanceCount);
+        if (asGrid)
+        {
+            int maxGrid = calculateMaxInGrid();
+            if (positions != null && instanceCount != positions.Length)
+                instanceCount = Mathf.Min(maxGrid, instanceCount);
+            else
+                instanceCount = maxGrid;
+        }
 
-        if ((positions != null && positions.Length != instanceCount) || asGrid || prevGridMode != asGrid)
+        if (asGrid || positions == null || positions.Length != instanceCount || prevGridMode != asGrid)
         {
             positions = GeneratePositions();
             drawer.UpdatePositions();
@@ -47,10 +57,11 @@ public class Spawn : MonoBehaviour
         prevGridMode = asGrid;
     }
 
+
     int calculateMaxInGrid()
     {
-        int sizeX = (int)(spawnArea.x / size);
-        int sizeY = (int)(spawnArea.y / size);
+        int sizeX = (int)(spawnArea.x / sizeWithSpacing);
+        int sizeY = (int)(spawnArea.y / sizeWithSpacing);
 
         return sizeX * sizeY;
     }
@@ -75,12 +86,12 @@ public class Spawn : MonoBehaviour
         Vector2[] positions = new Vector2[instanceCount];
 
         Vector2 topLeft = new Vector2(
-            -spawnArea.x/2 + size / 2,
-            spawnArea.y/2 - size / 2
+            -spawnArea.x/2 + sizeWithSpacing / 2,
+            spawnArea.y/2 - sizeWithSpacing / 2
         );
 
-        int sizeX = (int)(spawnArea.x / size);
-        int sizeY = (int)(spawnArea.y / size);
+        int sizeX = (int)(spawnArea.x / sizeWithSpacing);
+        int sizeY = (int)(spawnArea.y / sizeWithSpacing);
         for (int x = 0; x < sizeX; x++) {
             for (int y = 0; y < sizeY; y++)
             {
@@ -88,8 +99,8 @@ public class Spawn : MonoBehaviour
                 if (idx >= instanceCount) continue;
 
                 positions[idx] = topLeft + new Vector2(
-                    x * size,
-                    -y * size
+                    x * sizeWithSpacing,
+                    -y * sizeWithSpacing
                 );
             }
         }
