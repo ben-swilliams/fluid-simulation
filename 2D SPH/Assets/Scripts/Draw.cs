@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class Draw : MonoBehaviour
 {
@@ -55,26 +56,18 @@ public class Draw : MonoBehaviour
         positionsBuffer = null;
     }
 
+    public void BindBuffer()
+    {
+        CleanupPositionBuffer();
+        instanceMaterial.SetBuffer("positions", sim.positionBuffer);
+    }
+
     public void UpdatePositions()
     {
-        if (spawner == null) return;
+        if (spawner == null || sim.Started) return;
 
         InitialiseArgsBuffer();
-
-
-        if (sim.Started)
-        {
-            if (positionsBuffer != null && positionsBuffer != sim.positionBuffer)
-            {
-                positionsBuffer.Release();
-            }
-            positionsBuffer = sim.positionBuffer;
-        }
-        else
-        {
-            positionsBuffer = CreateSpawnBuffer();
-        }
-
+        positionsBuffer = CreateSpawnBuffer();
         instanceMaterial.SetBuffer("positions", positionsBuffer);
     }
 

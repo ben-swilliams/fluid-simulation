@@ -13,29 +13,29 @@ float deltaTime;
 float size;
 float dampingFactor;
 
-void Collisions(uint3 id : SV_DispatchThreadID) {
+void Collisions(uint id : SV_DispatchThreadID) {
     // Bottom
-    if (Positions[id.x].y < -containerSize.y/2 + size/2){ 
-        Velocities[id.x].y = Velocities[id.x].y * -dampingFactor;
-        Positions[id.x].y = -containerSize.y/2 + size/2;
+    if (Positions[id].y < -containerSize.y/2 + size/2){ 
+        Velocities[id].y = Velocities[id.x].y * -dampingFactor;
+        Positions[id].y = -containerSize.y/2 + size/2;
     }
 
     // Top
-    if (Positions[id.x].y > containerSize.y/2 - size/2) {
-        Velocities[id.x].y = Velocities[id.x].y * -dampingFactor;
-        Positions[id.x].y = containerSize.y/2 - size/2;
+    if (Positions[id].y > containerSize.y/2 - size/2) {
+        Velocities[id].y = Velocities[id.x].y * -dampingFactor;
+        Positions[id].y = containerSize.y/2 - size/2;
     }
 
     // Left
-    if (Positions[id.x].x < -containerSize.x/2 + size / 2) {
-        Velocities[id.x].x = Velocities[id.x].x * -dampingFactor;
-        Positions[id.x].x = -containerSize.x/2 + size/2;
+    if (Positions[id].x < -containerSize.x/2 + size / 2) {
+        Velocities[id].x = Velocities[id.x].x * -dampingFactor;
+        Positions[id].x = -containerSize.x/2 + size/2;
     }
 
     // Right
-    if (Positions[id.x].x > containerSize.x/2 - size / 2) {
-        Velocities[id.x].x = Velocities[id.x].x * -dampingFactor;
-        Positions[id.x].x = containerSize.x/2 - size/2;
+    if (Positions[id].x > containerSize.x/2 - size / 2) {
+        Velocities[id].x = Velocities[id.x].x * -dampingFactor;
+        Positions[id].x = containerSize.x/2 - size/2;
     }
 }
 
@@ -47,5 +47,5 @@ void Gravity(uint3 id : SV_DispatchThreadID) {
     Velocities[id.x] += gravity * deltaTime;
     Positions[id.x] += Velocities[id.x] * deltaTime;
 
-    Collisions(id);
+    Collisions(id.x);
 }

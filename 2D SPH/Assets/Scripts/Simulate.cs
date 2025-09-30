@@ -57,6 +57,7 @@ public class Simulate : MonoBehaviour
     {
         SetupBuffers();
         InitialiseVariables();
+        GetComponent<Draw>().BindBuffer();
         started = true;
     }
 
@@ -102,15 +103,6 @@ public class Simulate : MonoBehaviour
         computeShader.SetFloat("dampingFactor", dampingFactor);
         computeShader.SetVector("containerSize", GetComponentInChildren<Container>().Boundary);
         computeShader.SetVector("gravity", gravity);
-    }
-
-    // Temporary
-    public Vector2[] GetPositions()
-    {
-        Vector2[] positions = new Vector2[positionBuffer.count];
-        positionBuffer.GetData(positions);
-
-        return positions;
     }
 
     void OnValidate()

@@ -2,7 +2,10 @@ using UnityEngine;
 
 class Density : MonoBehaviour
 {
+    [SerializeField] ComputeShader densityShader;
     [SerializeField] GameObject simObject;
+    [SerializeField] float smoothingRadius = 0.1f;
+
 
     Simulate sim;
     Spawn spawn;
@@ -19,39 +22,18 @@ class Density : MonoBehaviour
 
     void Update()
     {
-        CalculateConstants();
+        UpdateConstants();
         if (!sim.Started) return;
-
-        Debug.Log(CalculateDensity());
     }
 
-    void CalculateConstants()
+    void UpdateConstants()
     {
-        smoothingRadiusSq = Mathf.Pow(GetComponent<Transform>().localScale.x / 2, 2);
+        smoothingRadiusSq = smoothingRadius * smoothingRadius;
         kernelConstant = 315 / (64 * Mathf.PI * Mathf.Pow(smoothingRadiusSq, 4.5f));
         kernelVolume = kernelConstant * Mathf.PI * Mathf.Pow(smoothingRadiusSq, 4) * 0.25f;
-    }
 
-    float CalculateDensity()
-    {
-        Vector2 centre = GetComponent<Transform>().position;
-        Vector2[] positions = sim.GetPositions();
-
-        float density = 0;
-
-        for (int p = 0; p < spawn.InstanceCount; p++)
-        {
-            Vector2 offset = positions[p] - centre;
-            density += SmoothingKernel(offset);
-        }
-
-        return density / kernelVolume;
-    }
-
-    float SmoothingKernel(Vector2 offset)
-    {
-        if (offset.sqrMagnitude > smoothingRadiusSq) return 0;
-
-        return kernelConstant * Mathf.Pow(smoothingRadiusSq - offset.sqrMagnitude, 3);
+        densityShader.SetFloat("smoothingRadiusSq", smoothingRadiusSq);
+        densityShader.SetFloat("kernelConstant", kernelConstant);
+        densityShader.SetFloat("kernelVolume", kernelVolume);
     }
 }
