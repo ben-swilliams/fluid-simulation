@@ -3,12 +3,21 @@ using UnityEngine;
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class Container : MonoBehaviour
 {
+    /*
+    Inspector settings
+    */
     [SerializeField] Vector2 boundary = new Vector2(5f, 5f);
 
+    /*
+    Private properties
+    */
     MeshFilter meshFilter;
     MeshRenderer meshRenderer;
     Mesh mesh;
 
+    /*
+    Public getters
+    */
     public Vector2 Boundary => boundary;
 
     void Start()
@@ -27,7 +36,8 @@ public class Container : MonoBehaviour
         if (!Application.isPlaying) return;
 
         UpdateFieldSize();
-        ApplyTexture();
+        GetComponentInParent<Simulate>().UpdateBoundary();
+        GetComponentInParent<Density>().UpdateBoundary();
     }
 
     void CreateQuad()
@@ -72,5 +82,12 @@ public class Container : MonoBehaviour
         {
             meshRenderer.material.mainTexture = density.DensityField;
         }
+    }
+
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+
+        Gizmos.DrawWireCube(transform.position, new Vector3(boundary.x, boundary.y, 0f));
     }
 }
