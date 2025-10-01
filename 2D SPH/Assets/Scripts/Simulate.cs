@@ -13,9 +13,9 @@ public class Simulate : MonoBehaviour
 
     [Header("Simulation Settings")]
     [SerializeField] float initSpeed = 5f;
-
     [SerializeField] Vector2 gravity = new Vector2(0, -9.8f);
     [SerializeField] float dampingFactor = 0.9f;
+    [SerializeField] float smoothingRadius = 1f;
 
     /*
     Private properties
@@ -33,6 +33,7 @@ public class Simulate : MonoBehaviour
     Public getters
     */
     public bool Started => started;
+    public float SmoothingRadius => smoothingRadius;
     
     void Start()
     {
@@ -60,6 +61,12 @@ public class Simulate : MonoBehaviour
 
     void OnValidate()
     {
+        ValidateInspectorProperties();
+
+        if (!Application.isPlaying) return;
+
+        GetComponentInChildren<DensityField>().UpdateSmoothingRadius();
+
         if (!started) return;
 
         UpdateVariables();
@@ -85,6 +92,7 @@ public class Simulate : MonoBehaviour
     void BindExternalBuffers()
     {
         GetComponent<Draw>().BindBuffer(positionBuffer, spawner.Size);
+        GetComponentInChildren<DensityField>().BindBuffer(positionBuffer);
     }
 
     Vector2[] GenerateVelocityData()
@@ -138,6 +146,13 @@ public class Simulate : MonoBehaviour
     {
         computeShader.SetFloat("dampingFactor", dampingFactor);
         computeShader.SetVector("gravity", gravity);
+    }
+
+    void ValidateInspectorProperties()
+    {
+        initSpeed = Mathf.Max(0, initSpeed);
+        dampingFactor = Mathf.Max(0, dampingFactor);
+        smoothingRadius = Mathf.Max(0, smoothingRadius);
     }
 
     public void UpdateBoundary()

@@ -96,6 +96,7 @@ public class Spawn : MonoBehaviour
     void BindExternalBuffers()
     {
         GetComponent<Draw>().BindBuffer(positionBuffer, size);
+        GetComponentInChildren<DensityField>().BindBuffer(positionBuffer);
     }
 
     void ReleaseBuffer()
