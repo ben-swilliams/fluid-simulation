@@ -41,7 +41,7 @@ public class Spawn : MonoBehaviour
 
         if (!GetComponent<Simulate>().Started)
         {
-            if (instanceCount != positionBuffer.count || prevGridMode != asGrid)
+            if (positionBuffer != null || instanceCount != positionBuffer.count || prevGridMode != asGrid)
             {
                 UpdateBuffer();
             }
