@@ -64,10 +64,12 @@ public class Container : MonoBehaviour
 
     void SetPoints()
     {
-        lr.SetPosition(0, new Vector3(-boundary.x / 2f, -boundary.y / 2f));
-        lr.SetPosition(1, new Vector3(boundary.x / 2f, -boundary.y / 2f));
-        lr.SetPosition(2, new Vector3(boundary.x / 2f, boundary.y / 2f));
-        lr.SetPosition(3, new Vector3(-boundary.x / 2f, boundary.y / 2f));
+        float offset = thickness / 2f;
+        
+        lr.SetPosition(0, new Vector3(-boundary.x / 2f - offset, -boundary.y / 2f - offset));
+        lr.SetPosition(1, new Vector3(boundary.x / 2f + offset, -boundary.y / 2f - offset));
+        lr.SetPosition(2, new Vector3(boundary.x / 2f + offset, boundary.y / 2f + offset));
+        lr.SetPosition(3, new Vector3(-boundary.x / 2f - offset, boundary.y / 2f + offset));
     }
 
     void InitialiseMesh()
@@ -83,8 +85,10 @@ public class Container : MonoBehaviour
         transform.localScale = new Vector3(boundary.x, boundary.y, 1);
     }
 
-    void ApplyTexture()
+    public void ApplyTexture()
     {
+        if (meshRenderer == null) return;
+
         DensityField density = GetComponent<DensityField>();
         meshRenderer.material.mainTexture = density.densityField;
     }

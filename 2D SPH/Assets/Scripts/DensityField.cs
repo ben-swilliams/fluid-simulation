@@ -8,13 +8,11 @@ class DensityField : MonoBehaviour
     [SerializeField] ComputeShader densityShader;
     [SerializeField] Color color;
     [SerializeField] bool isEnabled = true;
+    [SerializeField] Vector2 resolution = new Vector2(512, 512);
 
     /*
     Private properties
     */
-    const int TEX_WIDTH = 1024;
-    const int TEX_HEIGHT = 1024;
-
     float smoothingRadiusSq;
     float kernelConstant;
     float kernelVolume;
@@ -34,7 +32,7 @@ class DensityField : MonoBehaviour
 
     void Update()
     {
-        if (isEnabled) densityShader.Dispatch(kernel, TEX_WIDTH / 8, TEX_HEIGHT / 8, 1);
+        if (isEnabled) densityShader.Dispatch(kernel, (int)resolution.x / 8, (int)resolution.y / 8, 1);
 
         if (UnityEngine.InputSystem.Keyboard.current.dKey.wasPressedThisFrame)
         {
@@ -45,19 +43,30 @@ class DensityField : MonoBehaviour
 
     void OnValidate()
     {
+        resolution.x = Mathf.Max(8, Mathf.RoundToInt(resolution.x / 8) * 8);
+        resolution.y = Mathf.Max(8, Mathf.RoundToInt(resolution.y / 8) * 8);
+        
         if (!isEnabled) ClearTexture();
-        UpdateConstants();
+        
+        if (Application.isPlaying)
+        {
+            InitialiseShader();
+            UpdateConstants();
+            GetComponent<Container>().ApplyTexture();
+        }
     }
 
     void InitialiseShader()
     {
         kernel = densityShader.FindKernel("DensityField");
-        densityField = new RenderTexture(TEX_WIDTH, TEX_HEIGHT, 0, RenderTextureFormat.ARGBFloat);
+        
+        if (densityField != null) densityField.Release();
+        
+        densityField = new RenderTexture((int)resolution.x, (int)resolution.y, 0, RenderTextureFormat.ARGBFloat);
         densityField.enableRandomWrite = true;
         densityField.Create();
 
         densityShader.SetTexture(kernel, "Field", densityField);
-        densityShader.SetInts("fieldSize", new int[] { TEX_WIDTH, TEX_HEIGHT });
     }
 
     void UpdateConstants()
@@ -66,6 +75,7 @@ class DensityField : MonoBehaviour
         kernelConstant = 315 / (64 * Mathf.PI * Mathf.Pow(smoothingRadiusSq, 4.5f));
         kernelVolume = kernelConstant * Mathf.PI * Mathf.Pow(smoothingRadiusSq, 4) * 0.25f;
 
+        densityShader.SetInts("fieldSize", new int[] { (int)resolution.x, (int)resolution.y });
         densityShader.SetFloat("smoothingRadiusSq", smoothingRadiusSq);
         densityShader.SetFloat("kernelConstant", kernelConstant);
         densityShader.SetFloat("kernelVolume", kernelVolume);
@@ -74,6 +84,8 @@ class DensityField : MonoBehaviour
 
     void ClearTexture()
     {
+        if (densityField == null) return;
+        
         RenderTexture prev = RenderTexture.active;
 
         RenderTexture.active = densityField;
