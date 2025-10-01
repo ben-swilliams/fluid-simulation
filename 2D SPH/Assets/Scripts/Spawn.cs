@@ -41,12 +41,12 @@ public class Spawn : MonoBehaviour
 
         if (!GetComponent<Simulate>().Started)
         {
-            if (instanceCount != positionBuffer.count || prevGridMode != asGrid)
+            if (positionBuffer != null && (instanceCount != positionBuffer.count || prevGridMode != asGrid))
             {
                 UpdateBuffer();
             }
 
-            BindExternalBuffers();
+            if (positionBuffer != null) BindExternalBuffers();
         }
 
         prevGridMode = asGrid;
@@ -96,7 +96,6 @@ public class Spawn : MonoBehaviour
     void BindExternalBuffers()
     {
         GetComponent<Draw>().BindBuffer(positionBuffer, size);
-        GetComponent<Density>().BindBuffer(positionBuffer);
     }
 
     void ReleaseBuffer()

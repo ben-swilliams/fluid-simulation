@@ -7,37 +7,10 @@ RWStructuredBuffer<float2> Velocities;
 
 uint instanceCount;
 
-float2 gravity;
-float2 containerSize;
 float deltaTime;
-float size;
-float dampingFactor;
 
-void Collisions(uint id : SV_DispatchThreadID) {
-    // Bottom
-    if (Positions[id].y < -containerSize.y/2 + size/2){ 
-        Velocities[id].y = Velocities[id.x].y * -dampingFactor;
-        Positions[id].y = -containerSize.y/2 + size/2;
-    }
-
-    // Top
-    if (Positions[id].y > containerSize.y/2 - size/2) {
-        Velocities[id].y = Velocities[id.x].y * -dampingFactor;
-        Positions[id].y = containerSize.y/2 - size/2;
-    }
-
-    // Left
-    if (Positions[id].x < -containerSize.x/2 + size / 2) {
-        Velocities[id].x = Velocities[id.x].x * -dampingFactor;
-        Positions[id].x = -containerSize.x/2 + size/2;
-    }
-
-    // Right
-    if (Positions[id].x > containerSize.x/2 - size / 2) {
-        Velocities[id].x = Velocities[id.x].x * -dampingFactor;
-        Positions[id].x = containerSize.x/2 - size/2;
-    }
-}
+#include "External.hlsl"
+#include "Density.hlsl"
 
 [numthreads(NumThreads, 1, 1)]
 void Gravity(uint3 id : SV_DispatchThreadID) {
