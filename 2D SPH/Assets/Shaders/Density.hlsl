@@ -1,19 +1,6 @@
-#pragma kernel DensityField
-
-uint instanceCount;
 float smoothingRadiusSq;
 float kernelConstant;
 float kernelVolume;
-
-RWStructuredBuffer<float2> Positions;
-
-RWTexture2D<float4> Field;
-uint2 fieldSize;
-
-float2 worldMin;
-float2 worldMax;
-
-float4 color;
 
 float SmoothingKernel(float2 offset) {
     float oSquared = dot(offset, offset);
@@ -36,16 +23,4 @@ float CalculateDensity(float2 pointWorld) {
     }
 
     return density / kernelVolume;
-}
-
-[numthreads(8, 8, 1)]
-void DensityField(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= fieldSize.x || id.y >= fieldSize.y) return;
-
-    float2 uv = (float2(id.xy) + 0.5) / fieldSize;
-    float2 pointWorld = lerp(worldMin, worldMax, uv);
-
-    float density = CalculateDensity(pointWorld);
-
-    Field[id.xy] = color * float4(density, density, density, 0.5);
 }

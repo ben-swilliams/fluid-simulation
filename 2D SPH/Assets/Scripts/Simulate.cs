@@ -85,7 +85,6 @@ public class Simulate : MonoBehaviour
     void BindExternalBuffers()
     {
         GetComponent<Draw>().BindBuffer(positionBuffer, spawner.Size);
-        GetComponent<Density>().BindBuffer(positionBuffer);
     }
 
     Vector2[] GenerateVelocityData()
