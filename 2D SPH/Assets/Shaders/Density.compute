@@ -1,0 +1,27 @@
+#pragma kernel DensityField
+
+RWStructuredBuffer<float2> Positions;
+RWTexture2D<float4> Field;
+
+uint instanceCount;
+
+uint2 fieldSize;
+
+float2 worldMin;
+float2 worldMax;
+
+float4 color;
+
+#include "Density.hlsl"
+
+[numthreads(8, 8, 1)]
+void DensityField(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= fieldSize.x || id.y >= fieldSize.y) return;
+
+    float2 uv = (float2(id.xy) + 0.5) / fieldSize;
+    float2 pointWorld = lerp(worldMin, worldMax, uv);
+
+    float density = CalculateDensity(pointWorld);
+
+    Field[id.xy] = float4(color.rgb * density, 0.5);
+}
