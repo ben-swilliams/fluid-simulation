@@ -19,25 +19,21 @@ float2 PressureKernelGrad(float2 offset) {
     return float2(3 * diffSq, -3 * diffSq);
 }
 
-float CalculatePressure(float2 pointWorld) {
-    float density = CalculateDensity(pointWorld);
-
-    return gasConstant * (density - restDensity);
+float CalculatePressure(uint i) {
+    return gasConstant * (Densities[i] - restDensity);
 }
 
 float2 CalculatePressureForce(uint i) {
     float2 pForce = 0;
 
-    float pressureI = CalculatePressure(Positions[i]);
-    float densityI = CalculateDensity(Positions[i]);
+    float pressureI = CalculatePressure(i);
 
     for (uint j = 0; j < instanceCount; j++) {
-        float pressureJ = CalculatePressure(Positions[j]);
-        float densityJ = CalculateDensity(Positions[j]);
+        float pressureJ = CalculatePressure(j);
         float2 offset = Positions[i] - Positions[j];
 
-        pForce += ((pressureI + pressureJ) / (2 * densityJ)) * PressureKernelGrad(offset);
+        pForce += ((pressureI + pressureJ) / (2 * Densities[j])) * PressureKernelGrad(offset);
     }
 
-    return pForce / densityI;
+    return pForce / Densities[i];
 }

@@ -1,4 +1,5 @@
 #pragma kernel Gravity
+#pragma kernel Density
 #pragma kernel Pressure
 #pragma kernel UpdatePositions
 
@@ -6,6 +7,7 @@ static const uint NumThreads = 64;
 
 RWStructuredBuffer<float2> Positions;
 RWStructuredBuffer<float2> Velocities;
+RWStructuredBuffer<float> Densities;
 
 uint instanceCount;
 
@@ -23,6 +25,13 @@ void Gravity(uint3 id : SV_DispatchThreadID) {
 
     // Classic Euler stuff
     Velocities[id.x] += gravity * deltaTime;
+}
+
+[numthreads(NumThreads, 1, 1)]
+void Density(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Densities[id.x] = CalculateDensity(Positions[id.x]);
 }
 
 [numthreads(NumThreads, 1, 1)]
