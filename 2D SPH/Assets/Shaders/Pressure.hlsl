@@ -29,14 +29,15 @@ float2 CalculatePressureForce(uint i) {
     float2 pForce = 0;
 
     float pressureI = CalculatePressure(Positions[i]);
+    float densityI = CalculateDensity(Positions[i]);
 
     for (uint j = 0; j < instanceCount; j++) {
         float pressureJ = CalculatePressure(Positions[j]);
         float densityJ = CalculateDensity(Positions[j]);
         float2 offset = Positions[i] - Positions[j];
 
-        pForce += PressureKernelGrad(offset);
+        pForce += ((pressureI + pressureJ) / (2 * densityJ)) * PressureKernelGrad(offset);
     }
 
-    return pForce;
+    return pForce / densityI;
 }

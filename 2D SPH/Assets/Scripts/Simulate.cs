@@ -61,7 +61,7 @@ public class Simulate : MonoBehaviour
             int threadGroups = Mathf.CeilToInt(instanceCount / (float)threadGroupSize);
 
             computeShader.Dispatch(gravityKernel, threadGroups, 1, 1);
-            // computeShader.Dispatch(pressureKernel, threadGroups, 1, 1);
+            computeShader.Dispatch(pressureKernel, threadGroups, 1, 1);
             computeShader.Dispatch(positionKernel, threadGroups, 1, 1);
         }
     }
