@@ -124,7 +124,7 @@ public class Simulate : MonoBehaviour
 
     void SetupBuffers()
     {
-        Vector2[] positions = ExtractSpawnData();
+        Vector2[] positions = spawner.ExtractPositions();
         positionBuffer = new ComputeBuffer(positions.Length, sizeof(float) * 2);
         positionBuffer.SetData(positions);
 
@@ -137,12 +137,25 @@ public class Simulate : MonoBehaviour
         densityBuffer.SetData(densities);
     }
 
-    Vector2[] ExtractSpawnData()
+    void FindKernels()
     {
-        Vector2[] positions = new Vector2[spawner.InstanceCount];
-        spawner.positionBuffer.GetData(positions);
+        gravityKernel = computeShader.FindKernel("Gravity");
+        pressureKernel = computeShader.FindKernel("Pressure");
+        densityKernel = computeShader.FindKernel("Density");
+        positionKernel = computeShader.FindKernel("UpdatePositions");
+    }
 
-        return positions;
+    void BindBuffers()
+    {
+        computeShader.SetBuffer(gravityKernel, "Positions", positionBuffer);
+        computeShader.SetBuffer(gravityKernel, "Velocities", velocityBuffer);
+        computeShader.SetBuffer(pressureKernel, "Positions", positionBuffer);
+        computeShader.SetBuffer(pressureKernel, "Velocities", velocityBuffer);
+        computeShader.SetBuffer(pressureKernel, "Densities", densityBuffer);
+        computeShader.SetBuffer(densityKernel, "Positions", positionBuffer);
+        computeShader.SetBuffer(densityKernel, "Densities", densityBuffer);
+        computeShader.SetBuffer(positionKernel, "Positions", positionBuffer);
+        computeShader.SetBuffer(positionKernel, "Velocities", velocityBuffer);
     }
 
     void InitialiseVariables()
@@ -153,20 +166,8 @@ public class Simulate : MonoBehaviour
         computeShader.SetInt("instanceCount", instanceCount);
         UpdateVariables();
 
-        gravityKernel = computeShader.FindKernel("Gravity");
-        pressureKernel = computeShader.FindKernel("Pressure");
-        densityKernel = computeShader.FindKernel("Density");
-        positionKernel = computeShader.FindKernel("UpdatePositions");
-
-        computeShader.SetBuffer(gravityKernel, "Positions", positionBuffer);
-        computeShader.SetBuffer(gravityKernel, "Velocities", velocityBuffer);
-        computeShader.SetBuffer(pressureKernel, "Positions", positionBuffer);
-        computeShader.SetBuffer(pressureKernel, "Velocities", velocityBuffer);
-        computeShader.SetBuffer(pressureKernel, "Densities", densityBuffer);
-        computeShader.SetBuffer(densityKernel, "Positions", positionBuffer);
-        computeShader.SetBuffer(densityKernel, "Densities", densityBuffer);
-        computeShader.SetBuffer(positionKernel, "Positions", positionBuffer);
-        computeShader.SetBuffer(positionKernel, "Velocities", velocityBuffer);
+        FindKernels();
+        BindBuffers();
     }
 
     void UpdateVariables()
