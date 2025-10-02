@@ -1,16 +1,23 @@
 #pragma kernel Gravity
+#pragma kernel Density
+#pragma kernel Pressure
+#pragma kernel UpdatePositions
 
 static const uint NumThreads = 64;
 
 RWStructuredBuffer<float2> Positions;
 RWStructuredBuffer<float2> Velocities;
+RWStructuredBuffer<float> Densities;
 
 uint instanceCount;
 
 float deltaTime;
 
+float smoothingRadius;
+
 #include "External.hlsl"
 #include "Density.hlsl"
+#include "Pressure.hlsl"
 
 [numthreads(NumThreads, 1, 1)]
 void Gravity(uint3 id : SV_DispatchThreadID) {
@@ -18,7 +25,26 @@ void Gravity(uint3 id : SV_DispatchThreadID) {
 
     // Classic Euler stuff
     Velocities[id.x] += gravity * deltaTime;
-    Positions[id.x] += Velocities[id.x] * deltaTime;
+}
 
+[numthreads(NumThreads, 1, 1)]
+void Density(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Densities[id.x] = CalculateDensity(Positions[id.x]);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void Pressure(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Velocities[id.x] += CalculatePressureForce(id.x) * deltaTime;
+}
+
+[numthreads(NumThreads, 1, 1)]
+void UpdatePositions(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Positions[id.x] += Velocities[id.x] * deltaTime;
     Collisions(id.x);
 }

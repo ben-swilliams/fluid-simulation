@@ -7,6 +7,8 @@ uint instanceCount;
 
 uint2 fieldSize;
 
+float smoothingRadius;
+
 float2 worldMin;
 float2 worldMax;
 

@@ -169,4 +169,13 @@ public class Spawn : MonoBehaviour
         return asGrid ? GenerateGridPositions() : GenerateRandomPositions();
     }
 
+    public Vector2[] ExtractPositions()
+    {
+        Vector2[] positions = new Vector2[instanceCount];
+        positionBuffer.GetData(positions);
+
+        return positions;
+    }
+
+
 }
