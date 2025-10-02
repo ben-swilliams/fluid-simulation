@@ -70,12 +70,10 @@ class DensityField : MonoBehaviour
     void UpdateConstants()
     {
         float kernelConstant = 315 / (64 * Mathf.PI * Mathf.Pow(smoothingRadius, 9f));
-        float kernelVolume = kernelConstant * Mathf.PI * Mathf.Pow(smoothingRadius, 8) * 0.25f;
 
         densityShader.SetInts("fieldSize", new int[] { (int)resolution.x, (int)resolution.y });
         densityShader.SetFloat("smoothingRadius", smoothingRadius);
         densityShader.SetFloat("kernelConstant", kernelConstant);
-        densityShader.SetFloat("kernelVolume", kernelVolume);
         densityShader.SetVector("color", color);
     }
 
