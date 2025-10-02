@@ -1,17 +1,7 @@
-float pressureKernelConstant;
 float pressureKernelGradConstant;
 
 float gasConstant;
 float restDensity;
-
-float PressureKernel(float2 offset) {
-    if (dot(offset, offset) > smoothingRadius * smoothingRadius) return 0;
-
-    float r = length(offset);
-    float inner = smoothingRadius - r;
-
-    return pressureKernelConstant * inner * inner * inner;
-}
 
 float2 PressureKernelGrad(float2 offset) {
     float r = length(offset);
