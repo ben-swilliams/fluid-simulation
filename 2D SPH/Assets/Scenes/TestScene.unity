@@ -181,7 +181,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 12.42
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -289,11 +289,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
   computeShader: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
   initSpeed: 0
-  gravity: {x: 0, y: 0}
-  dampingFactor: 0.7
-  smoothingRadius: 1
-  gasConstant: 1
-  restDensity: 1
+  gravity: {x: 0, y: -9.8}
+  dampingFactor: 0.95
+  smoothingRadius: 0.3
+  gasConstant: 30
+  restDensity: 5
 --- !u!4 &1274155412
 Transform:
   m_ObjectHideFlags: 0
@@ -322,11 +322,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90a21f46cb45640b88337bf5d5a09f85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawn
-  instanceCount: 400
-  size: 0.22
-  spacing: 0
-  spawnArea: {x: 16.16, y: 8.18}
-  asGrid: 0
+  instanceCount: 7467
+  size: 0.2
+  spacing: 0.09
+  spawnArea: {x: 38.2, y: 16.6}
+  asGrid: 1
 --- !u!114 &1274155414
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -374,7 +374,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3322910ee2f44accaabe65cfbc676a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Container
-  boundary: {x: 16.9, y: 8.66}
+  boundary: {x: 44.2, y: 23.88}
   mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   thickness: 0.1
 --- !u!4 &1607714413

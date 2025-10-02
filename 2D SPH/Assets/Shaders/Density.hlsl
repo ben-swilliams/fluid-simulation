@@ -16,7 +16,7 @@ float CalculateDensity(float2 pointWorld) {
     float density = 0;
 
     for (uint i = 0; i < instanceCount; i++) {
-        float2 offset = Positions[i] - pointWorld;
+        float2 offset = PredictedPositions[i] - pointWorld;
         density += SmoothingKernel(offset);
     }
 

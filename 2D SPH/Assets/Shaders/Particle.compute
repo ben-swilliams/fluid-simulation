@@ -6,6 +6,7 @@
 static const uint NumThreads = 64;
 
 RWStructuredBuffer<float2> Positions;
+RWStructuredBuffer<float2> PredictedPositions;
 RWStructuredBuffer<float2> Velocities;
 RWStructuredBuffer<float> Densities;
 
@@ -25,13 +26,15 @@ void Gravity(uint3 id : SV_DispatchThreadID) {
 
     // Classic Euler stuff
     Velocities[id.x] += gravity * deltaTime;
+
+    PredictedPositions[id.x] = Positions[id.x] + Velocities[id.x] * 1/120.0;
 }
 
 [numthreads(NumThreads, 1, 1)]
 void Density(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Densities[id.x] = CalculateDensity(Positions[id.x]);
+    Densities[id.x] = CalculateDensity(PredictedPositions[id.x]);
 }
 
 [numthreads(NumThreads, 1, 1)]

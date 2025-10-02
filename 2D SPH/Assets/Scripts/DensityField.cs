@@ -107,7 +107,7 @@ class DensityField : MonoBehaviour
 
     public void BindBuffer(ComputeBuffer positionBuffer)
     {
-        densityShader.SetBuffer(kernel, "Positions", positionBuffer);
+        densityShader.SetBuffer(kernel, "PredictedPositions", positionBuffer);
         densityShader.SetInt("instanceCount", positionBuffer.count);
     }
 }
