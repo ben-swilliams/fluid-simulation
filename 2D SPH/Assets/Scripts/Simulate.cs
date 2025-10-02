@@ -16,12 +16,16 @@ public class Simulate : MonoBehaviour
     [SerializeField] Vector2 gravity = new Vector2(0, -9.8f);
     [SerializeField] float dampingFactor = 0.9f;
     [SerializeField] float smoothingRadius = 1f;
+    [SerializeField] float gasConstant = 1f;
+    [SerializeField] float restDensity = 1f;
 
     /*
     Private properties
     */
     static int threadGroupSize = 64;
-    int kernel;
+    int gravityKernel;
+    int pressureKernel;
+    int positionKernel;
     Spawn spawner;
     bool started;
 
@@ -55,7 +59,10 @@ public class Simulate : MonoBehaviour
             computeShader.SetFloat("deltaTime", Time.deltaTime);
 
             int threadGroups = Mathf.CeilToInt(instanceCount / (float)threadGroupSize);
-            computeShader.Dispatch(kernel, threadGroups, 1, 1);
+
+            computeShader.Dispatch(gravityKernel, threadGroups, 1, 1);
+            // computeShader.Dispatch(pressureKernel, threadGroups, 1, 1);
+            computeShader.Dispatch(positionKernel, threadGroups, 1, 1);
         }
     }
 
@@ -136,16 +143,28 @@ public class Simulate : MonoBehaviour
         computeShader.SetInt("instanceCount", instanceCount);
         UpdateVariables();
 
-        kernel = computeShader.FindKernel("Gravity");
+        gravityKernel = computeShader.FindKernel("Gravity");
+        pressureKernel = computeShader.FindKernel("Pressure");
+        positionKernel = computeShader.FindKernel("UpdatePositions");
 
-        computeShader.SetBuffer(kernel, "Positions", positionBuffer);
-        computeShader.SetBuffer(kernel, "Velocities", velocityBuffer);
+        computeShader.SetBuffer(gravityKernel, "Positions", positionBuffer);
+        computeShader.SetBuffer(gravityKernel, "Velocities", velocityBuffer);
+        computeShader.SetBuffer(pressureKernel, "Positions", positionBuffer);
+        computeShader.SetBuffer(pressureKernel, "Velocities", velocityBuffer);
+        computeShader.SetBuffer(positionKernel, "Positions", positionBuffer);
+        computeShader.SetBuffer(positionKernel, "Velocities", velocityBuffer);
     }
 
     void UpdateVariables()
     {
+        computeShader.SetFloat("smoothingRadius", smoothingRadius);
         computeShader.SetFloat("dampingFactor", dampingFactor);
         computeShader.SetVector("gravity", gravity);
+
+        float pressureKernelConstant = 15 / (Mathf.PI * Mathf.Pow(smoothingRadius, 6));
+        computeShader.SetFloat("pressureKernelConstant", pressureKernelConstant);
+        computeShader.SetFloat("gasConstant", gasConstant);
+        computeShader.SetFloat("restDensity", restDensity);
     }
 
     void ValidateInspectorProperties()
@@ -153,6 +172,8 @@ public class Simulate : MonoBehaviour
         initSpeed = Mathf.Max(0, initSpeed);
         dampingFactor = Mathf.Max(0, dampingFactor);
         smoothingRadius = Mathf.Max(0, smoothingRadius);
+        gasConstant = Mathf.Max(0, gasConstant);
+        restDensity = Mathf.Max(0, restDensity);
     }
 
     public void UpdateBoundary()

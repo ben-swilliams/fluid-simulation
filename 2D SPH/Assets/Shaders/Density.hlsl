@@ -1,14 +1,13 @@
-float smoothingRadiusSq;
 float kernelConstant;
 float kernelVolume;
 
 float SmoothingKernel(float2 offset) {
     float oSquared = dot(offset, offset);
-    if (oSquared > smoothingRadiusSq) {
+    if (oSquared > smoothingRadius * smoothingRadius) {
         return 0;
     } else {
 
-        float diff = smoothingRadiusSq - oSquared;
+        float diff = (smoothingRadius * smoothingRadius) - oSquared;
 
         return kernelConstant * diff * diff * diff;
     }
