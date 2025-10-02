@@ -1,5 +1,4 @@
 float kernelConstant;
-float kernelVolume;
 
 float SmoothingKernel(float2 offset) {
     float oSquared = dot(offset, offset);
@@ -21,5 +20,5 @@ float CalculateDensity(float2 pointWorld) {
         density += SmoothingKernel(offset);
     }
 
-    return density / kernelVolume;
+    return density;
 }
