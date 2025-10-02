@@ -1,4 +1,5 @@
 float pressureKernelConstant;
+float pressureKernelGradConstant;
 
 float gasConstant;
 float restDensity;
@@ -14,9 +15,13 @@ float PressureKernel(float2 offset) {
 
 float2 PressureKernelGrad(float2 offset) {
     float r = length(offset);
-    float diffSq = (r - smoothingRadius) * (r - smoothingRadius);
-
-    return float2(3 * diffSq, -3 * diffSq);
+    
+    if (r < 0.0001 || r > smoothingRadius) {
+        return float2(0, 0);
+    }
+    
+    float inner = smoothingRadius - r;
+    return pressureKernelGradConstant * inner * inner * offset / r;
 }
 
 float CalculatePressure(uint i) {
@@ -24,7 +29,7 @@ float CalculatePressure(uint i) {
 }
 
 float2 CalculatePressureForce(uint i) {
-    float2 pForce = 0;
+    float2 pForce = float2(0, 0);
 
     float pressureI = CalculatePressure(i);
 

@@ -14,8 +14,6 @@ class DensityField : MonoBehaviour
     Private properties
     */
     float smoothingRadius;
-    float kernelConstant;
-    float kernelVolume;
     int kernel;
 
     /*
@@ -71,8 +69,8 @@ class DensityField : MonoBehaviour
 
     void UpdateConstants()
     {
-        kernelConstant = 315 / (64 * Mathf.PI * Mathf.Pow(smoothingRadius, 9f));
-        kernelVolume = kernelConstant * Mathf.PI * Mathf.Pow(smoothingRadius, 8) * 0.25f;
+        float kernelConstant = 315 / (64 * Mathf.PI * Mathf.Pow(smoothingRadius, 9f));
+        float kernelVolume = kernelConstant * Mathf.PI * Mathf.Pow(smoothingRadius, 8) * 0.25f;
 
         densityShader.SetInts("fieldSize", new int[] { (int)resolution.x, (int)resolution.y });
         densityShader.SetFloat("smoothingRadius", smoothingRadius);
