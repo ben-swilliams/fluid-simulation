@@ -1,6 +1,6 @@
 #pragma kernel DensityField
 
-RWStructuredBuffer<float2> Positions;
+RWStructuredBuffer<float2> PredictedPositions;
 RWTexture2D<float4> Field;
 
 uint instanceCount;
@@ -25,10 +25,8 @@ void DensityField(uint3 id : SV_DispatchThreadID) {
 
     float density = CalculateDensity(pointWorld);
 
-    // Map density into [0,1] smoothly without min/max
     float normDensity = 1.0 - exp(-density * 0.5);  // 0 → low density, 1 → high
 
-    // Opposite tint at low density, original tint at high density
     float3 oppositeColor = 1.0 - color.rgb;
     float3 finalColor = lerp(oppositeColor, color.rgb, normDensity);
 

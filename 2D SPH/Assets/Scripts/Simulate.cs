@@ -1,5 +1,4 @@
-using System.Threading;
-using UnityEditor.ShaderGraph.Internal;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -33,6 +32,7 @@ public class Simulate : MonoBehaviour
 
     int instanceCount;
     ComputeBuffer positionBuffer;
+    ComputeBuffer predictedPositionBuffer;
     ComputeBuffer velocityBuffer;
     ComputeBuffer densityBuffer;
 
@@ -87,6 +87,8 @@ public class Simulate : MonoBehaviour
     {
         if (positionBuffer != null)
             positionBuffer.Release();
+        if (predictedPositionBuffer != null)
+            predictedPositionBuffer.Release();
         if (velocityBuffer != null)
             velocityBuffer.Release();
         if (densityBuffer != null)
@@ -128,6 +130,10 @@ public class Simulate : MonoBehaviour
         positionBuffer = new ComputeBuffer(positions.Length, sizeof(float) * 2);
         positionBuffer.SetData(positions);
 
+        Vector2[] predictedPositions = new Vector2[positions.Length];
+        predictedPositionBuffer = new ComputeBuffer(positions.Length, sizeof(float) * 2);
+        predictedPositionBuffer.SetData(predictedPositions);
+
         Vector2[] velocities = GenerateVelocityData();
         velocityBuffer = new ComputeBuffer(velocities.Length, sizeof(float) * 2);
         velocityBuffer.SetData(velocities);
@@ -148,11 +154,14 @@ public class Simulate : MonoBehaviour
     void BindBuffers()
     {
         computeShader.SetBuffer(gravityKernel, "Positions", positionBuffer);
+        computeShader.SetBuffer(gravityKernel, "PredictedPositions", predictedPositionBuffer);
         computeShader.SetBuffer(gravityKernel, "Velocities", velocityBuffer);
         computeShader.SetBuffer(pressureKernel, "Positions", positionBuffer);
+        computeShader.SetBuffer(pressureKernel, "PredictedPositions", predictedPositionBuffer);
         computeShader.SetBuffer(pressureKernel, "Velocities", velocityBuffer);
         computeShader.SetBuffer(pressureKernel, "Densities", densityBuffer);
         computeShader.SetBuffer(densityKernel, "Positions", positionBuffer);
+        computeShader.SetBuffer(densityKernel, "PredictedPositions", predictedPositionBuffer);
         computeShader.SetBuffer(densityKernel, "Densities", densityBuffer);
         computeShader.SetBuffer(positionKernel, "Positions", positionBuffer);
         computeShader.SetBuffer(positionKernel, "Velocities", velocityBuffer);

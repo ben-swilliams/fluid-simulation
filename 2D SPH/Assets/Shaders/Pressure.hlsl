@@ -27,10 +27,10 @@ float2 CalculatePressureForce(uint i) {
         if (i == j) continue;
 
         float pressureJ = CalculatePressure(j);
-        float2 offset = Positions[i] - Positions[j];
+        float2 offset = PredictedPositions[j] - PredictedPositions[i];
 
         pForce += ((pressureI + pressureJ) / (2 * Densities[j])) * PressureKernelGrad(offset);
     }
 
-    return -pForce / Densities[i];
+    return pForce / Densities[i];
 }
