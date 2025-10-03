@@ -292,8 +292,8 @@ MonoBehaviour:
   gravity: {x: 0, y: -9.8}
   dampingFactor: 0.95
   smoothingRadius: 0.3
-  gasConstant: 20
-  restDensity: 5
+  gasConstant: 50
+  restDensity: 1
 --- !u!4 &1274155412
 Transform:
   m_ObjectHideFlags: 0
