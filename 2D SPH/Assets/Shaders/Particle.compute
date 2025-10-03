@@ -49,5 +49,7 @@ void UpdatePositions(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     Positions[id.x] += Velocities[id.x] * deltaTime;
+    ApplyMouseForce(id.x);
+
     Collisions(id.x);
 }

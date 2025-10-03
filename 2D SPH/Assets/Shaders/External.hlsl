@@ -1,8 +1,12 @@
 float size;
 float dampingFactor;
+float power;
+float mouseRadius;
 
 float2 gravity;
 float2 containerSize;
+
+float2 origin;
 
 void Collisions(uint idx) {
     // Bottom
@@ -28,4 +32,13 @@ void Collisions(uint idx) {
         Velocities[idx].x = Velocities[idx].x * -dampingFactor;
         Positions[idx].x = containerSize.x/2 - size/2;
     }
+}
+
+void ApplyMouseForce(uint idx) {
+    float2 diff = origin - Positions[idx];
+    if (dot(diff, diff) > mouseRadius * mouseRadius) return;
+
+    float2 forceVector = normalize(diff) * power;
+
+    Velocities[idx] += forceVector * deltaTime;
 }
