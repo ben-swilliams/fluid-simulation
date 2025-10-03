@@ -19,11 +19,17 @@ Shader "Custom/Particle" {
             #include "UnityCG.cginc"
 
             StructuredBuffer<float2> positions;
+            StructuredBuffer<float2> velocities;
             float size;
+            float maxSpeed;
+
+            float4 slowColour;
+            float4 fastColour;
 
             struct v2f {
                 float4 pos : SV_POSITION;
                 float2 uv : TEXCOORD0;
+                float2 vel : TEXCOORD1;
             };
 
             v2f vert (appdata_full v, uint id : SV_InstanceID) {
@@ -34,6 +40,7 @@ Shader "Custom/Particle" {
                 v2f o;
 
                 o.pos = UnityObjectToClipPos(vertObj);
+                o.vel = velocities[id];
                 o.uv = v.texcoord;
 
                 return o;
@@ -51,7 +58,13 @@ Shader "Custom/Particle" {
                 // Anti-alias the edge of the circle
                 float alpha = 1 - smoothstep(1 - w, 1 + w, distSq);
 
-                return float4(1, 0, 0, alpha);
+                float speed = length(i.vel);
+                float normSpeed = saturate(speed / maxSpeed);
+
+                float4 colour = lerp(slowColour, fastColour, normSpeed);
+                colour.a = alpha;
+
+                return colour;
             }
             ENDCG
         }
