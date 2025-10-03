@@ -16,6 +16,7 @@ public class Spawn : MonoBehaviour
     */
     bool prevGridMode = false;
     float sizeWithSpacing;
+    ComputeBuffer velocityBuffer;
 
     /*
     Public getters
@@ -28,8 +29,8 @@ public class Spawn : MonoBehaviour
     void Start()
     {
         prevGridMode = asGrid;
-        CreateBuffer();
-        UpdateBuffer();
+        CreateBuffers();
+        UpdateBuffers();
         BindExternalBuffers();
     }
 
@@ -43,7 +44,7 @@ public class Spawn : MonoBehaviour
         {
             if (positionBuffer != null && (instanceCount != positionBuffer.count || prevGridMode != asGrid))
             {
-                UpdateBuffer();
+                UpdateBuffers();
             }
 
             if (positionBuffer != null) BindExternalBuffers();
@@ -70,21 +71,23 @@ public class Spawn : MonoBehaviour
             instanceCount = calculateMaxInGrid();
     }
 
-    void CreateBuffer()
+    void CreateBuffers()
     {
-        ReleaseBuffer();
+        ReleaseBuffers();
         positionBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
 
         Vector2[] positions = GeneratePositions();
         positionBuffer.SetData(positions);
+
+        velocityBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
     }
 
-    void UpdateBuffer()
+    void UpdateBuffers()
     {
         if (positionBuffer == null || positionBuffer.count != instanceCount)
         {
-            ReleaseBuffer();
-            CreateBuffer();
+            ReleaseBuffers();
+            CreateBuffers();
         }
         else
         {
@@ -95,22 +98,27 @@ public class Spawn : MonoBehaviour
 
     void BindExternalBuffers()
     {
-        GetComponent<Draw>().BindBuffer(positionBuffer, size);
+        GetComponent<Draw>().BindBuffers(positionBuffer, velocityBuffer, size);
         GetComponentInChildren<DensityField>().BindBuffer(positionBuffer);
     }
 
-    void ReleaseBuffer()
+    void ReleaseBuffers()
     {
         if (positionBuffer != null)
         {
             positionBuffer.Release();
             positionBuffer = null;
         }
+        if (velocityBuffer != null)
+        {
+            velocityBuffer.Release();
+            velocityBuffer = null;
+        }
     }
 
     void OnDestroy()
     {
-        ReleaseBuffer();
+        ReleaseBuffers();
     }
 
     int calculateMaxInGrid()

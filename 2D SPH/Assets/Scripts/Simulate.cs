@@ -106,7 +106,7 @@ public class Simulate : MonoBehaviour
 
     void BindExternalBuffers()
     {
-        GetComponent<Draw>().BindBuffer(positionBuffer, spawner.Size);
+        GetComponent<Draw>().BindBuffers(positionBuffer, velocityBuffer, spawner.Size);
         GetComponentInChildren<DensityField>().BindBuffer(positionBuffer);
     }
 

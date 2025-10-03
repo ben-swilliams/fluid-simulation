@@ -10,6 +10,9 @@ public class Draw : MonoBehaviour
 
     [Header("Appearance Settings")]
     [SerializeField] Mesh mesh;
+    [SerializeField] Color fastColour;
+    [SerializeField] Color slowColour;
+    [SerializeField] float maxSpeed = 10f;
 
     /*
     Private properties
@@ -38,7 +41,17 @@ public class Draw : MonoBehaviour
             argsBuffer
         );
     }
-    
+
+    void OnValidate()
+    {
+        maxSpeed = Mathf.Max(0, maxSpeed);
+        if (!Application.isPlaying || instanceMaterial == null) return;
+
+        instanceMaterial.SetFloat("maxSpeed", maxSpeed);
+        instanceMaterial.SetVector("slowColour", slowColour);
+        instanceMaterial.SetVector("fastColour", fastColour);
+    }
+
     void OnDestroy()
     {
         CleanupArgsBuffer();
@@ -50,10 +63,10 @@ public class Draw : MonoBehaviour
 
         argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
 
-        args[0] = (uint)mesh.GetIndexCount(0);
+        args[0] = mesh.GetIndexCount(0);
         args[1] = (uint)instanceCount;
-        args[2] = (uint)mesh.GetIndexStart(0);
-        args[3] = (uint)mesh.GetBaseVertex(0);
+        args[2] = mesh.GetIndexStart(0);
+        args[3] = mesh.GetBaseVertex(0);
         argsBuffer.SetData(args);
     }
 
@@ -65,10 +78,12 @@ public class Draw : MonoBehaviour
         argsBuffer = null;
     }
 
-    public void BindBuffer(ComputeBuffer positionBuffer, float size)
+    public void BindBuffers(ComputeBuffer positionBuffer, ComputeBuffer velocityBuffer, float size)
     {
         InitialiseArgsBuffer(positionBuffer.count);
         instanceMaterial.SetFloat("size", size);
+        instanceMaterial.SetFloat("maxSpeed", maxSpeed);
         instanceMaterial.SetBuffer("positions", positionBuffer);
+        instanceMaterial.SetBuffer("velocities", velocityBuffer);
     }
 }
