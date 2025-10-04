@@ -17,6 +17,8 @@ class MouseForce : MonoBehaviour
     float scrollSpeed = 10f;
     int segments = 100;
 
+    bool repulse = false;
+
     void Start()
     {
         lr = GetComponent<LineRenderer>();
@@ -33,6 +35,11 @@ class MouseForce : MonoBehaviour
         DrawRadius();
     }
 
+    void OnValidate()
+    {
+        power = Mathf.Max(0, power);
+    }
+
     void HandleScroll()
     {
         float scroll = UnityEngine.InputSystem.Mouse.current.scroll.ReadValue().y;
@@ -42,12 +49,14 @@ class MouseForce : MonoBehaviour
 
     void HandleClick()
     {
+        float signedPower = repulse ? -1 * power : power;
         if (UnityEngine.InputSystem.Mouse.current.leftButton.isPressed)
         {
-            GetComponent<Simulate>().UpdateMouseForce(mousePos, radius, power);
+            GetComponent<Simulate>().UpdateMouseForce(mousePos, radius, signedPower);
         }
         else
         {
+            if (UnityEngine.InputSystem.Mouse.current.rightButton.wasPressedThisFrame) repulse = !repulse;
             GetComponent<Simulate>().UpdateMouseForce(Vector2.zero, 0, 0);
         }
     }
@@ -62,6 +71,9 @@ class MouseForce : MonoBehaviour
 
     void DrawRadius()
     {
+        lr.startColor = repulse ? Color.black : Color.white;
+        lr.endColor = repulse ? Color.black : Color.white;
+
         Vector3[] positions = new Vector3[segments];
         float angleStep = 2 * Mathf.PI / segments;
 
