@@ -173,6 +173,7 @@ public class Simulate : MonoBehaviour
         computeShader.SetInt("threadGroupSize", threadGroupSize);
         computeShader.SetFloat("size", spawner.Size);
         computeShader.SetInt("instanceCount", instanceCount);
+        UpdateMouseForce(Vector2.zero, 0, 0);
         UpdateVariables();
 
         FindKernels();
@@ -202,6 +203,13 @@ public class Simulate : MonoBehaviour
         smoothingRadius = Mathf.Max(0.01f, smoothingRadius);
         gasConstant = Mathf.Max(0, gasConstant);
         restDensity = Mathf.Max(0, restDensity);
+    }
+
+    public void UpdateMouseForce(Vector2 origin, float radius, float power)
+    {
+        computeShader.SetVector("origin", origin);
+        computeShader.SetFloat("mouseRadius", radius);
+        computeShader.SetFloat("power", power);
     }
 
     public void UpdateBoundary()

@@ -82,6 +82,8 @@ public class Draw : MonoBehaviour
     {
         InitialiseArgsBuffer(positionBuffer.count);
         instanceMaterial.SetFloat("size", size);
+        instanceMaterial.SetColor("slowColour", slowColour);
+        instanceMaterial.SetColor("fastColour", fastColour);
         instanceMaterial.SetFloat("maxSpeed", maxSpeed);
         instanceMaterial.SetBuffer("positions", positionBuffer);
         instanceMaterial.SetBuffer("velocities", velocityBuffer);
