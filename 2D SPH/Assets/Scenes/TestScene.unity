@@ -294,7 +294,7 @@ MonoBehaviour:
   gravity: {x: 0, y: -9.8}
   dampingFactor: 0.95
   smoothingRadius: 0.3
-  gasConstant: 50
+  gasConstant: 100
   restDensity: 1
 --- !u!4 &1274155412
 Transform:
@@ -324,10 +324,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90a21f46cb45640b88337bf5d5a09f85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawn
-  instanceCount: 4095
+  instanceCount: 14751
   size: 0.2
   spacing: 0
-  spawnArea: {x: 13.1, y: 12.6}
+  spawnArea: {x: 30, y: 20}
   asGrid: 1
 --- !u!114 &1274155414
 MonoBehaviour:
