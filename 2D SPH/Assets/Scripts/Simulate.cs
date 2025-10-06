@@ -12,6 +12,7 @@ public class Simulate : MonoBehaviour
     [SerializeField] ComputeShader computeShader;
 
     [Header("Simulation Settings")]
+    [SerializeField] float simulationSpeed = 1f;
     [SerializeField] float initSpeed = 5f;
     [SerializeField] Vector2 gravity = new Vector2(0, -9.8f);
     [SerializeField] float dampingFactor = 0.9f;
@@ -63,7 +64,7 @@ public class Simulate : MonoBehaviour
         if (started)
         {
             float dt = Mathf.Min(dtTarget, Time.deltaTime);
-            computeShader.SetFloat("deltaTime", dt);
+            computeShader.SetFloat("deltaTime", dt * simulationSpeed);
 
             int threadGroups = Mathf.CeilToInt(instanceCount / (float)threadGroupSize);
 
@@ -202,6 +203,7 @@ public class Simulate : MonoBehaviour
 
     void ValidateInspectorProperties()
     {
+        simulationSpeed = Mathf.Clamp(simulationSpeed, 0, 1);
         initSpeed = Mathf.Max(0, initSpeed);
         dampingFactor = Mathf.Max(0, dampingFactor);
         smoothingRadius = Mathf.Max(0.01f, smoothingRadius);
