@@ -9,6 +9,7 @@ public class Spawn : MonoBehaviour
     [SerializeField] float size = 0.1f;
     [SerializeField] float spacing = 0f;
     [SerializeField] Vector2 spawnArea = new Vector2(10f, 10f);
+    [SerializeField] Vector2 spawnPosition = new Vector2(0f, 0f);
     [SerializeField] bool asGrid;
 
     /*
@@ -57,7 +58,7 @@ public class Spawn : MonoBehaviour
     {
         Gizmos.color = Color.white;
 
-        Gizmos.DrawWireCube(transform.position, new Vector3(spawnArea.x, spawnArea.y, 0f));
+        Gizmos.DrawWireCube(transform.position + new Vector3(spawnPosition.x, spawnPosition.y, 0), new Vector3(spawnArea.x, spawnArea.y, 0f));
     }
 
     void ValidateInspectorProperties()
@@ -139,6 +140,7 @@ public class Spawn : MonoBehaviour
                 Random.Range(-spawnArea.x / 2 + size / 2, spawnArea.x / 2 - size / 2),
                 Random.Range(-spawnArea.y / 2 + size / 2, spawnArea.y / 2 - size / 2)
             );
+            positions[i] += spawnPosition;
         }
 
         return positions;
@@ -152,6 +154,7 @@ public class Spawn : MonoBehaviour
             -spawnArea.x / 2 + sizeWithSpacing / 2,
             spawnArea.y / 2 - sizeWithSpacing / 2
         );
+        topLeft += spawnPosition;
 
         int sizeX = (int)(spawnArea.x / sizeWithSpacing);
         int sizeY = (int)(spawnArea.y / sizeWithSpacing);
