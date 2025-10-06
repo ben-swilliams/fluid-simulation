@@ -29,6 +29,8 @@ public class Simulate : MonoBehaviour
     int positionKernel;
     Spawn spawner;
     bool started;
+    int frameRateTarget = 120;
+    float dtTarget;
 
     int instanceCount;
     ComputeBuffer positionBuffer;
@@ -45,6 +47,7 @@ public class Simulate : MonoBehaviour
     void Start()
     {
         spawner = GetComponent<Spawn>();
+        dtTarget = 1f / frameRateTarget;
     }
 
     void Update()
@@ -59,7 +62,8 @@ public class Simulate : MonoBehaviour
 
         if (started)
         {
-            computeShader.SetFloat("deltaTime", Time.deltaTime);
+            float dt = Mathf.Min(dtTarget, Time.deltaTime);
+            computeShader.SetFloat("deltaTime", dt);
 
             int threadGroups = Mathf.CeilToInt(instanceCount / (float)threadGroupSize);
 
