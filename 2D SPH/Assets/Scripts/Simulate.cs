@@ -53,26 +53,20 @@ public class Simulate : MonoBehaviour
 
     void Update()
     {
-        if (UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame)
-        {
-            if (!started)
-                StartSimulation();
-            else
-                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        }
+        HandleKeyPresses();
 
         if (started)
-        {
-            float dt = Mathf.Min(dtTarget, Time.deltaTime);
-            computeShader.SetFloat("deltaTime", dt * simulationSpeed);
+            {
+                float dt = Mathf.Min(dtTarget, Time.deltaTime);
+                computeShader.SetFloat("deltaTime", dt * simulationSpeed);
 
-            int threadGroups = Mathf.CeilToInt(instanceCount / (float)threadGroupSize);
+                int threadGroups = Mathf.CeilToInt(instanceCount / (float)threadGroupSize);
 
-            computeShader.Dispatch(gravityKernel, threadGroups, 1, 1);
-            computeShader.Dispatch(densityKernel, threadGroups, 1, 1);
-            computeShader.Dispatch(pressureKernel, threadGroups, 1, 1);
-            computeShader.Dispatch(positionKernel, threadGroups, 1, 1);
-        }
+                computeShader.Dispatch(gravityKernel, threadGroups, 1, 1);
+                computeShader.Dispatch(densityKernel, threadGroups, 1, 1);
+                computeShader.Dispatch(pressureKernel, threadGroups, 1, 1);
+                computeShader.Dispatch(positionKernel, threadGroups, 1, 1);
+            }
     }
 
     void OnValidate()
@@ -210,6 +204,28 @@ public class Simulate : MonoBehaviour
         gasConstant = Mathf.Max(0, gasConstant);
         restDensity = Mathf.Max(0, restDensity);
     }
+
+    void HandleKeyPresses()
+    {
+        if (UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame)
+        {
+            if (!started)
+                StartSimulation();
+            else
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+
+        if (UnityEngine.InputSystem.Keyboard.current.enterKey.wasPressedThisFrame)
+            simulationSpeed = simulationSpeed == 1 ? 0 : 1;
+
+        if (UnityEngine.InputSystem.Keyboard.current.downArrowKey.wasPressedThisFrame)
+            simulationSpeed = Mathf.Max(0, simulationSpeed - 0.1f);
+
+        if (UnityEngine.InputSystem.Keyboard.current.upArrowKey.wasPressedThisFrame)
+            simulationSpeed = Mathf.Min(1, simulationSpeed + 0.1f);
+    }
+
+
 
     public void UpdateMouseForce(Vector2 origin, float radius, float power)
     {
