@@ -290,12 +290,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
   computeShader: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
+  simulationSpeed: 1
   initSpeed: 0
   gravity: {x: 0, y: -9.8}
   dampingFactor: 0.95
   smoothingRadius: 0.7
-  gasConstant: 500
-  restDensity: 3
+  gasConstant: 1000
+  restDensity: 8
 --- !u!4 &1274155412
 Transform:
   m_ObjectHideFlags: 0
@@ -324,10 +325,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90a21f46cb45640b88337bf5d5a09f85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawn
-  instanceCount: 3626
+  instanceCount: 9660
   size: 0.4
   spacing: 0
-  spawnArea: {x: 30, y: 20}
+  spawnArea: {x: 64.7, y: 24.3}
+  spawnPosition: {x: 0, y: -6.37}
   asGrid: 1
 --- !u!114 &1274155414
 MonoBehaviour:
@@ -344,8 +346,8 @@ MonoBehaviour:
   shader: {fileID: 4800000, guid: 86f6b5b4233e64ce79e43b45f3e9e726, type: 3}
   mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   fastColour: {r: 1, g: 0.14044955, b: 0, a: 1}
-  slowColour: {r: 0, g: 0.24647617, b: 1, a: 1}
-  maxSpeed: 10
+  slowColour: {r: 0, g: 0.69803923, b: 1, a: 1}
+  maxSpeed: 20
 --- !u!114 &1274155415
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -358,7 +360,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8ee7f52ab7854cb9b31b85c00333ff6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MouseForce
-  power: 20
+  power: 500
 --- !u!120 &1274155416
 LineRenderer:
   serializedVersion: 2
