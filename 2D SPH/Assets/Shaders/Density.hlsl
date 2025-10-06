@@ -1,3 +1,5 @@
+const float eps = 1e-4;
+
 float kernelConstant;
 
 float SmoothingKernel(float2 offset) {
@@ -20,5 +22,5 @@ float CalculateDensity(float2 pointWorld) {
         density += SmoothingKernel(offset);
     }
 
-    return density;
+    return max(eps, density);
 }

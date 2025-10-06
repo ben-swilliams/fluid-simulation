@@ -181,7 +181,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 12.42
+  orthographic size: 20.69
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -293,9 +293,9 @@ MonoBehaviour:
   initSpeed: 0
   gravity: {x: 0, y: -9.8}
   dampingFactor: 0.95
-  smoothingRadius: 0.3
-  gasConstant: 100
-  restDensity: 1
+  smoothingRadius: 0.7
+  gasConstant: 500
+  restDensity: 3
 --- !u!4 &1274155412
 Transform:
   m_ObjectHideFlags: 0
@@ -324,8 +324,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90a21f46cb45640b88337bf5d5a09f85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawn
-  instanceCount: 14751
-  size: 0.2
+  instanceCount: 3626
+  size: 0.4
   spacing: 0
   spawnArea: {x: 30, y: 20}
   asGrid: 1
@@ -502,7 +502,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3322910ee2f44accaabe65cfbc676a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Container
-  boundary: {x: 44.2, y: 23.88}
+  boundary: {x: 75.3, y: 38.5}
   mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   thickness: 0.1
 --- !u!4 &1607714413

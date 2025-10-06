@@ -27,7 +27,7 @@ void Gravity(uint3 id : SV_DispatchThreadID) {
     // Classic Euler stuff
     Velocities[id.x] += gravity * deltaTime;
 
-    PredictedPositions[id.x] = Positions[id.x] + Velocities[id.x] * 1/120.0;
+    PredictedPositions[id.x] = Positions[id.x] + Velocities[id.x] * deltaTime;
 }
 
 [numthreads(NumThreads, 1, 1)]
