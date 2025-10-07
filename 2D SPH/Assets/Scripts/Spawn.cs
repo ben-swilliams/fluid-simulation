@@ -5,6 +5,7 @@ public class Spawn : MonoBehaviour
     /*
     Inspector properties
     */
+    [Header("Initialisation settings")]
     [SerializeField] int instanceCount = 10;
     [SerializeField] float size = 0.1f;
     [SerializeField] float spacing = 0f;
