@@ -19,6 +19,7 @@ float smoothingRadius;
 #include "External.hlsl"
 #include "Density.hlsl"
 #include "Pressure.hlsl"
+#include "Viscosity.hlsl"
 
 [numthreads(NumThreads, 1, 1)]
 void Gravity(uint3 id : SV_DispatchThreadID) {
