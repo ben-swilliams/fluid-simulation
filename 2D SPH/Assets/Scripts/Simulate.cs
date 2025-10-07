@@ -79,11 +79,7 @@ public class Simulate : MonoBehaviour
     {
         ValidateInspectorProperties();
 
-        if (!Application.isPlaying) return;
-
-        GetComponentInChildren<DensityField>().UpdateSmoothingRadius();
-
-        if (!started) return;
+        if (!Application.isPlaying || !started) return;
 
         UpdateVariables();
     }
@@ -112,7 +108,6 @@ public class Simulate : MonoBehaviour
     void BindExternalBuffers()
     {
         GetComponent<Draw>().BindBuffers(positionBuffer, velocityBuffer, spawner.Size);
-        GetComponentInChildren<DensityField>().BindBuffer(positionBuffer);
     }
 
     Vector2[] GenerateVelocityData()

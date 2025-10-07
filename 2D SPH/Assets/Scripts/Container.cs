@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(LineRenderer))]
+[RequireComponent(typeof(LineRenderer))]
 public class Container : MonoBehaviour
 {
     /*
@@ -16,8 +16,6 @@ public class Container : MonoBehaviour
     /*
     Private properties
     */
-    MeshFilter meshFilter;
-    MeshRenderer meshRenderer;
     LineRenderer lr;
 
     /*
@@ -28,9 +26,6 @@ public class Container : MonoBehaviour
     void Start()
     {
         SetupBorder();
-        InitialiseMesh();
-        UpdateFieldSize();
-        ApplyTexture();
     }
 
     void OnValidate()
@@ -40,9 +35,7 @@ public class Container : MonoBehaviour
         if (!Application.isPlaying) return;
 
         SetupBorder();
-        UpdateFieldSize();
         GetComponentInParent<Simulate>().UpdateBoundary();
-        GetComponentInParent<DensityField>().UpdateBoundary();
     }
 
     void OnDrawGizmos()
@@ -73,26 +66,5 @@ public class Container : MonoBehaviour
         lr.SetPosition(1, new Vector3(boundary.x / 2f + offset, -boundary.y / 2f - offset));
         lr.SetPosition(2, new Vector3(boundary.x / 2f + offset, boundary.y / 2f + offset));
         lr.SetPosition(3, new Vector3(-boundary.x / 2f - offset, boundary.y / 2f + offset));
-    }
-
-    void InitialiseMesh()
-    {
-        meshFilter = GetComponent<MeshFilter>();
-        meshFilter.mesh = mesh;
-        meshRenderer = GetComponent<MeshRenderer>();
-        meshRenderer.material = new Material(Shader.Find("Unlit/Transparent"));
-    }
-
-    void UpdateFieldSize()
-    {
-        transform.localScale = new Vector3(boundary.x, boundary.y, 1);
-    }
-
-    public void ApplyTexture()
-    {
-        if (meshRenderer == null) return;
-
-        DensityField density = GetComponent<DensityField>();
-        meshRenderer.material.mainTexture = density.densityField;
     }
 }
