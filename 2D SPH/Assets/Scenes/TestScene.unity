@@ -291,13 +291,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
   computeShader: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
   simulationSpeed: 1
-  smoothingRadius: 0.7
+  smoothingRadius: 1.4
   initSpeed: 0
   gravity: {x: 0, y: -9.8}
   dampingFactor: 0.95
   gasConstant: 1000
-  restDensity: 8
-  viscosityMultiplier: 1
+  restDensity: 10
+  viscosityMultiplier: 10
 --- !u!4 &1274155412
 Transform:
   m_ObjectHideFlags: 0
