@@ -6,9 +6,12 @@ public class Container : MonoBehaviour
     /*
     Inspector settings
     */
+    [Header("Size settings")]
     [SerializeField] Vector2 boundary = new Vector2(5f, 5f);
-    [SerializeField] Mesh mesh;
     [SerializeField] float thickness = 0.1f;
+
+    [Header("Miscallaneous")]
+    [SerializeField] Mesh mesh;
 
     /*
     Private properties

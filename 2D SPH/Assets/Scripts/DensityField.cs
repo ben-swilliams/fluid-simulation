@@ -5,9 +5,9 @@ class DensityField : MonoBehaviour
     /*
     Inspector settings
     */
+    [Header("Shaders")]
     [SerializeField] ComputeShader densityShader;
     [SerializeField] Color color;
-    [SerializeField] bool isEnabled = true;
     [SerializeField] Vector2 resolution = new Vector2(512, 512);
 
     /*
@@ -15,6 +15,7 @@ class DensityField : MonoBehaviour
     */
     float smoothingRadius;
     int kernel;
+    bool isEnabled = false;
 
     /*
     Public getters

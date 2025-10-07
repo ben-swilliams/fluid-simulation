@@ -6,6 +6,7 @@ class MouseForce : MonoBehaviour
     /*
     Inspector properties
     */
+    [Header("Force settings")]
     [SerializeField] float power = 10f;
 
     /*
