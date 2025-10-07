@@ -1,5 +1,7 @@
 float viscosityKernelLapConstant;
 
+float viscosityMultiplier;
+
 float ViscosityKernelLap(float2 offset) {
     float r = length(offset);
 
@@ -7,4 +9,10 @@ float ViscosityKernelLap(float2 offset) {
         return 0;
 
     return viscosityKernelLapConstant * (smoothingRadius - r);
+}
+
+float2 CalculateViscosityForce(uint i) {
+    float2 vForce = float2(0, 0);
+
+    return viscosityMultiplier * vForce;
 }
