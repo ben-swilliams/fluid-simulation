@@ -79,11 +79,7 @@ public class Simulate : MonoBehaviour
     {
         ValidateInspectorProperties();
 
-        if (!Application.isPlaying) return;
-
-        GetComponentInChildren<DensityField>().UpdateSmoothingRadius();
-
-        if (!started) return;
+        if (!Application.isPlaying || !started) return;
 
         UpdateVariables();
     }
@@ -112,7 +108,6 @@ public class Simulate : MonoBehaviour
     void BindExternalBuffers()
     {
         GetComponent<Draw>().BindBuffers(positionBuffer, velocityBuffer, spawner.Size);
-        GetComponentInChildren<DensityField>().BindBuffer(positionBuffer);
     }
 
     Vector2[] GenerateVelocityData()
@@ -203,6 +198,9 @@ public class Simulate : MonoBehaviour
         computeShader.SetFloat("gasConstant", gasConstant);
         computeShader.SetFloat("restDensity", restDensity);
 
+        float particleMass = spawner.Area * restDensity / instanceCount;
+        computeShader.SetFloat("particleMass", particleMass);
+
         float viscosityKernelLapConstant = 45 / (Mathf.PI * Mathf.Pow(smoothingRadius, 6));
         computeShader.SetFloat("viscosityKernelLapConstant", viscosityKernelLapConstant);
         computeShader.SetFloat("viscosityMultiplier", viscosityMultiplier);
@@ -215,7 +213,7 @@ public class Simulate : MonoBehaviour
         dampingFactor = Mathf.Max(0, dampingFactor);
         smoothingRadius = Mathf.Max(0.01f, smoothingRadius);
         gasConstant = Mathf.Max(0, gasConstant);
-        restDensity = Mathf.Max(0, restDensity);
+        restDensity = Mathf.Max(0.01f, restDensity);
         viscosityMultiplier = Mathf.Max(0, viscosityMultiplier);
     }
 

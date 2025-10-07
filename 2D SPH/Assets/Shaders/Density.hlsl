@@ -19,7 +19,7 @@ float CalculateDensity(float2 pointWorld) {
 
     for (uint i = 0; i < instanceCount; i++) {
         float2 offset = PredictedPositions[i] - pointWorld;
-        density += SmoothingKernel(offset);
+        density += particleMass * SmoothingKernel(offset);
     }
 
     return max(eps, density);
