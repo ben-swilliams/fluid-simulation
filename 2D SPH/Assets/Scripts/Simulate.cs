@@ -14,13 +14,16 @@ public class Simulate : MonoBehaviour
     [Header("Simulation Settings")]
     [SerializeField] float simulationSpeed = 1f;
     [SerializeField] float smoothingRadius = 1f;
+
     [Header("External forces")]
     [SerializeField] float initSpeed = 5f;
     [SerializeField] Vector2 gravity = new Vector2(0, -9.8f);
     [SerializeField] float dampingFactor = 0.9f;
+
     [Header("Pressure")]
     [SerializeField] float gasConstant = 1f;
     [SerializeField] float restDensity = 1f;
+
     [Header("Viscosity")]
     [SerializeField] float viscosityMultiplier = 1f;
 
