@@ -14,6 +14,7 @@ RWStructuredBuffer<float> Densities;
 uint instanceCount;
 
 float deltaTime;
+float particleMass;
 
 float smoothingRadius;
 

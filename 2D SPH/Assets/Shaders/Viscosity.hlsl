@@ -20,7 +20,7 @@ float2 CalculateViscosityForce(uint i) {
 
         float laplacian = ViscosityKernelLap(posOffset);
         
-        vForce += (velOffset / Densities[j]) * laplacian;
+        vForce += particleMass * (velOffset / Densities[j]) * laplacian;
     }
 
     return viscosityMultiplier * vForce;
