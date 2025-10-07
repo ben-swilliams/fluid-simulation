@@ -13,12 +13,16 @@ public class Simulate : MonoBehaviour
 
     [Header("Simulation Settings")]
     [SerializeField] float simulationSpeed = 1f;
+    [SerializeField] float smoothingRadius = 1f;
+    [Header("External forces")]
     [SerializeField] float initSpeed = 5f;
     [SerializeField] Vector2 gravity = new Vector2(0, -9.8f);
     [SerializeField] float dampingFactor = 0.9f;
-    [SerializeField] float smoothingRadius = 1f;
+    [Header("Pressure")]
     [SerializeField] float gasConstant = 1f;
     [SerializeField] float restDensity = 1f;
+    [Header("Viscosity")]
+    [SerializeField] float viscosityMultiplier = 1f;
 
     /*
     Private properties
@@ -27,6 +31,7 @@ public class Simulate : MonoBehaviour
     int gravityKernel;
     int pressureKernel;
     int densityKernel;
+    int viscosityKernel;
     int positionKernel;
     Spawn spawner;
     bool started;
@@ -65,6 +70,7 @@ public class Simulate : MonoBehaviour
                 computeShader.Dispatch(gravityKernel, threadGroups, 1, 1);
                 computeShader.Dispatch(densityKernel, threadGroups, 1, 1);
                 computeShader.Dispatch(pressureKernel, threadGroups, 1, 1);
+                computeShader.Dispatch(viscosityKernel, threadGroups, 1, 1);
                 computeShader.Dispatch(positionKernel, threadGroups, 1, 1);
             }
     }
@@ -147,6 +153,7 @@ public class Simulate : MonoBehaviour
         gravityKernel = computeShader.FindKernel("Gravity");
         pressureKernel = computeShader.FindKernel("Pressure");
         densityKernel = computeShader.FindKernel("Density");
+        viscosityKernel = computeShader.FindKernel("Viscosity");
         positionKernel = computeShader.FindKernel("UpdatePositions");
     }
 
@@ -155,13 +162,17 @@ public class Simulate : MonoBehaviour
         computeShader.SetBuffer(gravityKernel, "Positions", positionBuffer);
         computeShader.SetBuffer(gravityKernel, "PredictedPositions", predictedPositionBuffer);
         computeShader.SetBuffer(gravityKernel, "Velocities", velocityBuffer);
+        computeShader.SetBuffer(densityKernel, "Positions", positionBuffer);
+        computeShader.SetBuffer(densityKernel, "PredictedPositions", predictedPositionBuffer);
+        computeShader.SetBuffer(densityKernel, "Densities", densityBuffer);
         computeShader.SetBuffer(pressureKernel, "Positions", positionBuffer);
         computeShader.SetBuffer(pressureKernel, "PredictedPositions", predictedPositionBuffer);
         computeShader.SetBuffer(pressureKernel, "Velocities", velocityBuffer);
         computeShader.SetBuffer(pressureKernel, "Densities", densityBuffer);
-        computeShader.SetBuffer(densityKernel, "Positions", positionBuffer);
-        computeShader.SetBuffer(densityKernel, "PredictedPositions", predictedPositionBuffer);
-        computeShader.SetBuffer(densityKernel, "Densities", densityBuffer);
+        computeShader.SetBuffer(viscosityKernel, "Positions", positionBuffer);
+        computeShader.SetBuffer(viscosityKernel, "PredictedPositions", predictedPositionBuffer);
+        computeShader.SetBuffer(viscosityKernel, "Velocities", velocityBuffer);
+        computeShader.SetBuffer(viscosityKernel, "Densities", densityBuffer);
         computeShader.SetBuffer(positionKernel, "Positions", positionBuffer);
         computeShader.SetBuffer(positionKernel, "Velocities", velocityBuffer);
     }
@@ -194,6 +205,7 @@ public class Simulate : MonoBehaviour
 
         float viscosityKernelLapConstant = 45 / (Mathf.PI * Mathf.Pow(smoothingRadius, 6));
         computeShader.SetFloat("viscosityKernelLapConstant", viscosityKernelLapConstant);
+        computeShader.SetFloat("viscosityMultiplier", viscosityMultiplier);
     }
 
     void ValidateInspectorProperties()
@@ -204,6 +216,7 @@ public class Simulate : MonoBehaviour
         smoothingRadius = Mathf.Max(0.01f, smoothingRadius);
         gasConstant = Mathf.Max(0, gasConstant);
         restDensity = Mathf.Max(0, restDensity);
+        viscosityMultiplier = Mathf.Max(0, viscosityMultiplier);
     }
 
     void HandleKeyPresses()
