@@ -14,11 +14,11 @@ float SmoothingKernel(float2 offset) {
     }
 }
 
-float CalculateDensity(float2 pointWorld) {
+float CalculateDensity(uint i) {
     float density = 0;
 
-    for (uint i = 0; i < instanceCount; i++) {
-        float2 offset = PredictedPositions[i] - pointWorld;
+    for (uint j = 0; j < instanceCount; j++) {
+        float2 offset = PredictedPositions[j] - PredictedPositions[i];
         density += particleMass * SmoothingKernel(offset);
     }
 
