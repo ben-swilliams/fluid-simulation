@@ -1,6 +1,7 @@
 #pragma kernel Gravity
 #pragma kernel Density
 #pragma kernel Pressure
+#pragma kernel Viscosity
 #pragma kernel UpdatePositions
 
 static const uint NumThreads = 64;
@@ -45,7 +46,7 @@ void Pressure(uint3 id : SV_DispatchThreadID) {
     Velocities[id.x] += CalculatePressureForce(id.x) * deltaTime;
 }
 
-[numthreads(Numthreads, 1, 1)]
+[numthreads(NumThreads, 1, 1)]
 void Viscosity(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
