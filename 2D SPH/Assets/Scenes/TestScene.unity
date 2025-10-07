@@ -291,12 +291,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
   computeShader: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
   simulationSpeed: 1
+  smoothingRadius: 0.7
   initSpeed: 0
   gravity: {x: 0, y: -9.8}
   dampingFactor: 0.95
-  smoothingRadius: 0.7
   gasConstant: 1000
   restDensity: 8
+  viscosityMultiplier: 1
 --- !u!4 &1274155412
 Transform:
   m_ObjectHideFlags: 0
@@ -325,12 +326,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90a21f46cb45640b88337bf5d5a09f85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawn
-  instanceCount: 9660
-  size: 0.4
+  instanceCount: 8741
+  size: 1.16
   spacing: 0
   spawnArea: {x: 64.7, y: 24.3}
   spawnPosition: {x: 0, y: -6.37}
-  asGrid: 1
+  asGrid: 0
 --- !u!114 &1274155414
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -505,8 +506,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Container
   boundary: {x: 75.3, y: 38.5}
-  mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   thickness: 0.1
+  mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!4 &1607714413
 Transform:
   m_ObjectHideFlags: 0
@@ -592,7 +593,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Density
   densityShader: {fileID: 7200000, guid: c15113547979048b7810a491e2ccc3d6, type: 3}
   color: {r: 1, g: 0.09411765, b: 0, a: 0}
-  isEnabled: 0
   resolution: {x: 512, y: 512}
 --- !u!120 &1607714417
 LineRenderer:

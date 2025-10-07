@@ -14,5 +14,14 @@ float ViscosityKernelLap(float2 offset) {
 float2 CalculateViscosityForce(uint i) {
     float2 vForce = float2(0, 0);
 
+    for (uint j = 0; j < instanceCount; j++) {
+        float2 posOffset = PredictedPositions[i] - PredictedPositions[j];
+        float2 velOffset = Velocities[j] - Velocities[i];
+
+        float laplacian = ViscosityKernelLap(posOffset);
+        
+        vForce += (velOffset / Densities[j]) * laplacian;
+    }
+
     return viscosityMultiplier * vForce;
 }

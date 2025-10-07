@@ -69,8 +69,8 @@ public class Simulate : MonoBehaviour
 
                 computeShader.Dispatch(gravityKernel, threadGroups, 1, 1);
                 computeShader.Dispatch(densityKernel, threadGroups, 1, 1);
-                computeShader.Dispatch(viscosityKernel, threadGroups, 1, 1);
                 computeShader.Dispatch(pressureKernel, threadGroups, 1, 1);
+                computeShader.Dispatch(viscosityKernel, threadGroups, 1, 1);
                 computeShader.Dispatch(positionKernel, threadGroups, 1, 1);
             }
     }
@@ -171,6 +171,7 @@ public class Simulate : MonoBehaviour
         computeShader.SetBuffer(pressureKernel, "Densities", densityBuffer);
         computeShader.SetBuffer(viscosityKernel, "Positions", positionBuffer);
         computeShader.SetBuffer(viscosityKernel, "PredictedPositions", predictedPositionBuffer);
+        computeShader.SetBuffer(viscosityKernel, "Velocities", velocityBuffer);
         computeShader.SetBuffer(viscosityKernel, "Densities", densityBuffer);
         computeShader.SetBuffer(positionKernel, "Positions", positionBuffer);
         computeShader.SetBuffer(positionKernel, "Velocities", velocityBuffer);
@@ -215,6 +216,7 @@ public class Simulate : MonoBehaviour
         smoothingRadius = Mathf.Max(0.01f, smoothingRadius);
         gasConstant = Mathf.Max(0, gasConstant);
         restDensity = Mathf.Max(0, restDensity);
+        viscosityMultiplier = Mathf.Max(0, viscosityMultiplier);
     }
 
     void HandleKeyPresses()
