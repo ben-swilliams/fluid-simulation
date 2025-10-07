@@ -31,5 +31,5 @@ float2 CalculatePressureForce(uint i) {
         pForce += particleMass * ((pressureI + pressureJ) / (2 * Densities[j])) * PressureKernelGrad(offset);
     }
 
-    return pForce / Densities[i];
+    return -pForce / Densities[i];
 }

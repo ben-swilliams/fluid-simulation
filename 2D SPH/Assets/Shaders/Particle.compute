@@ -37,7 +37,7 @@ void Gravity(uint3 id : SV_DispatchThreadID) {
 void Density(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Densities[id.x] = CalculateDensity(PredictedPositions[id.x]);
+    Densities[id.x] = CalculateDensity(id.x);
 }
 
 [numthreads(NumThreads, 1, 1)]

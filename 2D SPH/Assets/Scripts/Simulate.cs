@@ -193,7 +193,7 @@ public class Simulate : MonoBehaviour
         computeShader.SetFloat("dampingFactor", dampingFactor);
         computeShader.SetVector("gravity", gravity);
 
-        float pressureKernelGradConstant = -45 / (Mathf.PI * Mathf.Pow(smoothingRadius, 6));
+        float pressureKernelGradConstant = 45 / (Mathf.PI * Mathf.Pow(smoothingRadius, 6));
         computeShader.SetFloat("pressureKernelGradConstant", pressureKernelGradConstant);
         computeShader.SetFloat("gasConstant", gasConstant);
         computeShader.SetFloat("restDensity", restDensity);
