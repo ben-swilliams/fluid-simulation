@@ -31,6 +31,7 @@ public class Simulate : MonoBehaviour
     Private properties
     */
     static int threadGroupSize = 64;
+    int partitionKernel;
     int gravityKernel;
     int pressureKernel;
     int densityKernel;
@@ -42,6 +43,9 @@ public class Simulate : MonoBehaviour
     float dtTarget;
 
     int instanceCount;
+
+    ComputeBuffer indexBuffer;
+    ComputeBuffer countBuffer;
     ComputeBuffer positionBuffer;
     ComputeBuffer predictedPositionBuffer;
     ComputeBuffer velocityBuffer;
@@ -70,6 +74,7 @@ public class Simulate : MonoBehaviour
 
                 int threadGroups = Mathf.CeilToInt(instanceCount / (float)threadGroupSize);
 
+                computeShader.Dispatch(partitionKernel, threadGroups, 1, 1);
                 computeShader.Dispatch(gravityKernel, threadGroups, 1, 1);
                 computeShader.Dispatch(densityKernel, threadGroups, 1, 1);
                 computeShader.Dispatch(pressureKernel, threadGroups, 1, 1);
@@ -129,6 +134,14 @@ public class Simulate : MonoBehaviour
 
     void SetupBuffers()
     {
+        int[] indices = new int[spawner.InstanceCount];
+        indexBuffer = new ComputeBuffer(indices.Length, sizeof(int));
+        indexBuffer.SetData(indices);
+
+        int[] counts = new int[spawner.InstanceCount];
+        countBuffer = new ComputeBuffer(counts.Length, sizeof(int));
+        countBuffer.SetData(counts);
+
         Vector2[] positions = spawner.ExtractPositions();
         positionBuffer = new ComputeBuffer(positions.Length, sizeof(float) * 2);
         positionBuffer.SetData(positions);
@@ -148,6 +161,7 @@ public class Simulate : MonoBehaviour
 
     void FindKernels()
     {
+        partitionKernel = computeShader.FindKernel("Partition");
         gravityKernel = computeShader.FindKernel("Gravity");
         pressureKernel = computeShader.FindKernel("Pressure");
         densityKernel = computeShader.FindKernel("Density");
@@ -157,6 +171,9 @@ public class Simulate : MonoBehaviour
 
     void BindBuffers()
     {
+        computeShader.SetBuffer(partitionKernel, "GridIndices", indexBuffer);
+        computeShader.SetBuffer(partitionKernel, "CellCounts", countBuffer);
+        computeShader.SetBuffer(partitionKernel, "Positions", positionBuffer);
         computeShader.SetBuffer(gravityKernel, "Positions", positionBuffer);
         computeShader.SetBuffer(gravityKernel, "PredictedPositions", predictedPositionBuffer);
         computeShader.SetBuffer(gravityKernel, "Velocities", velocityBuffer);

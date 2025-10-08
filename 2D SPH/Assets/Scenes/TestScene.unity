@@ -327,7 +327,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawn
   instanceCount: 8741
-  size: 1.16
+  size: 1
   spacing: 0
   spawnArea: {x: 64.7, y: 24.3}
   spawnPosition: {x: 0, y: -6.37}
@@ -484,7 +484,6 @@ GameObject:
   - component: {fileID: 1607714411}
   - component: {fileID: 1607714415}
   - component: {fileID: 1607714414}
-  - component: {fileID: 1607714416}
   - component: {fileID: 1607714417}
   m_Layer: 0
   m_Name: Container
@@ -579,21 +578,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1607714410}
   m_Mesh: {fileID: 0}
---- !u!114 &1607714416
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1607714410}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 489bea07bb1ab4247ae8a60d9cff929c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Density
-  densityShader: {fileID: 7200000, guid: c15113547979048b7810a491e2ccc3d6, type: 3}
-  color: {r: 1, g: 0.09411765, b: 0, a: 0}
-  resolution: {x: 512, y: 512}
 --- !u!120 &1607714417
 LineRenderer:
   serializedVersion: 2
