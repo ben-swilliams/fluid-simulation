@@ -11,6 +11,9 @@ RWStructuredBuffer<float2> PredictedPositions;
 RWStructuredBuffer<float2> Velocities;
 RWStructuredBuffer<float> Densities;
 
+RWStructuredBuffer<int> GridIndices;
+RWStructuredBuffer<int> CellCounts;
+
 uint instanceCount;
 
 float deltaTime;
