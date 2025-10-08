@@ -7,9 +7,13 @@ int FlatIndex(int2 gridPos) {
 
 void IndexAndCount(uint i) {
     float2 pos = Positions[i];
+    pos += containerSize / 2;
+
     int2 gridPos = int2(floor(pos.x / smoothingRadius), floor(pos.y / smoothingRadius));
     int index = FlatIndex(gridPos);
 
     GridIndices[i] = index;
-    InterlockedAdd(CellCounts[index], 1);
+    
+    uint dummy;
+    InterlockedAdd(CellCounts[index], 1, dummy);
 }

@@ -22,6 +22,8 @@ float particleMass;
 
 float smoothingRadius;
 
+float2 containerSize;
+
 #include "External.hlsl"
 #include "Density.hlsl"
 #include "Pressure.hlsl"

@@ -1,3 +1,4 @@
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -44,6 +45,8 @@ public class Simulate : MonoBehaviour
 
     int instanceCount;
 
+    int cellCount;
+
     ComputeBuffer indexBuffer;
     ComputeBuffer countBuffer;
     ComputeBuffer positionBuffer;
@@ -68,19 +71,21 @@ public class Simulate : MonoBehaviour
         HandleKeyPresses();
 
         if (started)
-            {
-                float dt = Mathf.Min(dtTarget, Time.deltaTime);
-                computeShader.SetFloat("deltaTime", dt * simulationSpeed);
+        {
+            float dt = Mathf.Min(dtTarget, Time.deltaTime);
+            computeShader.SetFloat("deltaTime", dt * simulationSpeed);
 
-                int threadGroups = Mathf.CeilToInt(instanceCount / (float)threadGroupSize);
+            int threadGroups = Mathf.CeilToInt(instanceCount / (float)threadGroupSize);
 
-                computeShader.Dispatch(partitionKernel, threadGroups, 1, 1);
-                computeShader.Dispatch(gravityKernel, threadGroups, 1, 1);
-                computeShader.Dispatch(densityKernel, threadGroups, 1, 1);
-                computeShader.Dispatch(pressureKernel, threadGroups, 1, 1);
-                computeShader.Dispatch(viscosityKernel, threadGroups, 1, 1);
-                computeShader.Dispatch(positionKernel, threadGroups, 1, 1);
-            }
+            ZeroCountBuffer();
+            computeShader.Dispatch(partitionKernel, threadGroups, 1, 1);
+
+            computeShader.Dispatch(gravityKernel, threadGroups, 1, 1);
+            computeShader.Dispatch(densityKernel, threadGroups, 1, 1);
+            computeShader.Dispatch(pressureKernel, threadGroups, 1, 1);
+            computeShader.Dispatch(viscosityKernel, threadGroups, 1, 1);
+            computeShader.Dispatch(positionKernel, threadGroups, 1, 1);
+        }
     }
 
     void OnValidate()
@@ -142,9 +147,8 @@ public class Simulate : MonoBehaviour
         indexBuffer = new ComputeBuffer(indices.Length, sizeof(uint));
         indexBuffer.SetData(indices);
 
-        uint[] counts = new uint[spawner.InstanceCount];
-        countBuffer = new ComputeBuffer(counts.Length, sizeof(uint));
-        countBuffer.SetData(counts);
+        countBuffer = new ComputeBuffer(spawner.InstanceCount, sizeof(uint));
+        ZeroCountBuffer();
 
         Vector2[] positions = spawner.ExtractPositions();
         positionBuffer = new ComputeBuffer(positions.Length, sizeof(float) * 2);
@@ -161,6 +165,12 @@ public class Simulate : MonoBehaviour
         float[] densities = new float[spawner.InstanceCount];
         densityBuffer = new ComputeBuffer(densities.Length, sizeof(float));
         densityBuffer.SetData(densities);
+    }
+
+    void ZeroCountBuffer()
+    {
+        uint[] counts = new uint[spawner.InstanceCount];
+        countBuffer.SetData(counts);
     }
 
     void FindKernels()
@@ -211,9 +221,10 @@ public class Simulate : MonoBehaviour
 
     void UpdateVariables()
     {
-        Vector2 containerSize = GetComponent<Container>().Boundary;
+        Vector2 containerSize = GetComponentInChildren<Container>().Boundary;
         int gridX = Mathf.CeilToInt(containerSize.x / smoothingRadius);
         int gridY = Mathf.CeilToInt(containerSize.y / smoothingRadius);
+        cellCount = gridX * gridY;
         computeShader.SetInt("gridX", gridX);
         computeShader.SetInt("gridY", gridY);
 

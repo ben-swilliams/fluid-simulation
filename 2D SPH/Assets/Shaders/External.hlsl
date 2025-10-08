@@ -7,8 +7,6 @@ float2 gravity;
 
 float2 origin;
 
-float2 containerSize;
-
 void Collisions(uint idx) {
     // Bottom
     if (Positions[idx].y < -containerSize.y/2 + size/2){ 
