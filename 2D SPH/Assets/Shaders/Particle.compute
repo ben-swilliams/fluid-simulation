@@ -1,5 +1,6 @@
 #pragma kernel ZeroCounts
 #pragma kernel Partition
+#pragma kernel Scan
 #pragma kernel Gravity
 #pragma kernel Density
 #pragma kernel Pressure
@@ -10,6 +11,7 @@ static const uint NumThreads = 64;
 
 RWStructuredBuffer<uint> GridIndices;
 RWStructuredBuffer<uint> CellCounts;
+RWStructuredBuffer<uint> Offsets;
 
 RWStructuredBuffer<float2> Positions;
 RWStructuredBuffer<float2> PredictedPositions;
@@ -42,6 +44,11 @@ void ZeroCounts(uint id : SV_DispatchThreadID) {
 void Partition(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
     IndexAndCount(id.x);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void Scan(uint3 id : SV_DispatchThreadID) {
+    
 }
 
 [numthreads(NumThreads, 1, 1)]

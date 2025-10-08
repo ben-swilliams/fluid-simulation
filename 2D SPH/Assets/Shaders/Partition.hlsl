@@ -18,9 +18,9 @@ void IndexAndCount(uint i) {
     pos += containerSize / 2;
 
     int2 gridPos = int2(floor(pos.x / smoothingRadius), floor(pos.y / smoothingRadius));
-    uint index = CalculateHash(gridPos);
+    uint hash = CalculateHash(gridPos);
 
-    GridIndices[i] = index;
+    GridIndices[i] = hash;
     
-    InterlockedAdd(CellCounts[index], 1);
+    InterlockedAdd(CellCounts[hash], 1);
 }

@@ -36,6 +36,7 @@ public class Simulate : MonoBehaviour
 
     int clearCountsKernel;
     int partitionKernel;
+    int scanKernel;
     int gravityKernel;
     int pressureKernel;
     int densityKernel;
@@ -48,10 +49,9 @@ public class Simulate : MonoBehaviour
 
     int instanceCount;
 
-    int cellCount;
-
     ComputeBuffer indexBuffer;
     ComputeBuffer countBuffer;
+    ComputeBuffer offsetBuffer;
     ComputeBuffer positionBuffer;
     ComputeBuffer predictedPositionBuffer;
     ComputeBuffer velocityBuffer;
@@ -106,8 +106,10 @@ public class Simulate : MonoBehaviour
             indexBuffer.Release();
         if (countBuffer != null)
             countBuffer.Release();
+        if (offsetBuffer != null)
+            offsetBuffer.Release();
         if (positionBuffer != null)
-            positionBuffer.Release();
+                positionBuffer.Release();
         if (predictedPositionBuffer != null)
             predictedPositionBuffer.Release();
         if (velocityBuffer != null)
@@ -152,6 +154,8 @@ public class Simulate : MonoBehaviour
 
         countBuffer = new ComputeBuffer(binNumber, sizeof(uint));
 
+        offsetBuffer = new ComputeBuffer(binNumber + 1, sizeof(uint));
+
         Vector2[] positions = spawner.ExtractPositions();
         positionBuffer = new ComputeBuffer(positions.Length, sizeof(float) * 2);
         positionBuffer.SetData(positions);
@@ -186,6 +190,7 @@ public class Simulate : MonoBehaviour
         computeShader.SetBuffer(partitionKernel, "GridIndices", indexBuffer);
         computeShader.SetBuffer(partitionKernel, "CellCounts", countBuffer);
         computeShader.SetBuffer(partitionKernel, "Positions", positionBuffer);
+        computeShader.SetBuffer(scanKernel, "Offsets", offsetBuffer);
         computeShader.SetBuffer(gravityKernel, "Positions", positionBuffer);
         computeShader.SetBuffer(gravityKernel, "PredictedPositions", predictedPositionBuffer);
         computeShader.SetBuffer(gravityKernel, "Velocities", velocityBuffer);
@@ -223,7 +228,6 @@ public class Simulate : MonoBehaviour
         Vector2 containerSize = GetComponentInChildren<Container>().Boundary;
         int gridX = Mathf.CeilToInt(containerSize.x / smoothingRadius);
         int gridY = Mathf.CeilToInt(containerSize.y / smoothingRadius);
-        cellCount = gridX * gridY;
         computeShader.SetInt("gridX", gridX);
         computeShader.SetInt("gridY", gridY);
 
