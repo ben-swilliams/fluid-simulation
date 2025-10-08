@@ -2,8 +2,6 @@ static const uint primeX = 73856093;
 static const uint primeY = 19349663;
 static const uint primeZ = 83492791;
 
-uint tableSize;
-
 uint gridX;
 uint gridY;
 

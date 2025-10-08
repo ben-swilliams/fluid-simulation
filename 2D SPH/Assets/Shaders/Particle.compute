@@ -1,6 +1,9 @@
 #pragma kernel ZeroCounts
 #pragma kernel Partition
 #pragma kernel Scan
+#pragma kernel ScanBlockSums
+#pragma kernel AddBlockSums
+#pragma kernel FinalizeScan
 #pragma kernel Gravity
 #pragma kernel Density
 #pragma kernel Pressure
@@ -27,11 +30,15 @@ float smoothingRadius;
 
 float2 containerSize;
 
+uint tableSize;
+uint numBlockSums;
+
+#include "Partition.hlsl"
+#include "Scan.hlsl"
 #include "External.hlsl"
 #include "Density.hlsl"
 #include "Pressure.hlsl"
 #include "Viscosity.hlsl"
-#include "Partition.hlsl"
 
 [numthreads(NumThreads, 1, 1)]
 void ZeroCounts(uint id : SV_DispatchThreadID) {
@@ -46,9 +53,26 @@ void Partition(uint3 id : SV_DispatchThreadID) {
     IndexAndCount(id.x);
 }
 
+[numthreads(64, 1, 1)]
+void Scan(uint3 id : SV_GroupThreadID, uint3 groupId : SV_GroupID) {
+    PrefixScan(id.x, groupId.x);
+}
+
+[numthreads(64, 1, 1)]
+void ScanBlockSums(uint3 id : SV_GroupThreadID) {
+    ScanBlockSums(id.x, numBlockSums);
+}
+
 [numthreads(NumThreads, 1, 1)]
-void Scan(uint3 id : SV_DispatchThreadID) {
-    
+void AddBlockSums(uint3 id : SV_DispatchThreadID) {
+    AddBlockSums(id.x);
+}
+
+[numthreads(1, 1, 1)]
+void FinalizeScan(uint3 id : SV_DispatchThreadID) {
+    // Set the final element to the total count
+    // Offsets[tableSize] = Offsets[tableSize-1] + CellCounts[tableSize-1]
+    Offsets[tableSize] = Offsets[tableSize - 1] + CellCounts[tableSize - 1];
 }
 
 [numthreads(NumThreads, 1, 1)]
