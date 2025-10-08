@@ -32,6 +32,7 @@ public class Simulate : MonoBehaviour
     Private properties
     */
     static int threadGroupSize = 64;
+    static int binNumber = 1000;
     int partitionKernel;
     int gravityKernel;
     int pressureKernel;
@@ -147,7 +148,7 @@ public class Simulate : MonoBehaviour
         indexBuffer = new ComputeBuffer(indices.Length, sizeof(uint));
         indexBuffer.SetData(indices);
 
-        countBuffer = new ComputeBuffer(spawner.InstanceCount, sizeof(uint));
+        countBuffer = new ComputeBuffer(binNumber, sizeof(uint));
         ZeroCountBuffer();
 
         Vector2[] positions = spawner.ExtractPositions();
@@ -169,7 +170,7 @@ public class Simulate : MonoBehaviour
 
     void ZeroCountBuffer()
     {
-        uint[] counts = new uint[spawner.InstanceCount];
+        uint[] counts = new uint[binNumber];
         countBuffer.SetData(counts);
     }
 
@@ -210,6 +211,7 @@ public class Simulate : MonoBehaviour
     {
         instanceCount = spawner.InstanceCount;
         computeShader.SetInt("threadGroupSize", threadGroupSize);
+        computeShader.SetInt("tableSize", binNumber);
         computeShader.SetFloat("size", spawner.Size);
         computeShader.SetInt("instanceCount", instanceCount);
         UpdateMouseForce(Vector2.zero, 0, 0);
