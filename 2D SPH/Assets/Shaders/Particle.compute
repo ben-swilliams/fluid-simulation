@@ -7,8 +7,8 @@
 
 static const uint NumThreads = 64;
 
-RWStructuredBuffer<int> GridIndices;
-RWStructuredBuffer<int> CellCounts;
+RWStructuredBuffer<uint> GridIndices;
+RWStructuredBuffer<uint> CellCounts;
 
 RWStructuredBuffer<float2> Positions;
 RWStructuredBuffer<float2> PredictedPositions;
@@ -30,7 +30,8 @@ float smoothingRadius;
 
 [numthreads(NumThreads, 1, 1)]
 void Partition(uint3 id : SV_DispatchThreadID) {
-    return;
+    if (id.x >= instanceCount) return;
+    IndexAndCount(id.x);
 }
 
 [numthreads(NumThreads, 1, 1)]

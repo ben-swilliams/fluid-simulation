@@ -4,9 +4,10 @@ float power;
 float mouseRadius;
 
 float2 gravity;
-float2 containerSize;
 
 float2 origin;
+
+float2 containerSize;
 
 void Collisions(uint idx) {
     // Bottom

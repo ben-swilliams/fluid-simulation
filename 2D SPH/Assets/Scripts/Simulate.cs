@@ -94,6 +94,10 @@ public class Simulate : MonoBehaviour
 
     void OnDestroy()
     {
+        if (indexBuffer != null)
+            indexBuffer.Release();
+        if (countBuffer != null)
+            countBuffer.Release();
         if (positionBuffer != null)
             positionBuffer.Release();
         if (predictedPositionBuffer != null)
@@ -134,12 +138,12 @@ public class Simulate : MonoBehaviour
 
     void SetupBuffers()
     {
-        int[] indices = new int[spawner.InstanceCount];
-        indexBuffer = new ComputeBuffer(indices.Length, sizeof(int));
+        uint[] indices = new uint[spawner.InstanceCount];
+        indexBuffer = new ComputeBuffer(indices.Length, sizeof(uint));
         indexBuffer.SetData(indices);
 
-        int[] counts = new int[spawner.InstanceCount];
-        countBuffer = new ComputeBuffer(counts.Length, sizeof(int));
+        uint[] counts = new uint[spawner.InstanceCount];
+        countBuffer = new ComputeBuffer(counts.Length, sizeof(uint));
         countBuffer.SetData(counts);
 
         Vector2[] positions = spawner.ExtractPositions();
@@ -207,6 +211,12 @@ public class Simulate : MonoBehaviour
 
     void UpdateVariables()
     {
+        Vector2 containerSize = GetComponent<Container>().Boundary;
+        int gridX = Mathf.CeilToInt(containerSize.x / smoothingRadius);
+        int gridY = Mathf.CeilToInt(containerSize.y / smoothingRadius);
+        computeShader.SetInt("gridX", gridX);
+        computeShader.SetInt("gridY", gridY);
+
         float kernelConstant = 315 / (64 * Mathf.PI * Mathf.Pow(smoothingRadius, 9f));
         computeShader.SetFloat("kernelConstant", kernelConstant);
         computeShader.SetFloat("smoothingRadius", smoothingRadius);
