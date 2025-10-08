@@ -1,3 +1,4 @@
+#pragma kernel Partition
 #pragma kernel Gravity
 #pragma kernel Density
 #pragma kernel Pressure
@@ -5,6 +6,9 @@
 #pragma kernel UpdatePositions
 
 static const uint NumThreads = 64;
+
+RWStructuredBuffer<uint> GridIndices;
+RWStructuredBuffer<uint> CellCounts;
 
 RWStructuredBuffer<float2> Positions;
 RWStructuredBuffer<float2> PredictedPositions;
@@ -18,10 +22,19 @@ float particleMass;
 
 float smoothingRadius;
 
+float2 containerSize;
+
 #include "External.hlsl"
 #include "Density.hlsl"
 #include "Pressure.hlsl"
 #include "Viscosity.hlsl"
+#include "Partition.hlsl"
+
+[numthreads(NumThreads, 1, 1)]
+void Partition(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+    IndexAndCount(id.x);
+}
 
 [numthreads(NumThreads, 1, 1)]
 void Gravity(uint3 id : SV_DispatchThreadID) {
