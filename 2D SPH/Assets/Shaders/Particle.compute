@@ -1,3 +1,4 @@
+#pragma kernel ZeroCounts
 #pragma kernel Partition
 #pragma kernel Gravity
 #pragma kernel Density
@@ -29,6 +30,13 @@ float2 containerSize;
 #include "Pressure.hlsl"
 #include "Viscosity.hlsl"
 #include "Partition.hlsl"
+
+[numthreads(NumThreads, 1, 1)]
+void ZeroCounts(uint id : SV_DispatchThreadID) {
+    if (id.x >= tableSize) return;
+
+    CellCounts[id.x] = 0;
+}
 
 [numthreads(NumThreads, 1, 1)]
 void Partition(uint3 id : SV_DispatchThreadID) {

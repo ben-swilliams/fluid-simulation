@@ -33,6 +33,8 @@ public class Simulate : MonoBehaviour
     */
     static int threadGroupSize = 64;
     static int binNumber = 1000;
+
+    int clearCountsKernel;
     int partitionKernel;
     int gravityKernel;
     int pressureKernel;
@@ -78,7 +80,7 @@ public class Simulate : MonoBehaviour
 
             int threadGroups = Mathf.CeilToInt(instanceCount / (float)threadGroupSize);
 
-            ZeroCountBuffer();
+            computeShader.Dispatch(clearCountsKernel, Mathf.CeilToInt(binNumber / (float)threadGroupSize), 1, 1);
             computeShader.Dispatch(partitionKernel, threadGroups, 1, 1);
 
             computeShader.Dispatch(gravityKernel, threadGroups, 1, 1);
@@ -149,7 +151,6 @@ public class Simulate : MonoBehaviour
         indexBuffer.SetData(indices);
 
         countBuffer = new ComputeBuffer(binNumber, sizeof(uint));
-        ZeroCountBuffer();
 
         Vector2[] positions = spawner.ExtractPositions();
         positionBuffer = new ComputeBuffer(positions.Length, sizeof(float) * 2);
@@ -168,14 +169,9 @@ public class Simulate : MonoBehaviour
         densityBuffer.SetData(densities);
     }
 
-    void ZeroCountBuffer()
-    {
-        uint[] counts = new uint[binNumber];
-        countBuffer.SetData(counts);
-    }
-
     void FindKernels()
     {
+        clearCountsKernel = computeShader.FindKernel("ZeroCounts");
         partitionKernel = computeShader.FindKernel("Partition");
         gravityKernel = computeShader.FindKernel("Gravity");
         pressureKernel = computeShader.FindKernel("Pressure");
@@ -186,6 +182,7 @@ public class Simulate : MonoBehaviour
 
     void BindBuffers()
     {
+        computeShader.SetBuffer(clearCountsKernel, "CellCounts", countBuffer);
         computeShader.SetBuffer(partitionKernel, "GridIndices", indexBuffer);
         computeShader.SetBuffer(partitionKernel, "CellCounts", countBuffer);
         computeShader.SetBuffer(partitionKernel, "Positions", positionBuffer);
