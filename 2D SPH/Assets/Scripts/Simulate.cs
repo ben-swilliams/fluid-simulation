@@ -1,5 +1,4 @@
-using System.Linq;
-using Unity.VisualScripting;
+using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -32,7 +31,15 @@ public class Simulate : MonoBehaviour
     Private properties
     */
     static int threadGroupSize = 64;
+    static int scanBlockSize = 128;  // Each scan block processes 128 elements (64 threads × 2)
+    static int binNumber = 1000;
+
+    int clearCountsKernel;
     int partitionKernel;
+    int scanKernel;
+    int scanBlockSumsKernel;
+    int addBlockSumsKernel;
+    int finalizeScanKernel;
     int gravityKernel;
     int pressureKernel;
     int densityKernel;
@@ -45,10 +52,10 @@ public class Simulate : MonoBehaviour
 
     int instanceCount;
 
-    int cellCount;
-
     ComputeBuffer indexBuffer;
     ComputeBuffer countBuffer;
+    ComputeBuffer offsetBuffer;
+    ComputeBuffer blockSumsBuffer;
     ComputeBuffer positionBuffer;
     ComputeBuffer predictedPositionBuffer;
     ComputeBuffer velocityBuffer;
@@ -77,8 +84,10 @@ public class Simulate : MonoBehaviour
 
             int threadGroups = Mathf.CeilToInt(instanceCount / (float)threadGroupSize);
 
-            ZeroCountBuffer();
+            computeShader.Dispatch(clearCountsKernel, Mathf.CeilToInt(binNumber / (float)threadGroupSize), 1, 1);
             computeShader.Dispatch(partitionKernel, threadGroups, 1, 1);
+
+            HierarchicalScan(binNumber);
 
             computeShader.Dispatch(gravityKernel, threadGroups, 1, 1);
             computeShader.Dispatch(densityKernel, threadGroups, 1, 1);
@@ -86,6 +95,33 @@ public class Simulate : MonoBehaviour
             computeShader.Dispatch(viscosityKernel, threadGroups, 1, 1);
             computeShader.Dispatch(positionKernel, threadGroups, 1, 1);
         }
+    }
+
+    void HierarchicalScan(int size)
+    {
+        // Each block processes scanBlockSize elements
+        int numBlocks = Mathf.CeilToInt(size / (float)scanBlockSize);
+
+        // Phase 1: Local scan in each block (stores block sums in BlockSums buffer)
+        computeShader.Dispatch(scanKernel, numBlocks, 1, 1);
+
+        // Phase 2: If we have multiple blocks, scan the block sums themselves
+        if (numBlocks > 1)
+        {
+            // For 1000 bins with scanBlockSize=128: numBlocks = 8
+            computeShader.SetInt("numBlockSums", numBlocks);
+            computeShader.Dispatch(scanBlockSumsKernel, 1, 1, 1);
+        }
+
+        // Phase 3: Add scanned block sums to each block's elements
+        if (numBlocks > 1)
+        {
+            int addThreadGroups = Mathf.CeilToInt(size / (float)threadGroupSize);
+            computeShader.Dispatch(addBlockSumsKernel, addThreadGroups, 1, 1);
+        }
+
+        // Phase 4: Write final element (total particle count)
+        computeShader.Dispatch(finalizeScanKernel, 1, 1, 1);
     }
 
     void OnValidate()
@@ -103,8 +139,12 @@ public class Simulate : MonoBehaviour
             indexBuffer.Release();
         if (countBuffer != null)
             countBuffer.Release();
+        if (offsetBuffer != null)
+            offsetBuffer.Release();
+        if (blockSumsBuffer != null)
+            blockSumsBuffer.Release();
         if (positionBuffer != null)
-            positionBuffer.Release();
+                positionBuffer.Release();
         if (predictedPositionBuffer != null)
             predictedPositionBuffer.Release();
         if (velocityBuffer != null)
@@ -133,7 +173,7 @@ public class Simulate : MonoBehaviour
 
         for (int i = 0; i < spawner.InstanceCount; i++)
         {
-            float random = Random.Range(0f, 2 * Mathf.PI);
+            float random = UnityEngine.Random.Range(0f, 2 * Mathf.PI);
             Vector2 vel = new Vector2(Mathf.Cos(random), Mathf.Sin(random)) * initSpeed;
             velocities[i] = vel;
         }
@@ -147,8 +187,13 @@ public class Simulate : MonoBehaviour
         indexBuffer = new ComputeBuffer(indices.Length, sizeof(uint));
         indexBuffer.SetData(indices);
 
-        countBuffer = new ComputeBuffer(spawner.InstanceCount, sizeof(uint));
-        ZeroCountBuffer();
+        countBuffer = new ComputeBuffer(binNumber, sizeof(uint));
+
+        offsetBuffer = new ComputeBuffer(binNumber + 1, sizeof(uint));
+
+        // Calculate number of blocks needed for hierarchical scan
+        int numBlocks = Mathf.CeilToInt(binNumber / (float)scanBlockSize);
+        blockSumsBuffer = new ComputeBuffer(Mathf.Max(1, numBlocks), sizeof(uint));
 
         Vector2[] positions = spawner.ExtractPositions();
         positionBuffer = new ComputeBuffer(positions.Length, sizeof(float) * 2);
@@ -167,15 +212,14 @@ public class Simulate : MonoBehaviour
         densityBuffer.SetData(densities);
     }
 
-    void ZeroCountBuffer()
-    {
-        uint[] counts = new uint[spawner.InstanceCount];
-        countBuffer.SetData(counts);
-    }
-
     void FindKernels()
     {
+        clearCountsKernel = computeShader.FindKernel("ZeroCounts");
         partitionKernel = computeShader.FindKernel("Partition");
+        scanKernel = computeShader.FindKernel("Scan");
+        scanBlockSumsKernel = computeShader.FindKernel("ScanBlockSums");
+        addBlockSumsKernel = computeShader.FindKernel("AddBlockSums");
+        finalizeScanKernel = computeShader.FindKernel("FinalizeScan");
         gravityKernel = computeShader.FindKernel("Gravity");
         pressureKernel = computeShader.FindKernel("Pressure");
         densityKernel = computeShader.FindKernel("Density");
@@ -185,9 +229,18 @@ public class Simulate : MonoBehaviour
 
     void BindBuffers()
     {
+        computeShader.SetBuffer(clearCountsKernel, "CellCounts", countBuffer);
         computeShader.SetBuffer(partitionKernel, "GridIndices", indexBuffer);
         computeShader.SetBuffer(partitionKernel, "CellCounts", countBuffer);
         computeShader.SetBuffer(partitionKernel, "Positions", positionBuffer);
+        computeShader.SetBuffer(scanKernel, "Offsets", offsetBuffer);
+        computeShader.SetBuffer(scanKernel, "CellCounts", countBuffer);
+        computeShader.SetBuffer(scanKernel, "BlockSums", blockSumsBuffer);
+        computeShader.SetBuffer(scanBlockSumsKernel, "BlockSums", blockSumsBuffer);
+        computeShader.SetBuffer(addBlockSumsKernel, "Offsets", offsetBuffer);
+        computeShader.SetBuffer(addBlockSumsKernel, "CellCounts", countBuffer);
+        computeShader.SetBuffer(addBlockSumsKernel, "BlockSums", blockSumsBuffer);
+        computeShader.SetBuffer(finalizeScanKernel, "Offsets", offsetBuffer);
         computeShader.SetBuffer(gravityKernel, "Positions", positionBuffer);
         computeShader.SetBuffer(gravityKernel, "PredictedPositions", predictedPositionBuffer);
         computeShader.SetBuffer(gravityKernel, "Velocities", velocityBuffer);
@@ -210,6 +263,7 @@ public class Simulate : MonoBehaviour
     {
         instanceCount = spawner.InstanceCount;
         computeShader.SetInt("threadGroupSize", threadGroupSize);
+        computeShader.SetInt("tableSize", binNumber);
         computeShader.SetFloat("size", spawner.Size);
         computeShader.SetInt("instanceCount", instanceCount);
         UpdateMouseForce(Vector2.zero, 0, 0);
@@ -224,7 +278,6 @@ public class Simulate : MonoBehaviour
         Vector2 containerSize = GetComponentInChildren<Container>().Boundary;
         int gridX = Mathf.CeilToInt(containerSize.x / smoothingRadius);
         int gridY = Mathf.CeilToInt(containerSize.y / smoothingRadius);
-        cellCount = gridX * gridY;
         computeShader.SetInt("gridX", gridX);
         computeShader.SetInt("gridY", gridY);
 
@@ -276,6 +329,23 @@ public class Simulate : MonoBehaviour
 
         if (UnityEngine.InputSystem.Keyboard.current.upArrowKey.wasPressedThisFrame)
             simulationSpeed = Mathf.Min(1, simulationSpeed + 0.1f);
+
+        if (UnityEngine.InputSystem.Keyboard.current.dKey.wasPressedThisFrame && started)
+        {
+            uint[] counts = new uint[binNumber];
+            countBuffer.GetData(counts);
+
+            uint[] offsets = new uint[binNumber + 1];
+            offsetBuffer.GetData(offsets);
+
+            int numBlocks = Mathf.CeilToInt(binNumber / 128f);
+            uint[] blockSums = new uint[numBlocks];
+            blockSumsBuffer.GetData(blockSums);
+
+            Debug.Log("Counts: " + string.Join(", ", counts));
+            Debug.Log("Offsets: " + string.Join(", ", offsets));
+            Debug.Log("BlockSums: " + string.Join(", ", blockSums));
+        }
     }
 
 

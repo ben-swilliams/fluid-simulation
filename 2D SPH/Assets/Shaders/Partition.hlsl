@@ -1,8 +1,14 @@
+static const uint primeX = 73856093;
+static const uint primeY = 19349663;
+static const uint primeZ = 83492791;
+
 uint gridX;
 uint gridY;
 
-int FlatIndex(int2 gridPos) {
-    return gridPos.y * gridX + gridPos.x;
+uint CalculateHash(int2 gridPos) {
+    uint total = gridPos.x * primeX + gridPos.y * primeY;
+    
+    return total % tableSize;
 }
 
 void IndexAndCount(uint i) {
@@ -10,10 +16,9 @@ void IndexAndCount(uint i) {
     pos += containerSize / 2;
 
     int2 gridPos = int2(floor(pos.x / smoothingRadius), floor(pos.y / smoothingRadius));
-    int index = FlatIndex(gridPos);
+    uint hash = CalculateHash(gridPos);
 
-    GridIndices[i] = index;
+    GridIndices[i] = hash;
     
-    uint dummy;
-    InterlockedAdd(CellCounts[index], 1, dummy);
+    InterlockedAdd(CellCounts[hash], 1);
 }
