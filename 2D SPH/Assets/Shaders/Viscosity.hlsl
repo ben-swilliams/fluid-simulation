@@ -27,6 +27,7 @@ float2 CalculateViscosityForce(uint i) {
             uint endIndex = Offsets[hash + 1];
 
             for (uint j = startIndex; j < endIndex; j++) {
+                if (i == j) continue;
                 float2 posOffset = PredictedPositions[i] - PredictedPositions[j];
                 float2 velOffset = Velocities[j] - Velocities[i];
 

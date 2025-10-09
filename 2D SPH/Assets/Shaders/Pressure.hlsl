@@ -35,6 +35,7 @@ float2 CalculatePressureForce(uint i) {
             uint endIndex = Offsets[hash + 1];
 
             for (uint j = startIndex; j < endIndex; j++) {
+                if (i == j) continue;
                 float pressureJ = CalculatePressure(j);
                 float2 offset = PredictedPositions[j] - PredictedPositions[i];
 
