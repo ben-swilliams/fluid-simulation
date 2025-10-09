@@ -37,6 +37,7 @@ float2 containerSize;
 uint tableSize;
 uint numBlockSums;
 
+#include "Helpers.hlsl"
 #include "Partition.hlsl"
 #include "Scan.hlsl"
 #include "Scatter.hlsl"
