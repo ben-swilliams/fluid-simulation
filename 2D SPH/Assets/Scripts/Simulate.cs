@@ -329,23 +329,6 @@ public class Simulate : MonoBehaviour
 
         if (UnityEngine.InputSystem.Keyboard.current.upArrowKey.wasPressedThisFrame)
             simulationSpeed = Mathf.Min(1, simulationSpeed + 0.1f);
-
-        if (UnityEngine.InputSystem.Keyboard.current.dKey.wasPressedThisFrame && started)
-        {
-            uint[] counts = new uint[binNumber];
-            countBuffer.GetData(counts);
-
-            uint[] offsets = new uint[binNumber + 1];
-            offsetBuffer.GetData(offsets);
-
-            int numBlocks = Mathf.CeilToInt(binNumber / 128f);
-            uint[] blockSums = new uint[numBlocks];
-            blockSumsBuffer.GetData(blockSums);
-
-            Debug.Log("Counts: " + string.Join(", ", counts));
-            Debug.Log("Offsets: " + string.Join(", ", offsets));
-            Debug.Log("BlockSums: " + string.Join(", ", blockSums));
-        }
     }
 
 
