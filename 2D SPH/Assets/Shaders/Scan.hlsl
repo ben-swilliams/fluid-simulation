@@ -4,7 +4,6 @@ groupshared uint temp[SCAN_BLOCK_SIZE];
 RWStructuredBuffer<uint> BlockSums;
 
 void PrefixScan(uint tid, uint blockIdx) {
-    uint n = SCAN_BLOCK_SIZE;
     uint blockStart = blockIdx * SCAN_BLOCK_SIZE;
 
     uint idx1 = blockStart + 2 * tid;
@@ -14,7 +13,7 @@ void PrefixScan(uint tid, uint blockIdx) {
 
     uint offset = 1;
 
-    for (uint d = n >> 1; d > 0; d >>= 1)
+    for (uint d = SCAN_BLOCK_SIZE >> 1; d > 0; d >>= 1)
     {
         GroupMemoryBarrierWithGroupSync();
 
@@ -29,11 +28,11 @@ void PrefixScan(uint tid, uint blockIdx) {
 
     if (tid == 0)
     {
-        BlockSums[blockIdx] = temp[n - 1];
-        temp[n - 1] = 0;
+        BlockSums[blockIdx] = temp[SCAN_BLOCK_SIZE - 1];
+        temp[SCAN_BLOCK_SIZE - 1] = 0;
     }
 
-    for (uint e = 1; e < n; e *= 2)
+    for (uint e = 1; e < SCAN_BLOCK_SIZE; e *= 2)
     {
         offset >>= 1;
         GroupMemoryBarrierWithGroupSync();
@@ -65,8 +64,6 @@ void AddBlockSums(uint gid) {
 }
 
 void ScanBlockSums(uint tid, uint numSums) {
-    uint n = SCAN_BLOCK_SIZE;
-
     uint idx1 = 2 * tid;
     uint idx2 = idx1 + 1;
     temp[2 * tid] = (idx1 < numSums) ? BlockSums[idx1] : 0;
@@ -74,7 +71,7 @@ void ScanBlockSums(uint tid, uint numSums) {
 
     uint offset = 1;
 
-    for (uint d = n >> 1; d > 0; d >>= 1)
+    for (uint d = SCAN_BLOCK_SIZE >> 1; d > 0; d >>= 1)
     {
         GroupMemoryBarrierWithGroupSync();
         if (tid < d)
@@ -88,10 +85,10 @@ void ScanBlockSums(uint tid, uint numSums) {
 
     if (tid == 0)
     {
-        temp[n - 1] = 0;
+        temp[SCAN_BLOCK_SIZE - 1] = 0;
     }
 
-    for (uint e = 1; e < n; e *= 2)
+    for (uint e = 1; e < SCAN_BLOCK_SIZE; e *= 2)
     {
         offset >>= 1;
         GroupMemoryBarrierWithGroupSync();
