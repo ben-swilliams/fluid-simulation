@@ -1,11 +1,12 @@
-groupshared uint temp[128];
+static const uint SCAN_BLOCK_SIZE = 128;  // Each block processes 128 elements (64 threads × 2 elements)
+
+groupshared uint temp[SCAN_BLOCK_SIZE];
 RWStructuredBuffer<uint> BlockSums;
 
 void PrefixScan(uint tid, uint blockIdx) {
-    uint n = 128;
-    uint blockStart = blockIdx * 128;
+    uint n = SCAN_BLOCK_SIZE;
+    uint blockStart = blockIdx * SCAN_BLOCK_SIZE;
 
-    // Load data from global memory (offset by block)
     uint idx1 = blockStart + 2 * tid;
     uint idx2 = idx1 + 1;
     temp[2 * tid] = (idx1 < tableSize) ? CellCounts[idx1] : 0;
@@ -26,7 +27,6 @@ void PrefixScan(uint tid, uint blockIdx) {
         offset *= 2;
     }
 
-    // Store block sum and clear last element
     if (tid == 0)
     {
         BlockSums[blockIdx] = temp[n - 1];
@@ -51,7 +51,6 @@ void PrefixScan(uint tid, uint blockIdx) {
 
     GroupMemoryBarrierWithGroupSync();
 
-    // Write results back to global memory
     if (idx1 < tableSize) Offsets[idx1] = temp[2 * tid];
     if (idx2 < tableSize) Offsets[idx2] = temp[2 * tid + 1];
 }
@@ -59,19 +58,15 @@ void PrefixScan(uint tid, uint blockIdx) {
 void AddBlockSums(uint gid) {
     if (gid >= tableSize) return;
 
-    // Calculate which 128-element block this element belongs to
-    uint blockIdx = gid / 128;
+    uint blockIdx = gid / SCAN_BLOCK_SIZE;
     if (blockIdx == 0) return;
 
-    // After scanning BlockSums, BlockSums[i] contains sum of all blocks before block i
     Offsets[gid] += BlockSums[blockIdx];
 }
 
-// Scan the BlockSums themselves (for hierarchical recursion)
 void ScanBlockSums(uint tid, uint numSums) {
-    uint n = 128;
+    uint n = SCAN_BLOCK_SIZE;
 
-    // Load from BlockSums
     uint idx1 = 2 * tid;
     uint idx2 = idx1 + 1;
     temp[2 * tid] = (idx1 < numSums) ? BlockSums[idx1] : 0;
@@ -79,7 +74,6 @@ void ScanBlockSums(uint tid, uint numSums) {
 
     uint offset = 1;
 
-    // Up-sweep
     for (uint d = n >> 1; d > 0; d >>= 1)
     {
         GroupMemoryBarrierWithGroupSync();
@@ -92,13 +86,11 @@ void ScanBlockSums(uint tid, uint numSums) {
         offset *= 2;
     }
 
-    // Clear last element for exclusive scan
     if (tid == 0)
     {
         temp[n - 1] = 0;
     }
 
-    // Down-sweep
     for (uint e = 1; e < n; e *= 2)
     {
         offset >>= 1;
@@ -115,7 +107,6 @@ void ScanBlockSums(uint tid, uint numSums) {
 
     GroupMemoryBarrierWithGroupSync();
 
-    // Write results back to BlockSums
     if (idx1 < numSums) BlockSums[idx1] = temp[2 * tid];
     if (idx2 < numSums) BlockSums[idx2] = temp[2 * tid + 1];
 }

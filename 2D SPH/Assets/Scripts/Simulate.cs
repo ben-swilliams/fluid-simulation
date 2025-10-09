@@ -31,6 +31,7 @@ public class Simulate : MonoBehaviour
     Private properties
     */
     static int threadGroupSize = 64;
+    static int scanBlockSize = 128;  // Each scan block processes 128 elements (64 threads × 2)
     static int binNumber = 1000;
 
     int clearCountsKernel;
@@ -86,7 +87,6 @@ public class Simulate : MonoBehaviour
             computeShader.Dispatch(clearCountsKernel, Mathf.CeilToInt(binNumber / (float)threadGroupSize), 1, 1);
             computeShader.Dispatch(partitionKernel, threadGroups, 1, 1);
 
-            // Hierarchical scan
             HierarchicalScan(binNumber);
 
             computeShader.Dispatch(gravityKernel, threadGroups, 1, 1);
@@ -99,8 +99,8 @@ public class Simulate : MonoBehaviour
 
     void HierarchicalScan(int size)
     {
-        // Each block handles 128 elements with 64 threads (each thread processes 2 elements)
-        int numBlocks = Mathf.CeilToInt(size / 128f);
+        // Each block processes scanBlockSize elements
+        int numBlocks = Mathf.CeilToInt(size / (float)scanBlockSize);
 
         // Phase 1: Local scan in each block (stores block sums in BlockSums buffer)
         computeShader.Dispatch(scanKernel, numBlocks, 1, 1);
@@ -108,8 +108,7 @@ public class Simulate : MonoBehaviour
         // Phase 2: If we have multiple blocks, scan the block sums themselves
         if (numBlocks > 1)
         {
-            // For 1000 bins: numBlocks = 8, which fits in one scan operation (< 128)
-            // ScanBlockSums reads from BlockSums and writes back to BlockSums
+            // For 1000 bins with scanBlockSize=128: numBlocks = 8
             computeShader.SetInt("numBlockSums", numBlocks);
             computeShader.Dispatch(scanBlockSumsKernel, 1, 1, 1);
         }
@@ -121,7 +120,7 @@ public class Simulate : MonoBehaviour
             computeShader.Dispatch(addBlockSumsKernel, addThreadGroups, 1, 1);
         }
 
-        // Phase 4: Finalize by setting Offsets[tableSize] to the total count
+        // Phase 4: Write final element (total particle count)
         computeShader.Dispatch(finalizeScanKernel, 1, 1, 1);
     }
 
@@ -192,8 +191,8 @@ public class Simulate : MonoBehaviour
 
         offsetBuffer = new ComputeBuffer(binNumber + 1, sizeof(uint));
 
-        // Calculate number of blocks needed: each block handles 128 elements with 64 threads
-        int numBlocks = Mathf.CeilToInt(binNumber / 128f);
+        // Calculate number of blocks needed for hierarchical scan
+        int numBlocks = Mathf.CeilToInt(binNumber / (float)scanBlockSize);
         blockSumsBuffer = new ComputeBuffer(Mathf.Max(1, numBlocks), sizeof(uint));
 
         Vector2[] positions = spawner.ExtractPositions();
@@ -239,9 +238,9 @@ public class Simulate : MonoBehaviour
         computeShader.SetBuffer(scanKernel, "BlockSums", blockSumsBuffer);
         computeShader.SetBuffer(scanBlockSumsKernel, "BlockSums", blockSumsBuffer);
         computeShader.SetBuffer(addBlockSumsKernel, "Offsets", offsetBuffer);
+        computeShader.SetBuffer(addBlockSumsKernel, "CellCounts", countBuffer);
         computeShader.SetBuffer(addBlockSumsKernel, "BlockSums", blockSumsBuffer);
         computeShader.SetBuffer(finalizeScanKernel, "Offsets", offsetBuffer);
-        computeShader.SetBuffer(finalizeScanKernel, "CellCounts", countBuffer);
         computeShader.SetBuffer(gravityKernel, "Positions", positionBuffer);
         computeShader.SetBuffer(gravityKernel, "PredictedPositions", predictedPositionBuffer);
         computeShader.SetBuffer(gravityKernel, "Velocities", velocityBuffer);

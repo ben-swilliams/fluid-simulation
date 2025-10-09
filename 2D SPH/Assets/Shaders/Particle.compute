@@ -53,12 +53,12 @@ void Partition(uint3 id : SV_DispatchThreadID) {
     IndexAndCount(id.x);
 }
 
-[numthreads(64, 1, 1)]
+[numthreads(NumThreads, 1, 1)]
 void Scan(uint3 id : SV_GroupThreadID, uint3 groupId : SV_GroupID) {
     PrefixScan(id.x, groupId.x);
 }
 
-[numthreads(64, 1, 1)]
+[numthreads(NumThreads, 1, 1)]
 void ScanBlockSums(uint3 id : SV_GroupThreadID) {
     ScanBlockSums(id.x, numBlockSums);
 }
@@ -70,9 +70,7 @@ void AddBlockSums(uint3 id : SV_DispatchThreadID) {
 
 [numthreads(1, 1, 1)]
 void FinalizeScan(uint3 id : SV_DispatchThreadID) {
-    // Set the final element to the total count
-    // Offsets[tableSize] = Offsets[tableSize-1] + CellCounts[tableSize-1]
-    Offsets[tableSize] = Offsets[tableSize - 1] + CellCounts[tableSize - 1];
+    Offsets[tableSize] = instanceCount;
 }
 
 [numthreads(NumThreads, 1, 1)]
