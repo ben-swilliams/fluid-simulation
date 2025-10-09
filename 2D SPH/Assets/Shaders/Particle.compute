@@ -4,6 +4,7 @@
 #pragma kernel ScanBlockSums
 #pragma kernel AddBlockSums
 #pragma kernel FinalizeScan
+#pragma kernel Scatter
 #pragma kernel Gravity
 #pragma kernel Density
 #pragma kernel Pressure
@@ -12,13 +13,16 @@
 
 static const uint NumThreads = 64;
 
-RWStructuredBuffer<uint> GridIndices;
 RWStructuredBuffer<uint> CellCounts;
 RWStructuredBuffer<uint> Offsets;
+RWStructuredBuffer<uint> LocalOffsets;
 
 RWStructuredBuffer<float2> Positions;
+
 RWStructuredBuffer<float2> PredictedPositions;
+
 RWStructuredBuffer<float2> Velocities;
+
 RWStructuredBuffer<float> Densities;
 
 uint instanceCount;
@@ -35,6 +39,7 @@ uint numBlockSums;
 
 #include "Partition.hlsl"
 #include "Scan.hlsl"
+#include "Scatter.hlsl"
 #include "External.hlsl"
 #include "Density.hlsl"
 #include "Pressure.hlsl"
@@ -45,6 +50,7 @@ void ZeroCounts(uint id : SV_DispatchThreadID) {
     if (id.x >= tableSize) return;
 
     CellCounts[id.x] = 0;
+    LocalOffsets[id.x] = 0;
 }
 
 [numthreads(NumThreads, 1, 1)]
@@ -71,6 +77,13 @@ void AddBlockSums(uint3 id : SV_DispatchThreadID) {
 [numthreads(1, 1, 1)]
 void FinalizeScan(uint3 id : SV_DispatchThreadID) {
     Offsets[tableSize] = instanceCount;
+}
+
+[numthreads(NumThreads, 1, 1)]
+void Scatter(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    SortParticle(id.x);
 }
 
 [numthreads(NumThreads, 1, 1)]
