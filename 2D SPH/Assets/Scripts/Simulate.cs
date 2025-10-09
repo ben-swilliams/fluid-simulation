@@ -300,14 +300,14 @@ public class Simulate : MonoBehaviour
         computeShader.SetBuffer(gravityKernel, "Positions", positionBuffer);
         computeShader.SetBuffer(gravityKernel, "PredictedPositions", predictedPositionBuffer);
         computeShader.SetBuffer(gravityKernel, "Velocities", velocityBuffer);
-        computeShader.SetBuffer(densityKernel, "Positions", positionBuffer);
+        computeShader.SetBuffer(densityKernel, "Offsets", offsetBuffer);
         computeShader.SetBuffer(densityKernel, "PredictedPositions", predictedPositionBuffer);
         computeShader.SetBuffer(densityKernel, "Densities", densityBuffer);
-        computeShader.SetBuffer(pressureKernel, "Positions", positionBuffer);
+        computeShader.SetBuffer(pressureKernel, "Offsets", offsetBuffer);
         computeShader.SetBuffer(pressureKernel, "PredictedPositions", predictedPositionBuffer);
         computeShader.SetBuffer(pressureKernel, "Velocities", velocityBuffer);
         computeShader.SetBuffer(pressureKernel, "Densities", densityBuffer);
-        computeShader.SetBuffer(viscosityKernel, "Positions", positionBuffer);
+        computeShader.SetBuffer(viscosityKernel, "Offsets", offsetBuffer);
         computeShader.SetBuffer(viscosityKernel, "PredictedPositions", predictedPositionBuffer);
         computeShader.SetBuffer(viscosityKernel, "Velocities", velocityBuffer);
         computeShader.SetBuffer(viscosityKernel, "Densities", densityBuffer);

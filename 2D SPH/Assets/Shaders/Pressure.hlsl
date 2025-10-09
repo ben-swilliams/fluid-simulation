@@ -22,13 +22,26 @@ float2 CalculatePressureForce(uint i) {
 
     float pressureI = CalculatePressure(i);
 
-    for (uint j = 0; j < instanceCount; j++) {
-        if (i == j) continue;
+    int2 gridPosI = GetGridPos(PredictedPositions[i]);
 
-        float pressureJ = CalculatePressure(j);
-        float2 offset = PredictedPositions[j] - PredictedPositions[i];
+    for (int x = -1; x < 2; x++) {
+        for (int y = -1; y < 2; y++) {
+            int2 gridPosJ = gridPosI + int2(x, y);
+            if (!IsInBounds(gridPosJ)) continue;
 
-        pForce += particleMass * ((pressureI + pressureJ) / (2 * Densities[j])) * PressureKernelGrad(offset);
+            uint hash = CalculateHashFromGrid(gridPosJ);
+
+            uint startIndex = Offsets[hash];
+            uint endIndex = Offsets[hash + 1];
+
+            for (uint j = startIndex; j < endIndex; j++) {
+                if (i == j) continue;
+                float pressureJ = CalculatePressure(j);
+                float2 offset = PredictedPositions[j] - PredictedPositions[i];
+
+                pForce += particleMass * ((pressureI + pressureJ) / (2 * Densities[j])) * PressureKernelGrad(offset);
+            }
+        }
     }
 
     return -pForce / Densities[i];
