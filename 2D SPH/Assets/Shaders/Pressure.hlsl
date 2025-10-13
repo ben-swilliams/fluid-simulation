@@ -21,7 +21,6 @@ float2 CalculatePressureForce(uint i) {
     float2 pForce = float2(0, 0);
 
     float pressureI = CalculatePressure(i);
-    float densityI = max(Densities[i], 0.0001);  // Prevent division by zero
 
     int2 gridPosI = GetGridPos(PredictedPositions[i]);
 
@@ -45,5 +44,5 @@ float2 CalculatePressureForce(uint i) {
         }
     }
 
-    return -pForce / densityI;
+    return -pForce / Densities[i];
 }

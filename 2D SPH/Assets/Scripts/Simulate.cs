@@ -13,6 +13,7 @@ public class Simulate : MonoBehaviour
     [SerializeField] ComputeShader computeShader;
 
     [Header("Simulation Settings")]
+    [SerializeField] int physicsStepsPerSecond = 300;
     [SerializeField] float simulationSpeed = 1f;
     [SerializeField] float smoothingRadius = 1f;
 
@@ -49,8 +50,9 @@ public class Simulate : MonoBehaviour
     int positionKernel;
     Spawn spawner;
     bool started;
-    int frameRateTarget = 120;
-    float dtTarget;
+    float physicsTimeStep;
+    float accumulator = 0f;
+    int maxStepsPerFrame = 5;
 
     int instanceCount;
 
@@ -78,7 +80,8 @@ public class Simulate : MonoBehaviour
     void Start()
     {
         spawner = GetComponent<Spawn>();
-        dtTarget = 1f / frameRateTarget;
+
+        physicsTimeStep = 1f / physicsStepsPerSecond;
     }
 
     void Update()
@@ -87,28 +90,46 @@ public class Simulate : MonoBehaviour
 
         if (started)
         {
-            float dt = Mathf.Min(dtTarget, Time.deltaTime);
-            computeShader.SetFloat("deltaTime", dt * simulationSpeed);
+            accumulator += Time.deltaTime * simulationSpeed;
 
-            int threadGroups = Mathf.CeilToInt(instanceCount / (float)threadGroupSize);
+            int stepsThisFrame = 0;
+            while (accumulator >= physicsTimeStep && stepsThisFrame < maxStepsPerFrame)
+            {
+                RunPhysicsStep();
+                accumulator -= physicsTimeStep;
+                stepsThisFrame++;
+            }
 
-            computeShader.Dispatch(clearCountsKernel, Mathf.CeilToInt(binNumber / (float)threadGroupSize), 1, 1);
-            computeShader.Dispatch(partitionKernel, threadGroups, 1, 1);
-
-            HierarchicalScan(binNumber);
-
-            RebindBuffers();
-            computeShader.Dispatch(scatterKernel, threadGroups, 1, 1);
-
-            SwapBuffers();
-            RebindBuffers();
-
-            computeShader.Dispatch(gravityKernel, threadGroups, 1, 1);
-            computeShader.Dispatch(densityKernel, threadGroups, 1, 1);
-            computeShader.Dispatch(pressureKernel, threadGroups, 1, 1);
-            computeShader.Dispatch(viscosityKernel, threadGroups, 1, 1);
-            computeShader.Dispatch(positionKernel, threadGroups, 1, 1);
+            // Prevent spiral of death - if we're too far behind, reset accumulator
+            if (accumulator > physicsTimeStep * maxStepsPerFrame)
+            {
+                accumulator = 0f;
+            }
         }
+    }
+
+    void RunPhysicsStep()
+    {
+        computeShader.SetFloat("deltaTime", physicsTimeStep);
+
+        int threadGroups = Mathf.CeilToInt(instanceCount / (float)threadGroupSize);
+
+        computeShader.Dispatch(clearCountsKernel, Mathf.CeilToInt(binNumber / (float)threadGroupSize), 1, 1);
+        computeShader.Dispatch(partitionKernel, threadGroups, 1, 1);
+
+        HierarchicalScan(binNumber);
+
+        RebindBuffers();
+        computeShader.Dispatch(scatterKernel, threadGroups, 1, 1);
+
+        SwapBuffers();
+        RebindBuffers();
+
+        computeShader.Dispatch(gravityKernel, threadGroups, 1, 1);
+        computeShader.Dispatch(densityKernel, threadGroups, 1, 1);
+        computeShader.Dispatch(pressureKernel, threadGroups, 1, 1);
+        computeShader.Dispatch(viscosityKernel, threadGroups, 1, 1);
+        computeShader.Dispatch(positionKernel, threadGroups, 1, 1);
     }
 
     void HierarchicalScan(int size)
