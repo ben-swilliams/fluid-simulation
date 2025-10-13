@@ -18,6 +18,8 @@ void SortParticle(uint i)
     uint offset = oldOffset;
     uint destIndex = Offsets[hash] + offset;
 
+    if (destIndex >= instanceCount) return;
+
     NewPositions[destIndex]  = OldPositions[i];
     NewVelocities[destIndex] = OldVelocities[i];
     NewDensities[destIndex]  = OldDensities[i];
