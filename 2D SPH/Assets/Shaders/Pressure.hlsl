@@ -6,7 +6,7 @@ float restDensity;
 float2 PressureKernelGrad(float2 offset) {
     float r = length(offset);
     
-    if (r < 1e-6 || r > smoothingRadius)
+    if (r < 1e-7 || r > smoothingRadius)
         return float2(0, 0);
     
     float inner = smoothingRadius - r;

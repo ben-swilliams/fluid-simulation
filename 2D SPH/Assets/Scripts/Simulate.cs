@@ -35,7 +35,7 @@ public class Simulate : MonoBehaviour
     */
     static int threadGroupSize = 64;
     static int scanBlockSize = 128;  // Each scan block processes 128 elements (64 threads × 2)
-    static int binNumber = 5000;
+    static int binNumber = 10000;
 
     int clearCountsKernel;
     int partitionKernel;
