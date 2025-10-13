@@ -21,6 +21,7 @@ float2 CalculatePressureForce(uint i) {
     float2 pForce = float2(0, 0);
 
     float pressureI = CalculatePressure(i);
+    float densityI = max(Densities[i], 0.0001);  // Prevent division by zero
 
     int2 gridPosI = GetGridPos(PredictedPositions[i]);
 
@@ -37,12 +38,13 @@ float2 CalculatePressureForce(uint i) {
             for (uint j = startIndex; j < endIndex; j++) {
                 if (i == j) continue;
                 float pressureJ = CalculatePressure(j);
+                float densityJ = max(Densities[j], 0.0001);  // Prevent division by zero
                 float2 offset = PredictedPositions[j] - PredictedPositions[i];
 
-                pForce += particleMass * ((pressureI + pressureJ) / (2 * Densities[j])) * PressureKernelGrad(offset);
+                pForce += particleMass * ((pressureI + pressureJ) / (2 * densityJ)) * PressureKernelGrad(offset);
             }
         }
     }
 
-    return -pForce / Densities[i];
+    return -pForce / densityI;
 }

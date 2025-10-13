@@ -408,20 +408,4 @@ public class Simulate : MonoBehaviour
     {
         computeShader.SetVector("containerSize", GetComponentInChildren<Container>().Boundary);
     }
-
-    int CalculateHashCPU(Vector2 pos)
-    {
-        const uint primeX = 73856093;
-        const uint primeY = 19349663;
-
-        Vector2 containerSize = GetComponentInChildren<Container>().Boundary;
-        Vector2 offsetPos = pos + containerSize / 2f;
-
-        int gridX = Mathf.FloorToInt(offsetPos.x / smoothingRadius);
-        int gridY = Mathf.FloorToInt(offsetPos.y / smoothingRadius);
-
-        uint total = (uint)gridX * primeX + (uint)gridY * primeY;
-
-        return (int)(total % binNumber);
-    }
 }
