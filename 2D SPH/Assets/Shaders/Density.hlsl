@@ -1,5 +1,3 @@
-const float eps = 1e-4;
-
 float kernelConstant;
 
 float SmoothingKernel(float2 offset) {
@@ -15,7 +13,7 @@ float SmoothingKernel(float2 offset) {
 }
 
 float CalculateDensity(uint i) {
-    float density = 0;
+    float density = 1e-4;
 
     int2 gridPosI = GetGridPos(PredictedPositions[i]);
 
@@ -35,5 +33,5 @@ float CalculateDensity(uint i) {
             }
         }
     }
-    return max(eps, density);
+    return density;
 }

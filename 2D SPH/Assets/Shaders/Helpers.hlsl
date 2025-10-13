@@ -13,7 +13,7 @@ int2 GetGridPos(float2 pos) {
 }
 
 uint CalculateHashFromGrid(int2 gridPos) {
-    uint total = gridPos.x * primeX + gridPos.y * primeY;
+    uint total = (uint)gridPos.x * primeX + (uint)gridPos.y * primeY;
     return total % tableSize;
 }
 
