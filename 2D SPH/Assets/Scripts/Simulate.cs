@@ -66,7 +66,6 @@ public class Simulate : MonoBehaviour
     ComputeBuffer velocityBuffer;
     ComputeBuffer velocityBufferA;
     ComputeBuffer velocityBufferB;
-    ComputeBuffer oldAccelerationBuffer;
     ComputeBuffer accelerationBuffer;
     ComputeBuffer densityBuffer;
     ComputeBuffer densityBufferA;
@@ -119,7 +118,6 @@ public class Simulate : MonoBehaviour
 
         computeShader.Dispatch(densityKernel, threadGroups, 1, 1);
 
-        computeShader.SetBuffer(accelerationKernel, "Accelerations", oldAccelerationBuffer);
         computeShader.Dispatch(accelerationKernel, threadGroups, 1, 1);
 
         computeShader.Dispatch(positionKernel, threadGroups, 1, 1);
@@ -127,9 +125,6 @@ public class Simulate : MonoBehaviour
         ScanAndScatter();
 
         computeShader.Dispatch(densityKernel, threadGroups, 1, 1);
-
-        computeShader.SetBuffer(accelerationKernel, "Accelerations", accelerationBuffer);
-        computeShader.Dispatch(accelerationKernel, threadGroups, 1, 1);
 
         computeShader.Dispatch(velocityKernel, threadGroups, 1, 1);
     }
@@ -207,8 +202,6 @@ public class Simulate : MonoBehaviour
             velocityBufferB.Release();
         if (densityBufferB != null)
             densityBufferB.Release();
-        if (oldAccelerationBuffer != null)
-            oldAccelerationBuffer.Release();
         if (accelerationBuffer != null)
             accelerationBuffer.Release();
     }
@@ -269,7 +262,6 @@ public class Simulate : MonoBehaviour
 
         velocityBuffer = velocityBufferA;
 
-        oldAccelerationBuffer = new ComputeBuffer(spawner.InstanceCount, sizeof(float) * 2);
         accelerationBuffer = new ComputeBuffer(spawner.InstanceCount, sizeof(float) * 2);
 
         float[] densities = new float[spawner.InstanceCount];
@@ -321,7 +313,7 @@ public class Simulate : MonoBehaviour
         computeShader.SetBuffer(accelerationKernel, "Offsets", offsetBuffer);
         computeShader.SetBuffer(accelerationKernel, "Accelerations", accelerationBuffer);
 
-        computeShader.SetBuffer(velocityKernel, "OldAccelerations", oldAccelerationBuffer);
+        computeShader.SetBuffer(velocityKernel, "Offsets", offsetBuffer);
         computeShader.SetBuffer(velocityKernel, "Accelerations", accelerationBuffer);
 
         computeShader.SetBuffer(positionKernel, "Accelerations", accelerationBuffer);
@@ -352,7 +344,9 @@ public class Simulate : MonoBehaviour
         computeShader.SetBuffer(accelerationKernel, "Velocities", velocityBuffer);
         computeShader.SetBuffer(accelerationKernel, "Positions", positionBuffer);
 
+        computeShader.SetBuffer(velocityKernel, "Densities", densityBuffer);
         computeShader.SetBuffer(velocityKernel, "Velocities", velocityBuffer);
+        computeShader.SetBuffer(velocityKernel, "Positions", positionBuffer);
 
         computeShader.SetBuffer(positionKernel, "Positions", positionBuffer);
         computeShader.SetBuffer(positionKernel, "Velocities", velocityBuffer);

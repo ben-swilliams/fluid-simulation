@@ -35,6 +35,8 @@ float smoothingRadius;
 
 float2 containerSize;
 
+float2 gravity;
+
 uint tableSize;
 uint numBlockSums;
 
@@ -46,6 +48,14 @@ uint numBlockSums;
 #include "Density.hlsl"
 #include "Pressure.hlsl"
 #include "Viscosity.hlsl"
+
+float2 CalculateAcceleration(uint id) {
+    float2 external = gravity + MouseForce(id);
+    float2 pressure = CalculatePressureForce(id);
+    float2 viscosity = CalculateViscosityForce(id);
+
+    return external + pressure + viscosity;
+}
 
 [numthreads(NumThreads, 1, 1)]
 void ZeroCounts(uint id : SV_DispatchThreadID) {
@@ -99,18 +109,16 @@ void Density(uint3 id : SV_DispatchThreadID) {
 void UpdateAccelerations(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    float2 external = gravity + MouseForce(id.x);
-    float2 pressure = CalculatePressureForce(id.x);
-    float2 viscosity = CalculateViscosityForce(id.x);
-
-    Accelerations[id.x] = external + pressure + viscosity;
+    Accelerations[id.x] = CalculateAcceleration(id.x);
 }
 
 [numthreads(NumThreads, 1, 1)]
 void UpdateVelocities(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Velocities[id.x] += deltaTime * ((OldAccelerations[id.x] + Accelerations[id.x]) / 2);
+    float2 newAcc = CalculateAcceleration(id.x);
+
+    Velocities[id.x] += deltaTime * ((Accelerations[id.x] + newAcc) / 2);
 }
 
 [numthreads(NumThreads, 1, 1)]

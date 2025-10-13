@@ -3,8 +3,6 @@ float dampingFactor;
 float power;
 float mouseRadius;
 
-float2 gravity;
-
 float2 origin;
 
 void Collisions(uint idx) {
