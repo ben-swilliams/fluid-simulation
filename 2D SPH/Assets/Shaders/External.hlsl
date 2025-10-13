@@ -33,11 +33,11 @@ void Collisions(uint idx) {
     }
 }
 
-void ApplyMouseForce(uint idx) {
+float2 MouseForce(uint idx) {
     float2 diff = origin - Positions[idx];
-    if (dot(diff, diff) > mouseRadius * mouseRadius) return;
+    if (dot(diff, diff) > mouseRadius * mouseRadius) return float2(0, 0);
 
     float2 forceVector = normalize(diff) * power;
 
-    Velocities[idx] += forceVector * deltaTime;
+    return forceVector;
 }

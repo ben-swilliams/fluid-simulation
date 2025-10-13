@@ -5,10 +5,10 @@
 #pragma kernel AddBlockSums
 #pragma kernel FinalizeScan
 #pragma kernel Scatter
-#pragma kernel Gravity
 #pragma kernel Density
-#pragma kernel Pressure
-#pragma kernel Viscosity
+
+#pragma kernel UpdateAccelerations
+#pragma kernel UpdateVelocities
 #pragma kernel UpdatePositions
 
 static const uint NumThreads = 64;
@@ -19,9 +19,10 @@ RWStructuredBuffer<uint> LocalOffsets;
 
 RWStructuredBuffer<float2> Positions;
 
-RWStructuredBuffer<float2> PredictedPositions;
-
 RWStructuredBuffer<float2> Velocities;
+
+RWStructuredBuffer<float2> Accelerations;
+RWStructuredBuffer<float2> OldAccelerations;
 
 RWStructuredBuffer<float> Densities;
 
@@ -88,16 +89,6 @@ void Scatter(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void Gravity(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    // Classic Euler stuff
-    Velocities[id.x] += gravity * deltaTime;
-
-    PredictedPositions[id.x] = Positions[id.x] + Velocities[id.x] * deltaTime;
-}
-
-[numthreads(NumThreads, 1, 1)]
 void Density(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
@@ -105,25 +96,28 @@ void Density(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void Pressure(uint3 id : SV_DispatchThreadID) {
+void UpdateAccelerations(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Velocities[id.x] += CalculatePressureForce(id.x) * deltaTime;
+    float2 external = gravity + MouseForce(id.x);
+    float2 pressure = CalculatePressureForce(id.x);
+    float2 viscosity = CalculateViscosityForce(id.x);
+
+    Accelerations[id.x] = external + pressure;
 }
 
 [numthreads(NumThreads, 1, 1)]
-void Viscosity(uint3 id : SV_DispatchThreadID) {
+void UpdateVelocities(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Velocities[id.x] += CalculateViscosityForce(id.x) * deltaTime;
+    Velocities[id.x] += deltaTime * ((OldAccelerations[id.x] + Accelerations[id.x]) / 2);
 }
 
 [numthreads(NumThreads, 1, 1)]
 void UpdatePositions(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Positions[id.x] += Velocities[id.x] * deltaTime;
-    ApplyMouseForce(id.x);
+    Positions[id.x] += Velocities[id.x] * deltaTime + 0.5 * Accelerations[id.x] * deltaTime * deltaTime;
 
     Collisions(id.x);
 }
