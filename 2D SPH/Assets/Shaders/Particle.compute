@@ -103,7 +103,7 @@ void UpdateAccelerations(uint3 id : SV_DispatchThreadID) {
     float2 pressure = CalculatePressureForce(id.x);
     float2 viscosity = CalculateViscosityForce(id.x);
 
-    Accelerations[id.x] = external + pressure;
+    Accelerations[id.x] = external + pressure + viscosity;
 }
 
 [numthreads(NumThreads, 1, 1)]
