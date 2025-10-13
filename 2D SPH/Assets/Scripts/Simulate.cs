@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.SocialPlatforms;
@@ -34,7 +35,7 @@ public class Simulate : MonoBehaviour
     */
     static int threadGroupSize = 64;
     static int scanBlockSize = 128;  // Each scan block processes 128 elements (64 threads × 2)
-    static int binNumber = 5000;
+    static int binNumber = 10000;
 
     int clearCountsKernel;
     int partitionKernel;
@@ -43,10 +44,9 @@ public class Simulate : MonoBehaviour
     int addBlockSumsKernel;
     int finalizeScanKernel;
     int scatterKernel;
-    int gravityKernel;
-    int pressureKernel;
     int densityKernel;
-    int viscosityKernel;
+    int accelerationKernel;
+    int velocityKernel;
     int positionKernel;
     Spawn spawner;
     bool started;
@@ -63,10 +63,10 @@ public class Simulate : MonoBehaviour
     ComputeBuffer positionBuffer;
     ComputeBuffer positionBufferA;
     ComputeBuffer positionBufferB;
-    ComputeBuffer predictedPositionBuffer;
     ComputeBuffer velocityBuffer;
     ComputeBuffer velocityBufferA;
     ComputeBuffer velocityBufferB;
+    ComputeBuffer accelerationBuffer;
     ComputeBuffer densityBuffer;
     ComputeBuffer densityBufferA;
     ComputeBuffer densityBufferB;
@@ -112,29 +112,42 @@ public class Simulate : MonoBehaviour
     {
         computeShader.SetFloat("deltaTime", physicsTimeStep);
 
+        ScanAndScatter();
+
+        int threadGroups = Mathf.CeilToInt(instanceCount / (float)threadGroupSize);
+
+        computeShader.Dispatch(densityKernel, threadGroups, 1, 1);
+
+        computeShader.Dispatch(accelerationKernel, threadGroups, 1, 1);
+
+        computeShader.Dispatch(positionKernel, threadGroups, 1, 1);
+
+        ScanAndScatter();
+
+        computeShader.Dispatch(densityKernel, threadGroups, 1, 1);
+
+        computeShader.Dispatch(velocityKernel, threadGroups, 1, 1);
+    }
+
+    void ScanAndScatter()
+    {
         int threadGroups = Mathf.CeilToInt(instanceCount / (float)threadGroupSize);
 
         computeShader.Dispatch(clearCountsKernel, Mathf.CeilToInt(binNumber / (float)threadGroupSize), 1, 1);
         computeShader.Dispatch(partitionKernel, threadGroups, 1, 1);
 
-        HierarchicalScan(binNumber);
+        HierarchicalScan();
 
         RebindBuffers();
         computeShader.Dispatch(scatterKernel, threadGroups, 1, 1);
 
         SwapBuffers();
         RebindBuffers();
-
-        computeShader.Dispatch(gravityKernel, threadGroups, 1, 1);
-        computeShader.Dispatch(densityKernel, threadGroups, 1, 1);
-        computeShader.Dispatch(pressureKernel, threadGroups, 1, 1);
-        computeShader.Dispatch(viscosityKernel, threadGroups, 1, 1);
-        computeShader.Dispatch(positionKernel, threadGroups, 1, 1);
     }
 
-    void HierarchicalScan(int size)
+    void HierarchicalScan()
     {
-        int numBlocks = Mathf.CeilToInt(size / (float)scanBlockSize);
+        int numBlocks = Mathf.CeilToInt(binNumber / (float)scanBlockSize);
 
         // Phase 1: Local scan in each block (stores block sums in BlockSums buffer)
         computeShader.Dispatch(scanKernel, numBlocks, 1, 1);
@@ -150,7 +163,7 @@ public class Simulate : MonoBehaviour
         // Phase 3: Add scanned block sums to each block's elements
         if (numBlocks > 1)
         {
-            int addThreadGroups = Mathf.CeilToInt(size / (float)threadGroupSize);
+            int addThreadGroups = Mathf.CeilToInt(binNumber / (float)threadGroupSize);
             computeShader.Dispatch(addBlockSumsKernel, addThreadGroups, 1, 1);
         }
 
@@ -179,8 +192,6 @@ public class Simulate : MonoBehaviour
             localOffsetBuffer.Release();
         if (positionBufferA != null)
             positionBufferA.Release();
-        if (predictedPositionBuffer != null)
-            predictedPositionBuffer.Release();
         if (velocityBufferA != null)
             velocityBufferA.Release();
         if (densityBufferA != null)
@@ -191,6 +202,8 @@ public class Simulate : MonoBehaviour
             velocityBufferB.Release();
         if (densityBufferB != null)
             densityBufferB.Release();
+        if (accelerationBuffer != null)
+            accelerationBuffer.Release();
     }
 
     void StartSimulation()
@@ -241,10 +254,6 @@ public class Simulate : MonoBehaviour
 
         positionBuffer = positionBufferA;
 
-        Vector2[] predictedPositions = new Vector2[positions.Length];
-        predictedPositionBuffer = new ComputeBuffer(positions.Length, sizeof(float) * 2);
-        predictedPositionBuffer.SetData(predictedPositions);
-
         Vector2[] velocities = GenerateVelocityData();
         velocityBufferA = new ComputeBuffer(velocities.Length, sizeof(float) * 2);
         velocityBufferA.SetData(velocities);
@@ -252,6 +261,8 @@ public class Simulate : MonoBehaviour
         velocityBufferB = new ComputeBuffer(velocities.Length, sizeof(float) * 2);
 
         velocityBuffer = velocityBufferA;
+
+        accelerationBuffer = new ComputeBuffer(spawner.InstanceCount, sizeof(float) * 2);
 
         float[] densities = new float[spawner.InstanceCount];
         densityBufferA = new ComputeBuffer(densities.Length, sizeof(float));
@@ -271,10 +282,9 @@ public class Simulate : MonoBehaviour
         addBlockSumsKernel = computeShader.FindKernel("AddBlockSums");
         finalizeScanKernel = computeShader.FindKernel("FinalizeScan");
         scatterKernel = computeShader.FindKernel("Scatter");
-        gravityKernel = computeShader.FindKernel("Gravity");
-        pressureKernel = computeShader.FindKernel("Pressure");
         densityKernel = computeShader.FindKernel("Density");
-        viscosityKernel = computeShader.FindKernel("Viscosity");
+        accelerationKernel = computeShader.FindKernel("UpdateAccelerations");
+        velocityKernel = computeShader.FindKernel("UpdateVelocities");
         positionKernel = computeShader.FindKernel("UpdatePositions");
     }
 
@@ -300,6 +310,14 @@ public class Simulate : MonoBehaviour
         computeShader.SetBuffer(scatterKernel, "LocalOffsets", localOffsetBuffer);
         computeShader.SetBuffer(scatterKernel, "Offsets", offsetBuffer);
 
+        computeShader.SetBuffer(accelerationKernel, "Offsets", offsetBuffer);
+        computeShader.SetBuffer(accelerationKernel, "Accelerations", accelerationBuffer);
+
+        computeShader.SetBuffer(velocityKernel, "Offsets", offsetBuffer);
+        computeShader.SetBuffer(velocityKernel, "Accelerations", accelerationBuffer);
+
+        computeShader.SetBuffer(positionKernel, "Accelerations", accelerationBuffer);
+
         RebindBuffers();
     }
 
@@ -318,20 +336,18 @@ public class Simulate : MonoBehaviour
         computeShader.SetBuffer(scatterKernel, "OldDensities", densityBuffer);
         computeShader.SetBuffer(scatterKernel, "NewDensities", inactiveDensity);
 
-        computeShader.SetBuffer(gravityKernel, "Positions", positionBuffer);
-        computeShader.SetBuffer(gravityKernel, "PredictedPositions", predictedPositionBuffer);
-        computeShader.SetBuffer(gravityKernel, "Velocities", velocityBuffer);
         computeShader.SetBuffer(densityKernel, "Offsets", offsetBuffer);
-        computeShader.SetBuffer(densityKernel, "PredictedPositions", predictedPositionBuffer);
         computeShader.SetBuffer(densityKernel, "Densities", densityBuffer);
-        computeShader.SetBuffer(pressureKernel, "Offsets", offsetBuffer);
-        computeShader.SetBuffer(pressureKernel, "PredictedPositions", predictedPositionBuffer);
-        computeShader.SetBuffer(pressureKernel, "Velocities", velocityBuffer);
-        computeShader.SetBuffer(pressureKernel, "Densities", densityBuffer);
-        computeShader.SetBuffer(viscosityKernel, "Offsets", offsetBuffer);
-        computeShader.SetBuffer(viscosityKernel, "PredictedPositions", predictedPositionBuffer);
-        computeShader.SetBuffer(viscosityKernel, "Velocities", velocityBuffer);
-        computeShader.SetBuffer(viscosityKernel, "Densities", densityBuffer);
+        computeShader.SetBuffer(densityKernel, "Positions", positionBuffer);
+
+        computeShader.SetBuffer(accelerationKernel, "Densities", densityBuffer);
+        computeShader.SetBuffer(accelerationKernel, "Velocities", velocityBuffer);
+        computeShader.SetBuffer(accelerationKernel, "Positions", positionBuffer);
+
+        computeShader.SetBuffer(velocityKernel, "Densities", densityBuffer);
+        computeShader.SetBuffer(velocityKernel, "Velocities", velocityBuffer);
+        computeShader.SetBuffer(velocityKernel, "Positions", positionBuffer);
+
         computeShader.SetBuffer(positionKernel, "Positions", positionBuffer);
         computeShader.SetBuffer(positionKernel, "Velocities", velocityBuffer);
     }

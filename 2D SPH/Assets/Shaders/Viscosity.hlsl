@@ -14,7 +14,7 @@ float ViscosityKernelLap(float2 offset) {
 float2 CalculateViscosityForce(uint i) {
     float2 vForce = float2(0, 0);
 
-    int2 gridPosI = GetGridPos(PredictedPositions[i]);
+    int2 gridPosI = GetGridPos(Positions[i]);
 
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
@@ -28,7 +28,7 @@ float2 CalculateViscosityForce(uint i) {
 
             for (uint j = startIndex; j < endIndex; j++) {
                 if (i == j) continue;
-                float2 posOffset = PredictedPositions[i] - PredictedPositions[j];
+                float2 posOffset = Positions[i] - Positions[j];
                 float2 velOffset = Velocities[j] - Velocities[i];
 
                 float laplacian = ViscosityKernelLap(posOffset);
