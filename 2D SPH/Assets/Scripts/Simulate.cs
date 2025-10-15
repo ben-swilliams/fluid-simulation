@@ -118,6 +118,7 @@ public class Simulate : MonoBehaviour
 
         HierarchicalScan();
 
+        shader.BindDynamicBuffers();
         shader.Dispatch(scatterKernel);
 
         shader.SwapBuffers();
@@ -258,7 +259,7 @@ public class Simulate : MonoBehaviour
             "smoothingRadius", smoothingRadius,
             "dampingFactor", dampingFactor,
             "gravity", gravity,
-            "pressureKernelConstant", pressureKernelGradConstant,
+            "pressureKernelGradConstant", pressureKernelGradConstant,
             "gasConstant", gasConstant,
             "restDensity", restDensity,
             "particleMass", particleMass,
@@ -306,7 +307,7 @@ public class Simulate : MonoBehaviour
 
         shader.SetValues(new object[]
         {
-            "origin", origin,
+            "mousePos", origin,
             "mouseRadius", radius,
             "power", power
         });
