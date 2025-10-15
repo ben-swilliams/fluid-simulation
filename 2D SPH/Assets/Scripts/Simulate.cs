@@ -101,10 +101,12 @@ public class Simulate : MonoBehaviour
 
         ScanAndScatter();
 
+        shader.BindDynamicBuffers();
         shader.Dispatch(densityKernel, accelerationKernel, positionKernel);
 
         ScanAndScatter();
 
+        shader.BindDynamicBuffers();
         shader.Dispatch(densityKernel, velocityKernel);
     }
 
