@@ -11,36 +11,64 @@
 #pragma kernel UpdateVelocities
 #pragma kernel UpdatePositions
 
-static const uint NumThreads = 64;
+/*
+Global parameters
+*/
 
+static const uint NumThreads = 256;
+
+// Integer buffers
 RWStructuredBuffer<uint> CellCounts;
 RWStructuredBuffer<uint> Offsets;
 RWStructuredBuffer<uint> LocalOffsets;
 
+// Float buffers
+RWStructuredBuffer<float> Densities;
+
+// Vector buffers
 RWStructuredBuffer<float2> Positions;
-
 RWStructuredBuffer<float2> Velocities;
-
 RWStructuredBuffer<float2> Accelerations;
 RWStructuredBuffer<float2> OldAccelerations;
 
-RWStructuredBuffer<float> Densities;
-
+// Integers
 uint instanceCount;
 
+// Floats
 float deltaTime;
 float particleMass;
-
 float smoothingRadius;
 
+// Vectors
 float2 containerSize;
 
+/*
+External force parameters
+*/
+// Floats
+float size;
+float dampingFactor;
+float power;
+float mouseRadius;
+
+// Vectors
+float2 mousePos;
 float2 gravity;
 
+/*
+Density parameters
+*/
+float densityKernelConstant;
+
+/*
+Scan/partition parameters
+*/
+// Integers
+uint gridX;
+uint gridY;
 uint tableSize;
 uint numBlockSums;
 
-#include "Helpers.hlsl"
 #include "Partition.hlsl"
 #include "Scan.hlsl"
 #include "Scatter.hlsl"
