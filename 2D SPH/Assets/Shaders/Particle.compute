@@ -7,7 +7,6 @@
 #pragma kernel Scatter
 #pragma kernel Density
 
-#pragma kernel UpdateAccelerations
 #pragma kernel UpdateVelocities
 #pragma kernel UpdatePositions
 
@@ -28,7 +27,6 @@ RWStructuredBuffer<float> Densities;
 // Vector buffers
 RWStructuredBuffer<float2> Positions;
 RWStructuredBuffer<float2> Velocities;
-RWStructuredBuffer<float2> Accelerations;
 
 // Integers
 uint instanceCount;
@@ -147,24 +145,20 @@ void Density(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void UpdateAccelerations(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    Accelerations[id.x] = CalculateAcceleration(id.x);
-}
-
-[numthreads(NumThreads, 1, 1)]
 void UpdateVelocities(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Velocities[id.x] += Accelerations[id.x] * deltaTime;
+    float2 acceleration = CalculateAcceleration(id.x);
+    float2 xsphCorrection = CalculateXSPHCorrection(id.x);
+
+    Velocities[id.x] += acceleration * deltaTime + xsphCorrection;
 }
 
 [numthreads(NumThreads, 1, 1)]
 void UpdatePositions(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Positions[id.x] += CalculateSmoothedVelocity(id.x) * deltaTime;
+    Positions[id.x] += Velocities[id.x] * deltaTime;
 
     Collisions(id.x);
 }

@@ -1,8 +1,6 @@
 float velocitySmoothing;
 
-float2 CalculateSmoothedVelocity(uint i) {
-    return Velocities[i];
-
+float2 CalculateXSPHCorrection(uint i) {
     int2 gridPosI = GetGridPos(Positions[i]);
 
     float2 velAcc = float2(0, 0);
@@ -31,5 +29,5 @@ float2 CalculateSmoothedVelocity(uint i) {
         }
     }
 
-    return Velocities[i] + velocitySmoothing * velAcc;
+    return velocitySmoothing * velAcc;
 }
