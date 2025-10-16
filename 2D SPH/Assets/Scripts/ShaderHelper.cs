@@ -225,5 +225,7 @@ class ShaderHelper
             velocityBufferB.Release();
         if (accelerationBuffer != null)
             accelerationBuffer.Release();
+        if (densityBuffer != null)
+            densityBuffer.Release();
     }
 }
