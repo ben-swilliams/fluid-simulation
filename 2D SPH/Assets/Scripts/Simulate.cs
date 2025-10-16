@@ -14,6 +14,7 @@ public class Simulate : MonoBehaviour
     [SerializeField] int physicsStepsPerSecond = 300;
     [SerializeField] float simulationSpeed = 1f;
     [SerializeField] float smoothingRadius = 1f;
+    [SerializeField] float velocitySmoothing = 0f;
 
     [Header("External forces")]
     [SerializeField] float initSpeed = 5f;
@@ -51,7 +52,6 @@ public class Simulate : MonoBehaviour
     int finalizeScanKernel;
     int scatterKernel;
     int densityKernel;
-    int accelerationKernel;
     int velocityKernel;
     int positionKernel;
 
@@ -102,11 +102,7 @@ public class Simulate : MonoBehaviour
 
         ScanAndScatter();
 
-        shader.Dispatch(densityKernel, accelerationKernel, positionKernel);
-
-        ScanAndScatter();
-
-        shader.Dispatch(densityKernel, velocityKernel);
+        shader.Dispatch(densityKernel, velocityKernel, positionKernel);
     }
 
     void ScanAndScatter()
@@ -171,10 +167,28 @@ public class Simulate : MonoBehaviour
 
         shader.InitialiseCount(instanceCount);
         shader.SetupBuffers(spawner.ExtractPositions(), GenerateVelocityData());
+
         InitialiseVariables();
         UpdateBoundary();
         BindExternalBuffers();
+        InitializeLeapFrogVelocities();
+
         started = true;
+    }
+
+    void InitializeLeapFrogVelocities()
+    {
+        // Set half timestep for initialization
+        shader.SetValues(new object[] { "deltaTime", physicsTimeStep * 0.5f });
+
+        shader.BindDynamicBuffers();
+
+        ScanAndScatter();
+
+        shader.Dispatch(densityKernel, velocityKernel);
+
+        // Restore full timestep for subsequent steps
+        shader.SetValues(new object[] { "deltaTime", physicsTimeStep });
     }
 
     void BindExternalBuffers()
@@ -206,7 +220,6 @@ public class Simulate : MonoBehaviour
         finalizeScanKernel = computeShader.FindKernel("FinalizeScan");
         scatterKernel = computeShader.FindKernel("Scatter");
         densityKernel = computeShader.FindKernel("Density");
-        accelerationKernel = computeShader.FindKernel("UpdateAccelerations");
         velocityKernel = computeShader.FindKernel("UpdateVelocities");
         positionKernel = computeShader.FindKernel("UpdatePositions");
 
@@ -218,7 +231,6 @@ public class Simulate : MonoBehaviour
                           finalizeScanKernel,
                           scatterKernel,
                           densityKernel,
-                          accelerationKernel,
                           velocityKernel,
                           positionKernel);
     }
@@ -264,7 +276,8 @@ public class Simulate : MonoBehaviour
             "particleMass", particleMass,
             "viscosityKernelLapConstant", viscosityKernelLapConstant,
             "viscosityMultiplier", viscosityMultiplier,
-            "surfaceTensionConstant", surfaceTensionConstant
+            "surfaceTensionConstant", surfaceTensionConstant,
+            "velocitySmoothing", velocitySmoothing
         };
 
         shader.SetValues(keyValues);
@@ -299,6 +312,30 @@ public class Simulate : MonoBehaviour
 
         if (UnityEngine.InputSystem.Keyboard.current.upArrowKey.wasPressedThisFrame)
             simulationSpeed = Mathf.Min(1, simulationSpeed + 0.1f);
+
+        if (UnityEngine.InputSystem.Keyboard.current.dKey.wasPressedThisFrame)
+            DebugLogBuffers();
+    }
+
+    void DebugLogBuffers()
+    {
+        if (!started) return;
+
+        int numToLog = Mathf.Min(100, instanceCount);
+
+        // Read position buffer
+        Vector2[] positions = new Vector2[numToLog];
+        shader.PositionBuffer.GetData(positions);
+
+        // Read velocity buffer
+        Vector2[] velocities = new Vector2[numToLog];
+        shader.VelocityBuffer.GetData(velocities);
+
+        Debug.Log($"=== Buffer Debug (first {numToLog} particles) ===");
+        for (int i = 0; i < Mathf.Min(10, numToLog); i++)
+        {
+            Debug.Log($"Particle {i}: Pos={positions[i]}, Vel={velocities[i]}");
+        }
     }
 
     public void UpdateMouseForce(Vector2 origin, float radius, float power)
