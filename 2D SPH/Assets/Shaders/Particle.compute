@@ -92,8 +92,9 @@ float2 CalculateAcceleration(uint id) {
     float2 external = gravity + MouseForce(id);
     float2 pressure = CalculatePressureForce(id);
     float2 viscosity = CalculateViscosityForce(id);
+    float2 surfaceTension = CalculateSurfaceTensionForce(id);
 
-    return external + pressure + viscosity;
+    return external + pressure + viscosity + surfaceTension;
 }
 
 [numthreads(NumThreads, 1, 1)]

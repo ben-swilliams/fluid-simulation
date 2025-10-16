@@ -26,6 +26,8 @@ public class Simulate : MonoBehaviour
 
     [Header("Viscosity")]
     [SerializeField] float viscosityMultiplier = 1f;
+    [Header("Surface tension")]
+    [SerializeField] float surfaceTensionConstant = 1f;
 
     /*
     Private properties
@@ -261,7 +263,8 @@ public class Simulate : MonoBehaviour
             "restDensity", restDensity,
             "particleMass", particleMass,
             "viscosityKernelLapConstant", viscosityKernelLapConstant,
-            "viscosityMultiplier", viscosityMultiplier
+            "viscosityMultiplier", viscosityMultiplier,
+            "surfaceTensionConstant", surfaceTensionConstant
         };
 
         shader.SetValues(keyValues);
