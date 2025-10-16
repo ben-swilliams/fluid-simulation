@@ -25,8 +25,6 @@ class ShaderHelper
     ComputeBuffer velocityBufferB;
     ComputeBuffer accelerationBuffer;
     ComputeBuffer densityBuffer;
-    ComputeBuffer densityBufferA;
-    ComputeBuffer densityBufferB;
 
     // Maps
     Dictionary<int, string[]> kernelStaticBufferMap = new Dictionary<int, string[]>();
@@ -82,8 +80,6 @@ class ShaderHelper
         nameBufferMap.Add("Velocities", velocityBuffer);
         nameBufferMap.Add("Positions", positionBuffer);
 
-        nameBufferMap.Add("OldDensities", densityBuffer);
-        nameBufferMap.Add("NewDensities", (densityBuffer == densityBufferA) ? densityBufferB : densityBufferA);
         nameBufferMap.Add("OldVelocities", velocityBuffer);
         nameBufferMap.Add("NewVelocities", (velocityBuffer == velocityBufferA) ? velocityBufferB : velocityBufferA);
         nameBufferMap.Add("OldPositions", positionBuffer);
@@ -116,8 +112,7 @@ class ShaderHelper
         kernelStaticBufferMap.Add(positionKernel, new string[] { "Accelerations" });
 
         kernelDynamicBufferMap.Add(partitionKernel, new string[] { "Positions" });
-        kernelDynamicBufferMap.Add(scatterKernel, new string[] { "OldDensities", "NewDensities",
-                                                                 "OldVelocities", "NewVelocities",
+        kernelDynamicBufferMap.Add(scatterKernel, new string[] { "OldVelocities", "NewVelocities",
                                                                  "OldPositions", "NewPositions" });
         kernelDynamicBufferMap.Add(densityKernel, new string[] { "Densities", "Positions" });
         kernelDynamicBufferMap.Add(accelerationKernel, new string[] { "Densities", "Velocities", "Positions" });
@@ -171,13 +166,7 @@ class ShaderHelper
 
         accelerationBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
 
-        float[] densities = new float[instanceCount];
-        densityBufferA = new ComputeBuffer(densities.Length, sizeof(float));
-        densityBufferA.SetData(densities);
-
-        densityBufferB = new ComputeBuffer(densities.Length, sizeof(float));
-
-        densityBuffer = densityBufferA;
+        densityBuffer = new ComputeBuffer(instanceCount, sizeof(float));
 
         MapBuffers();
     }
@@ -186,12 +175,10 @@ class ShaderHelper
     {
         positionBuffer = (positionBuffer == positionBufferA) ? positionBufferB : positionBufferA;
         velocityBuffer = (velocityBuffer == velocityBufferA) ? velocityBufferB : velocityBufferA;
-        densityBuffer = (densityBuffer == densityBufferA) ? densityBufferB : densityBufferA;
 
         // Update mappings
         nameBufferMap["Positions"] = positionBuffer;
         nameBufferMap["Velocities"] = velocityBuffer;
-        nameBufferMap["Densities"] = densityBuffer;
 
         // Swap Old/New mappings
         nameBufferMap["OldPositions"] = positionBuffer;
@@ -199,9 +186,6 @@ class ShaderHelper
 
         nameBufferMap["OldVelocities"] = velocityBuffer;
         nameBufferMap["NewVelocities"] = (velocityBuffer == velocityBufferA) ? velocityBufferB : velocityBufferA;
-
-        nameBufferMap["OldDensities"] = densityBuffer;
-        nameBufferMap["NewDensities"] = (densityBuffer == densityBufferA) ? densityBufferB : densityBufferA;
     }
 
 
@@ -235,14 +219,10 @@ class ShaderHelper
             positionBufferA.Release();
         if (velocityBufferA != null)
             velocityBufferA.Release();
-        if (densityBufferA != null)
-            densityBufferA.Release();
         if (positionBufferB != null)
             positionBufferB.Release();
         if (velocityBufferB != null)
             velocityBufferB.Release();
-        if (densityBufferB != null)
-            densityBufferB.Release();
         if (accelerationBuffer != null)
             accelerationBuffer.Release();
     }

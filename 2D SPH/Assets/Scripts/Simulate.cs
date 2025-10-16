@@ -1,8 +1,5 @@
-using System;
-using System.Threading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.SocialPlatforms;
 
 public class Simulate : MonoBehaviour
 {
@@ -99,14 +96,14 @@ public class Simulate : MonoBehaviour
     {
         shader.SetValues(new object[] { "deltaTime", physicsTimeStep });
 
+        shader.BindDynamicBuffers();
+
         ScanAndScatter();
 
-        shader.BindDynamicBuffers();
         shader.Dispatch(densityKernel, accelerationKernel, positionKernel);
 
         ScanAndScatter();
 
-        shader.BindDynamicBuffers();
         shader.Dispatch(densityKernel, velocityKernel);
     }
 
@@ -115,12 +112,10 @@ public class Simulate : MonoBehaviour
         int clearCountsGroupNum = Mathf.CeilToInt(Constants.binNumber / (float)Constants.threadGroupSize);
         shader.Dispatch(true, clearCountsGroupNum, clearCountsKernel);
 
-        shader.BindDynamicBuffers();
         shader.Dispatch(partitionKernel);
 
         HierarchicalScan();
 
-        shader.BindDynamicBuffers();
         shader.Dispatch(scatterKernel);
 
         shader.SwapBuffers();
