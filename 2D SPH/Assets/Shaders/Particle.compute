@@ -29,7 +29,6 @@ RWStructuredBuffer<float> Densities;
 RWStructuredBuffer<float2> Positions;
 RWStructuredBuffer<float2> Velocities;
 RWStructuredBuffer<float2> Accelerations;
-RWStructuredBuffer<float2> OldAccelerations;
 
 // Integers
 uint instanceCount;

@@ -24,6 +24,8 @@ class ShaderHelper
     ComputeBuffer velocityBufferA;
     ComputeBuffer velocityBufferB;
     ComputeBuffer accelerationBuffer;
+    ComputeBuffer accelerationBufferA;
+    ComputeBuffer accelerationBufferB;
     ComputeBuffer densityBuffer;
 
     // Maps
@@ -37,25 +39,9 @@ class ShaderHelper
     public ComputeBuffer PositionBuffer => positionBuffer;
     public ComputeBuffer VelocityBuffer => velocityBuffer;
 
-    public ShaderHelper(ComputeShader shader)
-    {
-        computeShader = shader;
-    }
-
-    public void InitialiseCount(int instanceCount)
-    {
-        this.instanceCount = instanceCount;
-        threadGroups = Mathf.CeilToInt(instanceCount / (float)Constants.threadGroupSize);
-    }
-
     void BindStaticBuffers()
     {
         BindBuffers(kernelStaticBufferMap);
-    }
-
-    public void BindDynamicBuffers()
-    {
-        BindBuffers(kernelDynamicBufferMap);
     }
 
     void BindBuffers(Dictionary<int, string[]> mapping)
@@ -80,10 +66,28 @@ class ShaderHelper
         nameBufferMap.Add("Velocities", velocityBuffer);
         nameBufferMap.Add("Positions", positionBuffer);
 
+        nameBufferMap.Add("OldAccelerations", accelerationBuffer);
+        nameBufferMap.Add("NewAccelerations", (accelerationBuffer == accelerationBufferA) ? accelerationBufferB : accelerationBufferA);
         nameBufferMap.Add("OldVelocities", velocityBuffer);
         nameBufferMap.Add("NewVelocities", (velocityBuffer == velocityBufferA) ? velocityBufferB : velocityBufferA);
         nameBufferMap.Add("OldPositions", positionBuffer);
         nameBufferMap.Add("NewPositions", (positionBuffer == positionBufferA) ? positionBufferB : positionBufferA);
+    }
+
+    public ShaderHelper(ComputeShader shader)
+    {
+        computeShader = shader;
+    }
+
+    public void InitialiseCount(int instanceCount)
+    {
+        this.instanceCount = instanceCount;
+        threadGroups = Mathf.CeilToInt(instanceCount / (float)Constants.threadGroupSize);
+    }
+
+    public void BindDynamicBuffers()
+    {
+        BindBuffers(kernelDynamicBufferMap);
     }
 
     public void MapKernels(int clearCountsKernel,
@@ -112,7 +116,8 @@ class ShaderHelper
         kernelStaticBufferMap.Add(positionKernel, new string[] { "Accelerations" });
 
         kernelDynamicBufferMap.Add(partitionKernel, new string[] { "Positions" });
-        kernelDynamicBufferMap.Add(scatterKernel, new string[] { "OldVelocities", "NewVelocities",
+        kernelDynamicBufferMap.Add(scatterKernel, new string[] { "OldAccelerations", "NewAccelerations",
+                                                                 "OldVelocities", "NewVelocities",
                                                                  "OldPositions", "NewPositions" });
         kernelDynamicBufferMap.Add(densityKernel, new string[] { "Densities", "Positions" });
         kernelDynamicBufferMap.Add(accelerationKernel, new string[] { "Densities", "Velocities", "Positions" });
@@ -164,7 +169,10 @@ class ShaderHelper
 
         velocityBuffer = velocityBufferA;
 
-        accelerationBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
+        accelerationBufferA = new ComputeBuffer(instanceCount, sizeof(float) * 2);
+        accelerationBufferB = new ComputeBuffer(instanceCount, sizeof(float) * 2);
+
+        accelerationBuffer = accelerationBufferA;
 
         densityBuffer = new ComputeBuffer(instanceCount, sizeof(float));
 
@@ -175,10 +183,12 @@ class ShaderHelper
     {
         positionBuffer = (positionBuffer == positionBufferA) ? positionBufferB : positionBufferA;
         velocityBuffer = (velocityBuffer == velocityBufferA) ? velocityBufferB : velocityBufferA;
+        accelerationBuffer = accelerationBuffer == accelerationBufferA ? accelerationBufferB : accelerationBufferA;
 
         // Update mappings
         nameBufferMap["Positions"] = positionBuffer;
         nameBufferMap["Velocities"] = velocityBuffer;
+        nameBufferMap["Accelerations"] = accelerationBuffer;
 
         // Swap Old/New mappings
         nameBufferMap["OldPositions"] = positionBuffer;
@@ -186,6 +196,9 @@ class ShaderHelper
 
         nameBufferMap["OldVelocities"] = velocityBuffer;
         nameBufferMap["NewVelocities"] = (velocityBuffer == velocityBufferA) ? velocityBufferB : velocityBufferA;
+
+        nameBufferMap["OldAccelerations"] = accelerationBuffer;
+        nameBufferMap["NewAccelerations"] = (accelerationBuffer == accelerationBufferA) ? accelerationBufferB : accelerationBufferA;
     }
 
 
@@ -223,7 +236,11 @@ class ShaderHelper
             positionBufferB.Release();
         if (velocityBufferB != null)
             velocityBufferB.Release();
-        if (accelerationBuffer != null)
-            accelerationBuffer.Release();
+        if (accelerationBufferA != null)
+            accelerationBufferA.Release();
+        if (accelerationBufferB != null)
+            accelerationBufferB.Release();
+        if (densityBuffer != null)
+            densityBuffer.Release();
     }
 }
