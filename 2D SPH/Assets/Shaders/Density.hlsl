@@ -1,5 +1,5 @@
 float CalculateDensity(uint i) {
-    float density = 1e-4;
+    float density = 1e-7;
 
     int2 gridPosI = GetGridPos(Positions[i]);
 

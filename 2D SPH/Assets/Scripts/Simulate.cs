@@ -312,30 +312,6 @@ public class Simulate : MonoBehaviour
 
         if (UnityEngine.InputSystem.Keyboard.current.upArrowKey.wasPressedThisFrame)
             simulationSpeed = Mathf.Min(1, simulationSpeed + 0.1f);
-
-        if (UnityEngine.InputSystem.Keyboard.current.dKey.wasPressedThisFrame)
-            DebugLogBuffers();
-    }
-
-    void DebugLogBuffers()
-    {
-        if (!started) return;
-
-        int numToLog = Mathf.Min(100, instanceCount);
-
-        // Read position buffer
-        Vector2[] positions = new Vector2[numToLog];
-        shader.PositionBuffer.GetData(positions);
-
-        // Read velocity buffer
-        Vector2[] velocities = new Vector2[numToLog];
-        shader.VelocityBuffer.GetData(velocities);
-
-        Debug.Log($"=== Buffer Debug (first {numToLog} particles) ===");
-        for (int i = 0; i < Mathf.Min(10, numToLog); i++)
-        {
-            Debug.Log($"Particle {i}: Pos={positions[i]}, Vel={velocities[i]}");
-        }
     }
 
     public void UpdateMouseForce(Vector2 origin, float radius, float power)
