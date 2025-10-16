@@ -5,8 +5,7 @@ float viscosityMultiplier;
 float ViscosityKernelLap(float2 offset) {
     float r = length(offset);
 
-    if (r > smoothingRadius)
-        return 0;
+    if (r > smoothingRadius) return 0;
 
     return viscosityKernelLapConstant * (smoothingRadius - r);
 }

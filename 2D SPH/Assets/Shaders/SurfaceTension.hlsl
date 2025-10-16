@@ -1,7 +1,29 @@
 float surfaceTensionConstant;
 
+float2 GeneralKernelGrad(float2 offset) {
+    float r = length(offset);
+
+    if (r > smoothingRadius) return 0;
+
+    float diffSq = smoothingRadius * smoothingRadius - r * r;
+
+    return generalKernelConstant * -6 * diffSq * diffSq * offset;
+}
+
+float GeneralKernelLap(float2 offset) {
+    float r = length(offset);
+
+    if (r > smoothingRadius) return 0;
+
+    float hSq = smoothingRadius * smoothingRadius;
+    float rSq = r * r;
+
+    return generalKernelConstant * 24 * (hSq * hSq - rSq * rSq);
+}
+
 float2 CalculateSurfaceTensionForce(uint i) {
-    float2 stForce = float2(0, 0);
+    float2 n = float2(0, 0);
+    float lap = 0;
 
     int2 gridPosI = GetGridPos(Positions[i]);
 
@@ -18,10 +40,13 @@ float2 CalculateSurfaceTensionForce(uint i) {
             for (uint j = startIndex; j < endIndex; j++) {
                 if (i == j) continue;
 
-                float2 offset = Positions[j] - Positions[i];
+                float2 offset = Positions[i] - Positions[j];
 
-                stForce += 
+                n += GeneralKernelGrad(offset);
+                lap += GeneralKernelLap(offset);
             }
         }
     }
+
+    return -surfaceTensionConstant * lap * n / length(n);
 }
