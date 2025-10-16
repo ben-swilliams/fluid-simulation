@@ -14,6 +14,7 @@ public class Simulate : MonoBehaviour
     [SerializeField] int physicsStepsPerSecond = 300;
     [SerializeField] float simulationSpeed = 1f;
     [SerializeField] float smoothingRadius = 1f;
+    [SerializeField] float velocitySmoothing = 0f;
 
     [Header("External forces")]
     [SerializeField] float initSpeed = 5f;
@@ -102,11 +103,7 @@ public class Simulate : MonoBehaviour
 
         ScanAndScatter();
 
-        shader.Dispatch(densityKernel, accelerationKernel, positionKernel);
-
-        ScanAndScatter();
-
-        shader.Dispatch(densityKernel, velocityKernel);
+        shader.Dispatch(densityKernel, accelerationKernel, velocityKernel, positionKernel);
     }
 
     void ScanAndScatter()
@@ -171,10 +168,28 @@ public class Simulate : MonoBehaviour
 
         shader.InitialiseCount(instanceCount);
         shader.SetupBuffers(spawner.ExtractPositions(), GenerateVelocityData());
+
         InitialiseVariables();
         UpdateBoundary();
         BindExternalBuffers();
+        InitializeLeapFrogVelocities();
+
         started = true;
+    }
+
+    void InitializeLeapFrogVelocities()
+    {
+        // Set half timestep for initialization
+        shader.SetValues(new object[] { "deltaTime", physicsTimeStep * 0.5f });
+
+        shader.BindDynamicBuffers();
+
+        ScanAndScatter();
+
+        shader.Dispatch(densityKernel, accelerationKernel, velocityKernel);
+
+        // Restore full timestep for subsequent steps
+        shader.SetValues(new object[] { "deltaTime", physicsTimeStep });
     }
 
     void BindExternalBuffers()
@@ -264,7 +279,8 @@ public class Simulate : MonoBehaviour
             "particleMass", particleMass,
             "viscosityKernelLapConstant", viscosityKernelLapConstant,
             "viscosityMultiplier", viscosityMultiplier,
-            "surfaceTensionConstant", surfaceTensionConstant
+            "surfaceTensionConstant", surfaceTensionConstant,
+            "velocitySmoothing", velocitySmoothing
         };
 
         shader.SetValues(keyValues);

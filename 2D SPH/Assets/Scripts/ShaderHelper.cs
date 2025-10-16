@@ -113,7 +113,7 @@ class ShaderHelper
         kernelStaticBufferMap.Add(densityKernel, new string[] { "Offsets" });
         kernelStaticBufferMap.Add(accelerationKernel, new string[] { "Offsets", "Accelerations" });
         kernelStaticBufferMap.Add(velocityKernel, new string[] { "Offsets", "Accelerations" });
-        kernelStaticBufferMap.Add(positionKernel, new string[] { "Accelerations" });
+        kernelStaticBufferMap.Add(positionKernel, new string[] { "Offsets", "Accelerations" });
 
         kernelDynamicBufferMap.Add(partitionKernel, new string[] { "Positions" });
         kernelDynamicBufferMap.Add(scatterKernel, new string[] { "OldAccelerations", "NewAccelerations",
@@ -122,7 +122,7 @@ class ShaderHelper
         kernelDynamicBufferMap.Add(densityKernel, new string[] { "Densities", "Positions" });
         kernelDynamicBufferMap.Add(accelerationKernel, new string[] { "Densities", "Velocities", "Positions" });
         kernelDynamicBufferMap.Add(velocityKernel, new string[] { "Densities", "Velocities", "Positions" });
-        kernelDynamicBufferMap.Add(positionKernel, new string[] { "Velocities", "Positions" });
+        kernelDynamicBufferMap.Add(positionKernel, new string[] { "Densities", "Velocities", "Positions" });
 
         BindStaticBuffers();
     }

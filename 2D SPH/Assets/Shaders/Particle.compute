@@ -87,12 +87,13 @@ float GeneralKernel(float2 offset) {
 #include "Pressure.hlsl"
 #include "Viscosity.hlsl"
 #include "SurfaceTension.hlsl"
+#include "XSPH.hlsl"
 
-float2 CalculateAcceleration(uint id) {
-    float2 external = gravity + MouseForce(id);
-    float2 pressure = CalculatePressureForce(id);
-    float2 viscosity = CalculateViscosityForce(id);
-    float2 surfaceTension = CalculateSurfaceTensionForce(id);
+float2 CalculateAcceleration(uint i) {
+    float2 external = gravity + MouseForce(i);
+    float2 pressure = CalculatePressureForce(i);
+    float2 viscosity = CalculateViscosityForce(i);
+    float2 surfaceTension = CalculateSurfaceTensionForce(i);
 
     return external + pressure + viscosity + surfaceTension;
 }
@@ -156,16 +157,14 @@ void UpdateAccelerations(uint3 id : SV_DispatchThreadID) {
 void UpdateVelocities(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    float2 newAcc = CalculateAcceleration(id.x);
-
-    Velocities[id.x] += deltaTime * ((Accelerations[id.x] + newAcc) / 2);
+    Velocities[id.x] += Accelerations[id.x] * deltaTime;
 }
 
 [numthreads(NumThreads, 1, 1)]
 void UpdatePositions(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Positions[id.x] += Velocities[id.x] * deltaTime + 0.5 * Accelerations[id.x] * deltaTime * deltaTime;
+    Positions[id.x] += CalculateSmoothedVelocity(id.x) * deltaTime;
 
     Collisions(id.x);
 }
