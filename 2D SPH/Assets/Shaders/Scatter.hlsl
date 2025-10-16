@@ -4,6 +4,9 @@ RWStructuredBuffer<float2> NewPositions;
 RWStructuredBuffer<float2> OldVelocities;
 RWStructuredBuffer<float2> NewVelocities;
 
+RWStructuredBuffer<float2> OldAccelerations;
+RWStructuredBuffer<float2> NewAccelerations;
+
 void SortParticle(uint i)
 {
     
@@ -19,4 +22,5 @@ void SortParticle(uint i)
 
     NewPositions[destIndex]  = OldPositions[i];
     NewVelocities[destIndex] = OldVelocities[i];
+    NewAccelerations[destIndex] = OldAccelerations[i];
 }
