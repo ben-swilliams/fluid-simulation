@@ -18,7 +18,7 @@ float GeneralKernelLap(float2 offset) {
     float hSq = smoothingRadius * smoothingRadius;
     float rSq = r * r;
 
-    return generalKernelConstant * 24 * (hSq * hSq - rSq * rSq);
+    return 12 * generalKernelConstant * (hSq - rSq) * (3 * rSq - hSq);
 }
 
 float2 CalculateSurfaceTensionForce(uint i) {
@@ -42,11 +42,17 @@ float2 CalculateSurfaceTensionForce(uint i) {
 
                 float2 offset = Positions[i] - Positions[j];
 
-                n += GeneralKernelGrad(offset);
-                lap += GeneralKernelLap(offset);
+                float massOverDensity = particleMass / Densities[j];
+
+                n += massOverDensity * GeneralKernelGrad(offset);
+                lap += massOverDensity * GeneralKernelLap(offset);
             }
         }
     }
 
-    return -surfaceTensionConstant * lap * n / length(n);
+    float nMag = length(n);
+
+    if (nMag < 1e-7) return float2(0,0);
+
+    return -surfaceTensionConstant * lap * n / nMag;
 }
