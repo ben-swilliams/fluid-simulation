@@ -37,25 +37,9 @@ class ShaderHelper
     public ComputeBuffer PositionBuffer => positionBuffer;
     public ComputeBuffer VelocityBuffer => velocityBuffer;
 
-    public ShaderHelper(ComputeShader shader)
-    {
-        computeShader = shader;
-    }
-
-    public void InitialiseCount(int instanceCount)
-    {
-        this.instanceCount = instanceCount;
-        threadGroups = Mathf.CeilToInt(instanceCount / (float)Constants.threadGroupSize);
-    }
-
     void BindStaticBuffers()
     {
         BindBuffers(kernelStaticBufferMap);
-    }
-
-    public void BindDynamicBuffers()
-    {
-        BindBuffers(kernelDynamicBufferMap);
     }
 
     void BindBuffers(Dictionary<int, string[]> mapping)
@@ -84,6 +68,22 @@ class ShaderHelper
         nameBufferMap.Add("NewVelocities", (velocityBuffer == velocityBufferA) ? velocityBufferB : velocityBufferA);
         nameBufferMap.Add("OldPositions", positionBuffer);
         nameBufferMap.Add("NewPositions", (positionBuffer == positionBufferA) ? positionBufferB : positionBufferA);
+    }
+
+    public ShaderHelper(ComputeShader shader)
+    {
+        computeShader = shader;
+    }
+
+    public void InitialiseCount(int instanceCount)
+    {
+        this.instanceCount = instanceCount;
+        threadGroups = Mathf.CeilToInt(instanceCount / (float)Constants.threadGroupSize);
+    }
+
+    public void BindDynamicBuffers()
+    {
+        BindBuffers(kernelDynamicBufferMap);
     }
 
     public void MapKernels(int clearCountsKernel,
