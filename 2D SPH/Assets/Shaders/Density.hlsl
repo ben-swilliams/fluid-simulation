@@ -1,15 +1,3 @@
-float DensityKernel(float2 offset) {
-    float oSquared = dot(offset, offset);
-    if (oSquared > smoothingRadius * smoothingRadius) {
-        return 0;
-    } else {
-
-        float diff = (smoothingRadius * smoothingRadius) - oSquared;
-
-        return densityKernelConstant * diff * diff * diff;
-    }
-}
-
 float CalculateDensity(uint i) {
     float density = 1e-4;
 
@@ -27,7 +15,7 @@ float CalculateDensity(uint i) {
 
             for (uint j = startIndex; j < endIndex; j++) {
                 float2 offset = Positions[j] - Positions[i];
-                density += particleMass * DensityKernel(offset);
+                density += particleMass * GeneralKernel(offset);
             }
         }
     }
