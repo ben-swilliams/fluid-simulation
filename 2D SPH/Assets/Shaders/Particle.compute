@@ -37,6 +37,7 @@ uint instanceCount;
 float deltaTime;
 float particleMass;
 float smoothingRadius;
+float generalKernelConstant;
 
 // Vectors
 float2 containerSize;
@@ -55,11 +56,6 @@ float2 mousePos;
 float2 gravity;
 
 /*
-Density parameters
-*/
-float densityKernelConstant;
-
-/*
 Scan/partition parameters
 */
 // Integers
@@ -68,6 +64,21 @@ uint gridY;
 uint tableSize;
 uint numBlockSums;
 
+/*
+Helper functions
+*/
+float GeneralKernel(float2 offset) {
+    float oSquared = dot(offset, offset);
+    if (oSquared > smoothingRadius * smoothingRadius) {
+        return 0;
+    } else {
+
+        float diff = (smoothingRadius * smoothingRadius) - oSquared;
+
+        return generalKernelConstant * diff * diff * diff;
+    }
+}
+
 #include "Partition.hlsl"
 #include "Scan.hlsl"
 #include "Scatter.hlsl"
@@ -75,6 +86,7 @@ uint numBlockSums;
 #include "Density.hlsl"
 #include "Pressure.hlsl"
 #include "Viscosity.hlsl"
+#include "SurfaceTension.hlsl"
 
 float2 CalculateAcceleration(uint id) {
     float2 external = gravity + MouseForce(id);

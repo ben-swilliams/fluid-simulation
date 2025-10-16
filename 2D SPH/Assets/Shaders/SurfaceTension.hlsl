@@ -1,5 +1,7 @@
-float CalculateDensity(uint i) {
-    float density = 1e-4;
+float surfaceTensionConstant;
+
+float2 CalculateSurfaceTensionForce(uint i) {
+    float2 stForce = float2(0, 0);
 
     int2 gridPosI = GetGridPos(Positions[i]);
 
@@ -14,10 +16,12 @@ float CalculateDensity(uint i) {
             uint endIndex = Offsets[hash + 1];
 
             for (uint j = startIndex; j < endIndex; j++) {
+                if (i == j) continue;
+
                 float2 offset = Positions[j] - Positions[i];
-                density += particleMass * GeneralKernel(offset);
+
+                stForce += 
             }
         }
     }
-    return density;
 }
