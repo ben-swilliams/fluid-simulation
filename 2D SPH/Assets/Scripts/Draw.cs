@@ -23,6 +23,9 @@ public class Draw : MonoBehaviour
     uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
     ComputeBuffer argsBuffer;
 
+    float slowHue;
+    float fastHue;
+
     void Start()
     {
         instanceMaterial = new Material(shader);
@@ -45,11 +48,15 @@ public class Draw : MonoBehaviour
     void OnValidate()
     {
         maxSpeed = Mathf.Max(0, maxSpeed);
+
+        Color.RGBToHSV(slowColour, out slowHue, out _, out _);
+        Color.RGBToHSV(fastColour, out fastHue, out _, out _);
+
         if (!Application.isPlaying || instanceMaterial == null) return;
 
         instanceMaterial.SetFloat("maxSpeed", maxSpeed);
-        instanceMaterial.SetVector("slowColour", slowColour);
-        instanceMaterial.SetVector("fastColour", fastColour);
+        instanceMaterial.SetFloat("slowHue", slowHue);
+        instanceMaterial.SetFloat("fastHue", fastHue);
     }
 
     void OnDestroy()
@@ -82,8 +89,8 @@ public class Draw : MonoBehaviour
     {
         InitialiseArgsBuffer(positionBuffer.count);
         instanceMaterial.SetFloat("size", size);
-        instanceMaterial.SetColor("slowColour", slowColour);
-        instanceMaterial.SetColor("fastColour", fastColour);
+        instanceMaterial.SetFloat("slowHue", slowHue);
+        instanceMaterial.SetFloat("fastHue", fastHue);
         instanceMaterial.SetFloat("maxSpeed", maxSpeed);
         instanceMaterial.SetBuffer("positions", positionBuffer);
         instanceMaterial.SetBuffer("velocities", velocityBuffer);

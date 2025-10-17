@@ -290,7 +290,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
   computeShader: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
-  physicsStepsPerSecond: 200
+  physicsStepsPerSecond: 300
   simulationSpeed: 1
   smoothingRadius: 0.701
   velocitySmoothing: 0.1
