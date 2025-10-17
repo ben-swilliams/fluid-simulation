@@ -22,9 +22,8 @@ Shader "Custom/Particle" {
             StructuredBuffer<float2> velocities;
             float size;
             float maxSpeed;
-
-            float4 slowColour;
-            float4 fastColour;
+            float slowHue;
+            float fastHue;
 
             struct v2f {
                 float4 pos : SV_POSITION;
@@ -32,39 +31,39 @@ Shader "Custom/Particle" {
                 float2 vel : TEXCOORD1;
             };
 
-            v2f vert (appdata_full v, uint id : SV_InstanceID) {
+            v2f vert(appdata_full v, uint id : SV_InstanceID) {
                 float3 centreWorld = float3(positions[id], 0);
                 float3 centreObj = mul(unity_WorldToObject, float4(centreWorld, 1)).xyz;
                 float3 vertObj = centreObj + v.vertex * size;
 
                 v2f o;
-
                 o.pos = UnityObjectToClipPos(vertObj);
                 o.vel = velocities[id];
                 o.uv = v.texcoord;
-
                 return o;
             }
 
-            float4 frag (v2f i) : SV_Target {
-                // UV -> -1..1 unit circle space
-                float2 p = (i.uv - 0.5) * 2;
+            // ---- HSV → RGB conversion helper ----
+            float3 hsv2rgb(float3 c) {
+                float4 K = float4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
+                float3 p = abs(frac(c.xxx + K.xyz) * 6.0 - K.www);
+                return c.z * lerp(K.xxx, saturate(p - K.xxx), c.y);
+            }
 
+            float4 frag(v2f i) : SV_Target {
+                float2 p = (i.uv - 0.5) * 2;
                 float distSq = dot(p, p);
-                
-                // AA boundary - 0.5 makes it slightly sharper
+
                 float w = fwidth(distSq) * 0.5;
-                
-                // Anti-alias the edge of the circle
-                float alpha = 1 - smoothstep(1 - w, 1 + w, distSq);
+                float alpha = 1.0 - smoothstep(1.0 - w, 1.0 + w, distSq);
 
                 float speed = length(i.vel);
                 float normSpeed = saturate(speed / maxSpeed);
 
-                float4 colour = lerp(slowColour, fastColour, normSpeed);
-                colour.a = alpha;
+                float hue = lerp(slowHue, fastHue, normSpeed);
+                float3 rgb = hsv2rgb(float3(hue, 1.0, 1.0));
 
-                return colour;
+                return float4(rgb, alpha);
             }
             ENDCG
         }
