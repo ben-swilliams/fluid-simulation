@@ -17,32 +17,10 @@ float CalculatePressure(uint i) {
     return gasConstant * (Densities[i] - restDensity);
 }
 
-float2 CalculatePressureForce(uint i) {
-    float2 pForce = float2(0, 0);
-
+float2 CalculatePressureContribution(uint i, uint j) {
     float pressureI = CalculatePressure(i);
+    float pressureJ = CalculatePressure(j);
+    float2 offset = Positions[i] - Positions[j];
 
-    int2 gridPosI = GetGridPos(Positions[i]);
-
-    for (int x = -1; x < 2; x++) {
-        for (int y = -1; y < 2; y++) {
-            int2 gridPosJ = gridPosI + int2(x, y);
-            if (!IsInBounds(gridPosJ)) continue;
-
-            uint hash = CalculateHashFromGrid(gridPosJ);
-
-            uint startIndex = Offsets[hash];
-            uint endIndex = Offsets[hash + 1];
-
-            for (uint j = startIndex; j < endIndex; j++) {
-                if (i == j) continue;
-                float pressureJ = CalculatePressure(j);
-                float2 offset = Positions[j] - Positions[i];
-
-                pForce += particleMass * ((pressureI + pressureJ) / (2 * Densities[j])) * PressureKernelGrad(offset);
-            }
-        }
-    }
-
-    return -pForce / Densities[i];
+    return particleMass * ((pressureI + pressureJ) / (2 * Densities[j])) * PressureKernelGrad(offset);
 }

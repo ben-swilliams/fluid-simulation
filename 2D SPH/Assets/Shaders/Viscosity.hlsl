@@ -10,32 +10,11 @@ float ViscosityKernelLap(float2 offset) {
     return viscosityKernelLapConstant * (smoothingRadius - r);
 }
 
-float2 CalculateViscosityForce(uint i) {
-    float2 vForce = float2(0, 0);
+float2 CalculateViscosityContribution(uint i, uint j) {
+    float2 posOffset = Positions[i] - Positions[j];
+    float2 velOffset = Velocities[j] - Velocities[i];
 
-    int2 gridPosI = GetGridPos(Positions[i]);
+    float laplacian = ViscosityKernelLap(posOffset);
 
-    for (int x = -1; x < 2; x++) {
-        for (int y = -1; y < 2; y++) {
-            int2 gridPosJ = gridPosI + int2(x, y);
-            if (!IsInBounds(gridPosJ)) continue;
-
-            uint hash = CalculateHashFromGrid(gridPosJ);
-
-            uint startIndex = Offsets[hash];
-            uint endIndex = Offsets[hash + 1];
-
-            for (uint j = startIndex; j < endIndex; j++) {
-                if (i == j) continue;
-                float2 posOffset = Positions[i] - Positions[j];
-                float2 velOffset = Velocities[j] - Velocities[i];
-
-                float laplacian = ViscosityKernelLap(posOffset);
-
-                vForce += particleMass * (velOffset / Densities[j]) * laplacian;
-            }
-        }
-    }
-
-    return viscosityMultiplier * vForce;
+    return particleMass * (velOffset / Densities[j]) * laplacian;
 }
