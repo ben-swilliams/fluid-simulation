@@ -87,13 +87,7 @@ float GeneralKernel(float2 offset) {
 #include "SurfaceTension.hlsl"
 #include "XSPH.hlsl"
 
-float2 CalculateAcceleration(uint i) {
-    float2 pressure = float2(0, 0);
-    float2 viscosity = float2(0, 0);
-
-    float2 surfaceTensionN = float2(0, 0);
-    float surfaceTensionLap = 0;
-
+void CalculateComponents(uint i, out float2 pressure, out float2 viscosity, out float2 surfaceTensionN, out float surfaceTensionLap) {
     int2 gridPosI = GetGridPos(Positions[i]);
 
     for (int x = -1; x < 2; x++) {
@@ -120,6 +114,13 @@ float2 CalculateAcceleration(uint i) {
             }
         }
     }
+}
+
+float2 CalculateAcceleration(uint i) {
+    float2 pressure, viscosity, surfaceTensionN;
+    float surfaceTensionLap;
+
+    CalculateComponents(i, pressure, viscosity, surfaceTensionN, surfaceTensionLap);
 
     pressure /= Densities[i];
     viscosity *= viscosityMultiplier;
