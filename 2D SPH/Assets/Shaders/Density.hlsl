@@ -1,11 +1,14 @@
 float NearDensityKernel(float2 offset) {
-    float inner = 1 - length(offset) / smoothingRadius;
+    float r = length(offset);
+    if (r > smoothingRadius) return 0;
+
+    float inner = 1 - r / smoothingRadius;
 
     return inner * inner * inner;
 }
 
 float2 CalculateDensities(uint i) {
-    float2 densities = float2(1e-7, 0);
+    float2 densities = float2(1e-7, 1e-7);
 
     int2 gridPosI = GetGridPos(Positions[i]);
 

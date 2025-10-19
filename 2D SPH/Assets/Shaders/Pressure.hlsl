@@ -20,10 +20,10 @@ float CalculatePressure(uint i) {
 }
 
 float2 CalculatePressureForce(uint i) {
-    float2 pForce = float2(0, 0);
-    float2 nPForce = float2(0, 0);
+    float2 force = float2(0, 0);
 
     float pressureI = CalculatePressure(i);
+    float nearPressureI = nearPressureMultiplier * NearDensities[i];
 
     int2 gridPosI = GetGridPos(Positions[i]);
 
@@ -39,13 +39,24 @@ float2 CalculatePressureForce(uint i) {
 
             for (uint j = startIndex; j < endIndex; j++) {
                 if (i == j) continue;
-                float pressureJ = CalculatePressure(j);
-                float2 offset = Positions[j] - Positions[i];
 
-                pForce += particleMass * ((pressureI + pressureJ) / (2 * Densities[j])) * PressureKernelGrad(offset);
+                float2 offset = Positions[j] - Positions[i];
+                float r = length(offset);
+
+                if (r > smoothingRadius || r < 1e-7) continue;
+
+                float2 dir = offset / r;  // r̂_ij
+                float pressureJ = CalculatePressure(j);
+                float nearPressureJ = nearPressureMultiplier * NearDensities[j];
+
+                // Apply equation 6 from paper
+                float term1 = (pressureI + pressureJ) * (1.0 - r / smoothingRadius);
+                float term2 = (nearPressureI + nearPressureJ) * pow(1.0 - r / smoothingRadius, 2);
+
+                force += (term1 + term2) * dir;
             }
         }
     }
 
-    return -pForce / Densities[i];
+    return -force;  // Negative because force opposes displacement
 }

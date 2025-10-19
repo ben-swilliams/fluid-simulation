@@ -106,7 +106,7 @@ class ShaderHelper
         kernelStaticBufferMap.Add(finalizeScanKernel, new string[] { "Offsets" });
         kernelStaticBufferMap.Add(scatterKernel, new string[] { "LocalOffsets", "Offsets" });
         kernelStaticBufferMap.Add(densityKernel, new string[] { "Densities", "NearDensities", "Offsets" });
-        kernelStaticBufferMap.Add(velocityKernel, new string[] { "Densities", "Offsets" });
+        kernelStaticBufferMap.Add(velocityKernel, new string[] { "Densities", "NearDensities", "Offsets" });
         kernelStaticBufferMap.Add(positionKernel, new string[] { "Densities", "Offsets" });
 
         kernelDynamicBufferMap.Add(partitionKernel, new string[] { "Positions" });
