@@ -45,11 +45,10 @@ float2 CalculatePressureForce(uint i) {
 
                 if (r > smoothingRadius || r < 1e-7) continue;
 
-                float2 dir = offset / r;  // r̂_ij
+                float2 dir = offset / r;
                 float pressureJ = CalculatePressure(j);
                 float nearPressureJ = nearPressureMultiplier * NearDensities[j];
 
-                // Apply equation 6 from paper
                 float term1 = (pressureI + pressureJ) * (1.0 - r / smoothingRadius);
                 float term2 = (nearPressureI + nearPressureJ) * pow(1.0 - r / smoothingRadius, 2);
 
@@ -58,5 +57,5 @@ float2 CalculatePressureForce(uint i) {
         }
     }
 
-    return -force;  // Negative because force opposes displacement
+    return -force;
 }
