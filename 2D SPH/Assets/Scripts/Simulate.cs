@@ -22,8 +22,7 @@ public class Simulate : MonoBehaviour
     [SerializeField] float dampingFactor = 0.9f;
 
     [Header("Pressure")]
-    [SerializeField] float pressureMultiplier = 1f;
-    [SerializeField] float nearPressureMultiplier;
+    [SerializeField] float gasConstant = 1f;
     [SerializeField] float restDensity = 1f;
 
     [Header("Viscosity")]
@@ -272,8 +271,7 @@ public class Simulate : MonoBehaviour
             "dampingFactor", dampingFactor,
             "gravity", gravity,
             "pressureKernelGradConstant", pressureKernelGradConstant,
-            "pressureMultiplier", pressureMultiplier,
-            "nearPressureMultiplier", nearPressureMultiplier,
+            "gasConstant", gasConstant,
             "restDensity", restDensity,
             "particleMass", particleMass,
             "viscosityKernelLapConstant", viscosityKernelLapConstant,
@@ -291,8 +289,7 @@ public class Simulate : MonoBehaviour
         initSpeed = Mathf.Max(0, initSpeed);
         dampingFactor = Mathf.Max(0, dampingFactor);
         smoothingRadius = Mathf.Max(0.01f, smoothingRadius);
-        pressureMultiplier = Mathf.Max(0, pressureMultiplier);
-        nearPressureMultiplier = Mathf.Max(0, nearPressureMultiplier);
+        gasConstant = Mathf.Max(0, gasConstant);
         restDensity = Mathf.Max(0.01f, restDensity);
         viscosityMultiplier = Mathf.Max(0, viscosityMultiplier);
     }
