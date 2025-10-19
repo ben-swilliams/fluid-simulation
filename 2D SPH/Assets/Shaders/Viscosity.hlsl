@@ -16,5 +16,5 @@ float2 CalculateViscosityContribution(uint i, uint j) {
 
     float laplacian = ViscosityKernelLap(posOffset);
 
-    return particleMass * (velOffset / Densities[j]) * laplacian;
+    return particleMass * (velOffset / Densities[j]) * laplacian * viscosityMultiplier;
 }

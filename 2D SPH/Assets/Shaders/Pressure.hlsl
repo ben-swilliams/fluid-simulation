@@ -1,6 +1,9 @@
 float pressureKernelGradConstant;
+float nearPressureKernelGradConstant;
 
-float gasConstant;
+float pressureMultiplier;
+float nearPressureMultiplier;
+
 float restDensity;
 
 float2 PressureKernelGrad(float2 offset) {
@@ -13,8 +16,23 @@ float2 PressureKernelGrad(float2 offset) {
     return pressureKernelGradConstant * inner * inner * offset / r;
 }
 
+float2 NearPressureKernelGrad(float2 offset) {
+    float r = length(offset);
+
+    if (r < 1e-7 || r > smoothingRadius)
+        return float2(0, 0);
+
+    float inner = 1 - r/smoothingRadius;
+
+    return nearPressureKernelGradConstant * inner * inner * offset / r;
+}
+
 float CalculatePressure(uint i) {
-    return gasConstant * (Densities[i] - restDensity);
+    return pressureMultiplier * (Densities[i] - restDensity);
+}
+
+float CalculateNearPressure(uint i) {
+    return nearPressureMultiplier * NearDensities[i]; 
 }
 
 float2 CalculatePressureContribution(uint i, uint j) {
@@ -22,5 +40,17 @@ float2 CalculatePressureContribution(uint i, uint j) {
     float pressureJ = CalculatePressure(j);
     float2 offset = Positions[i] - Positions[j];
 
-    return particleMass * ((pressureI + pressureJ) / (2 * Densities[j])) * PressureKernelGrad(offset);
+    float2 pressureForce = particleMass * ((pressureI + pressureJ) / (2 * Densities[j])) * PressureKernelGrad(offset);
+
+    return pressureForce;
+}
+
+float2 CalculateNearPressureContribution(uint i, uint j) {
+    float nearPressureI = CalculateNearPressure(i);
+    float nearPressureJ = CalculateNearPressure(j);
+    float2 offset = Positions[i] - Positions[j];
+
+    float2 nearPressureForce = particleMass * ((nearPressureI + nearPressureJ) / (2 * NearDensities[j])) * NearPressureKernelGrad(offset);
+
+    return nearPressureForce;
 }

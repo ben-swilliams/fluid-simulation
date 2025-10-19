@@ -23,6 +23,7 @@ RWStructuredBuffer<uint> LocalOffsets;
 
 // Float buffers
 RWStructuredBuffer<float> Densities;
+RWStructuredBuffer<float> NearDensities;
 
 // Vector buffers
 RWStructuredBuffer<float2> Positions;
@@ -87,7 +88,7 @@ float GeneralKernel(float2 offset) {
 #include "SurfaceTension.hlsl"
 #include "XSPH.hlsl"
 
-void CalculateComponents(uint i, out float2 pressure, out float2 viscosity, out float2 surfaceTensionN, out float surfaceTensionLap) {
+void CalculateComponents(uint i, out float2 pressure, out float2 nearPressure, out float2 viscosity, out float2 surfaceTensionN, out float surfaceTensionLap) {
     int2 gridPosI = GetGridPos(Positions[i]);
 
     for (int x = -1; x < 2; x++) {
@@ -107,6 +108,7 @@ void CalculateComponents(uint i, out float2 pressure, out float2 viscosity, out 
                 float2 offset = Positions[i] - Positions[j];
 
                 pressure += CalculatePressureContribution(i, j);
+                nearPressure += CalculateNearPressureContribution(i, j);
                 viscosity += CalculateViscosityContribution(i, j);
                 
                 surfaceTensionN += massOverDensity * GeneralKernelGrad(offset);
@@ -117,13 +119,10 @@ void CalculateComponents(uint i, out float2 pressure, out float2 viscosity, out 
 }
 
 float2 CalculateAcceleration(uint i) {
-    float2 pressure, viscosity, surfaceTensionN;
+    float2 pressure, nearPressure, viscosity, surfaceTensionN;
     float surfaceTensionLap;
 
-    CalculateComponents(i, pressure, viscosity, surfaceTensionN, surfaceTensionLap);
-
-    pressure /= Densities[i];
-    viscosity *= viscosityMultiplier;
+    CalculateComponents(i, pressure, nearPressure, viscosity, surfaceTensionN, surfaceTensionLap);
 
     float nMag = length(surfaceTensionN);
 
@@ -134,7 +133,7 @@ float2 CalculateAcceleration(uint i) {
     else
         surfaceTension = -surfaceTensionConstant * surfaceTensionLap * surfaceTensionN / nMag;
         
-    return MouseForce(i) + gravity + pressure + viscosity + surfaceTension;
+    return MouseForce(i) + gravity + (pressure + viscosity + surfaceTension) / Densities[i] + nearPressure / NearDensities[i];
 }
 
 [numthreads(NumThreads, 1, 1)]
@@ -182,7 +181,10 @@ void Scatter(uint3 id : SV_DispatchThreadID) {
 void Density(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Densities[id.x] = CalculateDensity(id.x);
+    float2 densities = CalculateDensities(id.x);
+
+    Densities[id.x] = densities.x;
+    NearDensities[id.x] = densities.y;
 }
 
 [numthreads(NumThreads, 1, 1)]

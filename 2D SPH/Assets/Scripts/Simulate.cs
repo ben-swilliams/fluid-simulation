@@ -22,7 +22,8 @@ public class Simulate : MonoBehaviour
     [SerializeField] float dampingFactor = 0.9f;
 
     [Header("Pressure")]
-    [SerializeField] float gasConstant = 1f;
+    [SerializeField] float pressureMultiplier = 1f;
+    [SerializeField] float nearPressureMultiplier = 1f;
     [SerializeField] float restDensity = 1f;
 
     [Header("Viscosity")]
@@ -259,6 +260,7 @@ public class Simulate : MonoBehaviour
 
         float generalKernelConstant = 315 / (64 * Mathf.PI * Mathf.Pow(smoothingRadius, 9f));
         float pressureKernelGradConstant = 45 / (Mathf.PI * Mathf.Pow(smoothingRadius, 6));
+        float nearPressureKernelGradConstant = 30 / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
         float particleMass = spawner.Area * restDensity / instanceCount;
         float viscosityKernelLapConstant = 45 / (Mathf.PI * Mathf.Pow(smoothingRadius, 6));
 
@@ -271,7 +273,9 @@ public class Simulate : MonoBehaviour
             "dampingFactor", dampingFactor,
             "gravity", gravity,
             "pressureKernelGradConstant", pressureKernelGradConstant,
-            "gasConstant", gasConstant,
+            "nearPressureKernelGradConstant", nearPressureKernelGradConstant,
+            "pressureMultiplier", pressureMultiplier,
+            "nearPressureMultiplier", nearPressureMultiplier,
             "restDensity", restDensity,
             "particleMass", particleMass,
             "viscosityKernelLapConstant", viscosityKernelLapConstant,
@@ -289,7 +293,8 @@ public class Simulate : MonoBehaviour
         initSpeed = Mathf.Max(0, initSpeed);
         dampingFactor = Mathf.Max(0, dampingFactor);
         smoothingRadius = Mathf.Max(0.01f, smoothingRadius);
-        gasConstant = Mathf.Max(0, gasConstant);
+        pressureMultiplier = Mathf.Max(0, pressureMultiplier);
+        nearPressureMultiplier = Mathf.Max(0, nearPressureMultiplier);
         restDensity = Mathf.Max(0.01f, restDensity);
         viscosityMultiplier = Mathf.Max(0, viscosityMultiplier);
     }
