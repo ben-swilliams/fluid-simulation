@@ -22,7 +22,8 @@ public class Simulate : MonoBehaviour
     [SerializeField] float dampingFactor = 0.9f;
 
     [Header("Pressure")]
-    [SerializeField] float gasConstant = 1f;
+    [SerializeField] float pressureMultiplier = 1f;
+    [SerializeField] float nearPressureMultiplier;
     [SerializeField] float restDensity = 1f;
 
     [Header("Viscosity")]

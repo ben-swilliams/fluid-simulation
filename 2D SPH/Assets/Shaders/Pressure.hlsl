@@ -1,7 +1,9 @@
 float pressureKernelGradConstant;
 
-float gasConstant;
+float pressureMultiplier;
 float restDensity;
+
+float nearPressureMultiplier;
 
 float2 PressureKernelGrad(float2 offset) {
     float r = length(offset);
@@ -14,11 +16,12 @@ float2 PressureKernelGrad(float2 offset) {
 }
 
 float CalculatePressure(uint i) {
-    return gasConstant * (Densities[i] - restDensity);
+    return pressureMultiplier * (Densities[i] - restDensity);
 }
 
 float2 CalculatePressureForce(uint i) {
     float2 pForce = float2(0, 0);
+    float2 nPForce = float2(0, 0);
 
     float pressureI = CalculatePressure(i);
 
