@@ -24,6 +24,7 @@ class ShaderHelper
     ComputeBuffer velocityBufferA;
     ComputeBuffer velocityBufferB;
     ComputeBuffer densityBuffer;
+    ComputeBuffer nearDensityBuffer;
 
     // Maps
     Dictionary<int, string[]> kernelStaticBufferMap = new Dictionary<int, string[]>();
@@ -59,6 +60,7 @@ class ShaderHelper
         nameBufferMap.Add("Offsets", offsetBuffer);
         nameBufferMap.Add("BlockSums", blockSumsBuffer);
         nameBufferMap.Add("Densities", densityBuffer);
+        nameBufferMap.Add("NearDensities", nearDensityBuffer);
         nameBufferMap.Add("Velocities", velocityBuffer);
         nameBufferMap.Add("Positions", positionBuffer);
 
@@ -103,16 +105,16 @@ class ShaderHelper
         kernelStaticBufferMap.Add(addBlockSumsKernel, new string[] { "Offsets", "CellCounts", "BlockSums" });
         kernelStaticBufferMap.Add(finalizeScanKernel, new string[] { "Offsets" });
         kernelStaticBufferMap.Add(scatterKernel, new string[] { "LocalOffsets", "Offsets" });
-        kernelStaticBufferMap.Add(densityKernel, new string[] { "Offsets" });
-        kernelStaticBufferMap.Add(velocityKernel, new string[] { "Offsets" });
-        kernelStaticBufferMap.Add(positionKernel, new string[] { "Offsets" });
+        kernelStaticBufferMap.Add(densityKernel, new string[] { "Densities", "NearDensities", "Offsets" });
+        kernelStaticBufferMap.Add(velocityKernel, new string[] { "Densities", "NearDensities", "Offsets" });
+        kernelStaticBufferMap.Add(positionKernel, new string[] { "Densities", "Offsets" });
 
         kernelDynamicBufferMap.Add(partitionKernel, new string[] { "Positions" });
         kernelDynamicBufferMap.Add(scatterKernel, new string[] {"OldVelocities", "NewVelocities",
                                                                  "OldPositions", "NewPositions" });
-        kernelDynamicBufferMap.Add(densityKernel, new string[] { "Densities", "Positions" });
-        kernelDynamicBufferMap.Add(velocityKernel, new string[] { "Densities", "Velocities", "Positions" });
-        kernelDynamicBufferMap.Add(positionKernel, new string[] { "Densities", "Velocities", "Positions" });
+        kernelDynamicBufferMap.Add(densityKernel, new string[] { "Positions" });
+        kernelDynamicBufferMap.Add(velocityKernel, new string[] {  "Velocities", "Positions" });
+        kernelDynamicBufferMap.Add(positionKernel, new string[] {  "Velocities", "Positions" });
 
         BindStaticBuffers();
     }
@@ -160,6 +162,7 @@ class ShaderHelper
         velocityBuffer = velocityBufferA;
 
         densityBuffer = new ComputeBuffer(instanceCount, sizeof(float));
+        nearDensityBuffer = new ComputeBuffer(instanceCount, sizeof(float));
 
         MapBuffers();
     }
@@ -218,5 +221,7 @@ class ShaderHelper
             velocityBufferB.Release();
         if (densityBuffer != null)
             densityBuffer.Release();
+        if (nearDensityBuffer != null)
+            nearDensityBuffer.Release();
     }
 }

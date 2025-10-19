@@ -1,5 +1,14 @@
-float CalculateDensity(uint i) {
-    float density = 1e-7;
+float NearDensityKernel(float2 offset) {
+    float r = length(offset);
+    if (r > smoothingRadius) return 0;
+
+    float inner = 1 - r / smoothingRadius;
+
+    return inner * inner * inner;
+}
+
+float2 CalculateDensities(uint i) {
+    float2 densities = float2(1e-7, 1e-7);
 
     int2 gridPosI = GetGridPos(Positions[i]);
 
@@ -15,9 +24,12 @@ float CalculateDensity(uint i) {
 
             for (uint j = startIndex; j < endIndex; j++) {
                 float2 offset = Positions[j] - Positions[i];
-                density += particleMass * GeneralKernel(offset);
+
+                densities.x += particleMass * GeneralKernel(offset);
+
+                densities.y += particleMass * NearDensityKernel(offset);
             }
         }
     }
-    return density;
+    return densities;
 }

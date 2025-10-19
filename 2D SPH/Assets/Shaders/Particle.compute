@@ -23,6 +23,7 @@ RWStructuredBuffer<uint> LocalOffsets;
 
 // Float buffers
 RWStructuredBuffer<float> Densities;
+RWStructuredBuffer<float> NearDensities;
 
 // Vector buffers
 RWStructuredBuffer<float2> Positions;
@@ -182,7 +183,9 @@ void Scatter(uint3 id : SV_DispatchThreadID) {
 void Density(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Densities[id.x] = CalculateDensity(id.x);
+    float2 densities = CalculateDensities(id.x);
+    Densities[id.x] = densities.x;
+    NearDensities[id.x] = densities.y;
 }
 
 [numthreads(NumThreads, 1, 1)]
