@@ -1,14 +1,6 @@
-float viscosityKernelLapConstant;
+float viscosityKernelGradConstant;
 
 float viscosityMultiplier;
-
-float ViscosityKernelLap(float2 offset) {
-    float r = length(offset);
-
-    if (r > smoothingRadius) return 0;
-
-    return viscosityKernelLapConstant * (smoothingRadius - r);
-}
 
 float2 ViscosityKernelGrad(float2 offset) {
     float r = length(offset);
@@ -19,7 +11,7 @@ float2 ViscosityKernelGrad(float2 offset) {
     float b = 2 / (smoothingRadius * smoothingRadius);
     float c = smoothingRadius / (2 * r * r * r);
 
-    return (-a + b - c) * offset;
+    return viscosityKernelGradConstant * (-a + b - c) * offset;
 }
 float2 CalculateViscosityContribution(uint i, uint j) {
     float2 posOffset = Positions[i] - Positions[j];
@@ -29,9 +21,9 @@ float2 CalculateViscosityContribution(uint i, uint j) {
 
     if (velPosDot >= 0) return float2(0, 0);
 
-    float laplacian = ViscosityKernelGrad(posOffset);
+    float2 gradient = PressureKernelGrad(posOffset);
 
-    float viscosityCoefficient = 2 * viscosityMultiplier * smoothingRadius / (Densities[i] + Densities[j]);
+    float viscosityCoefficient = 2 * viscosityMultiplier * smoothingRadius * speedOfSound / (Densities[i] + Densities[j]);
     
     float numerator = viscosityCoefficient * velPosDot;
 
@@ -39,5 +31,5 @@ float2 CalculateViscosityContribution(uint i, uint j) {
     float epsilon = 0.01;
     float denominator = posOffsetSq + epsilon * smoothingRadius * smoothingRadius;
 
-    return particleMass * (numerator / denominator) * laplacian;
+    return particleMass * (numerator / denominator) * gradient;
 }

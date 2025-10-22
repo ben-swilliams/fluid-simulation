@@ -49,6 +49,7 @@ float size;
 float dampingFactor;
 float power;
 float mouseRadius;
+float speedOfSound;
 
 // Vectors
 float2 mousePos;
