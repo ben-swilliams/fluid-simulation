@@ -46,7 +46,8 @@ float2 CalculatePressureContribution(uint i, uint j) {
     float pressureJ = CalculatePressure(j);
     float2 offset = Positions[i] - Positions[j];
 
-    float2 pressureForce = particleMass * ((pressureI + pressureJ) / (2 * Densities[j])) * PressureKernelGrad(offset);
+    float pressureSum = pressureI / (Densities[i] * Densities[i]) + pressureJ / (Densities[j] * Densities[j]);
+    float2 pressureForce = particleMass * pressureSum * PressureKernelGrad(offset);
 
     return pressureForce;
 }
