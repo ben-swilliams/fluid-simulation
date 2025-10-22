@@ -25,7 +25,7 @@ GRADIENTS
 float2 Poly6KernelGrad(float2 offset) {
     float r = length(offset);
 
-    if (r > smoothingRadius) return 0;
+    if (r > smoothingRadius || r < 1e-7) return 0;
 
     float diffSq = smoothingRadius * smoothingRadius - r * r;
 

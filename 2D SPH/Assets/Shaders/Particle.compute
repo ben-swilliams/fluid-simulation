@@ -74,7 +74,7 @@ uint numBlockSums;
 #include "SurfaceTension.hlsl"
 #include "XSPH.hlsl"
 
-void CalculateComponents(uint i, out float2 pressure, out float2 nearPressure, out float2 viscosity, out float2 surfaceTensionN, out float surfaceTensionLap) {
+void CalculateComponents(uint i, out float2 pressure, out float2 nearPressure, out float2 viscosity, out float2 surfaceTension) {
     int2 gridPosI = GetGridPos(Positions[i]);
 
     for (int x = -1; x < 2; x++) {
@@ -96,31 +96,19 @@ void CalculateComponents(uint i, out float2 pressure, out float2 nearPressure, o
                 pressure += CalculatePressureContribution(i, j);
                 nearPressure += CalculateNearPressureContribution(i, j);
                 viscosity += CalculateViscosityContribution(i, j);
-                
-                surfaceTensionN += massOverDensity * Poly6KernelGrad(offset);
-                surfaceTensionLap += massOverDensity * Poly6KernelLap(offset);
+                surfaceTension += CalculateSurfaceTensionContribution(i, j);
             }
         }
     }
 }
 
 float2 CalculateAcceleration(uint i) {
-    float2 pressure, nearPressure, viscosity, surfaceTensionN;
-    float surfaceTensionLap;
+    float2 pressure, nearPressure, viscosity, surfaceTension;
 
-    CalculateComponents(i, pressure, nearPressure, viscosity, surfaceTensionN, surfaceTensionLap);
+    CalculateComponents(i, pressure, nearPressure, viscosity, surfaceTension);
 
-    float nMag = length(surfaceTensionN);
-
-    float2 surfaceTension;
-
-    if (nMag < 1e-7)
-        surfaceTension = float2(0, 0);
-    else
-        surfaceTension = -surfaceTensionConstant * surfaceTensionLap * surfaceTensionN / nMag;
-        
     // return MouseForce(i) + gravity + (pressure + viscosity + surfaceTension) / Densities[i] + nearPressure / NearDensities[i];
-    return MouseForce(i) + gravity + pressure + viscosity;
+    return MouseForce(i) + gravity + pressure + viscosity + surfaceTension;
 }
 
 [numthreads(NumThreads, 1, 1)]
