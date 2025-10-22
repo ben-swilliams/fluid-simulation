@@ -10,11 +10,34 @@ float ViscosityKernelLap(float2 offset) {
     return viscosityKernelLapConstant * (smoothingRadius - r);
 }
 
+float2 ViscosityKernelGrad(float2 offset) {
+    float r = length(offset);
+
+    if (r > smoothingRadius) return float2(0, 0);
+
+    float a = 3 * r / (2 * smoothingRadius * smoothingRadius * smoothingRadius);
+    float b = 2 / (smoothingRadius * smoothingRadius);
+    float c = smoothingRadius / (2 * r * r * r);
+
+    return (-a + b - c) * offset;
+}
 float2 CalculateViscosityContribution(uint i, uint j) {
     float2 posOffset = Positions[i] - Positions[j];
-    float2 velOffset = Velocities[j] - Velocities[i];
+    float2 velOffset = Velocities[i] - Velocities[j];
 
-    float laplacian = ViscosityKernelLap(posOffset);
+    float velPosDot = dot(velOffset, posOffset);
 
-    return particleMass * (velOffset / Densities[j]) * laplacian * viscosityMultiplier;
+    if (velPosDot >= 0) return float2(0, 0);
+
+    float laplacian = ViscosityKernelGrad(posOffset);
+
+    float viscosityCoefficient = 2 * viscosityMultiplier * smoothingRadius / (Densities[i] + Densities[j]);
+    
+    float numerator = viscosityCoefficient * velPosDot;
+
+    float posOffsetSq = dot(posOffset, posOffset);
+    float epsilon = 0.01;
+    float denominator = posOffsetSq + epsilon * smoothingRadius * smoothingRadius;
+
+    return particleMass * (numerator / denominator) * laplacian;
 }
