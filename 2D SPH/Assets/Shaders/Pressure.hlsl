@@ -34,7 +34,8 @@ float2 CalculateNearPressureContribution(uint i, uint j) {
     float nearPressureJ = CalculateNearPressure(j);
     float2 offset = Positions[i] - Positions[j];
 
-    float2 nearPressureForce = particleMass * ((nearPressureI + nearPressureJ) / (2 * NearDensities[j])) * NearPressureKernelGrad(offset);
+    float nearPressureSum = nearPressureI / (NearDensities[i] * NearDensities[i]) + nearPressureJ / (NearDensities[j] * NearDensities[j]);
+    float2 nearPressureForce = particleMass * nearPressureSum * NearPressureKernelGrad(offset);
 
     return nearPressureForce;
 }

@@ -108,7 +108,7 @@ float2 CalculateAcceleration(uint i) {
     CalculateComponents(i, pressure, nearPressure, viscosity, surfaceTension);
 
     // return MouseForce(i) + gravity + (pressure + viscosity + surfaceTension) / Densities[i] + nearPressure / NearDensities[i];
-    return MouseForce(i) + gravity + pressure + viscosity + surfaceTension;
+    return MouseForce(i) + gravity + pressure + nearPressure + viscosity + surfaceTension;
 }
 
 [numthreads(NumThreads, 1, 1)]
