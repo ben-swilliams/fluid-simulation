@@ -15,7 +15,6 @@ public class Simulate : MonoBehaviour
     [SerializeField] float simulationSpeed = 1f;
     [SerializeField] float smoothingRadius = 1f;
     [SerializeField] float velocitySmoothing = 0f;
-    [SerializeField] float speedOfSound = 88.5f;
 
     [Header("External forces")]
     [SerializeField] float initSpeed = 5f;
@@ -23,6 +22,7 @@ public class Simulate : MonoBehaviour
     [SerializeField] float dampingFactor = 0.9f;
 
     [Header("Pressure")]
+    [SerializeField] float pressureMultiplier = 1f;
     [SerializeField] float nearPressureMultiplier = 1f;
     [SerializeField] float restDensity = 1f;
     [SerializeField] float stiffness = 1f;
@@ -273,6 +273,7 @@ public class Simulate : MonoBehaviour
             "smoothingRadius", smoothingRadius,
             "dampingFactor", dampingFactor,
             "gravity", gravity,
+            "pressureMultiplier", pressureMultiplier,
             "pressureKernelGradConstant", pressureKernelGradConstant,
             "nearPressureKernelGradConstant", nearPressureKernelGradConstant,
             "nearPressureMultiplier", nearPressureMultiplier,
@@ -283,7 +284,6 @@ public class Simulate : MonoBehaviour
             "viscosityMultiplier", viscosityMultiplier,
             "surfaceTensionConstant", surfaceTensionConstant,
             "velocitySmoothing", velocitySmoothing,
-            "speedOfSound", speedOfSound
         };
 
         shader.SetValues(keyValues);
@@ -295,11 +295,11 @@ public class Simulate : MonoBehaviour
         initSpeed = Mathf.Max(0, initSpeed);
         dampingFactor = Mathf.Max(0, dampingFactor);
         smoothingRadius = Mathf.Max(0.01f, smoothingRadius);
+        pressureMultiplier = Mathf.Max(0, pressureMultiplier);
         nearPressureMultiplier = Mathf.Max(0, nearPressureMultiplier);
         restDensity = Mathf.Max(0.01f, restDensity);
         stiffness = Mathf.Max(0, stiffness);
         viscosityMultiplier = Mathf.Max(0, viscosityMultiplier);
-        speedOfSound = Mathf.Max(0, speedOfSound);
     }
 
     void HandleKeyPresses()

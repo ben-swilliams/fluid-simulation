@@ -23,7 +23,7 @@ float2 CalculateViscosityContribution(uint i, uint j) {
 
     float2 gradient = PressureKernelGrad(posOffset);
 
-    float viscosityCoefficient = 2 * viscosityMultiplier * smoothingRadius * speedOfSound / (Densities[i] + Densities[j]);
+    float viscosityCoefficient = viscosityMultiplier * smoothingRadius / (Densities[i] + Densities[j]);
     
     float numerator = viscosityCoefficient * velPosDot;
 

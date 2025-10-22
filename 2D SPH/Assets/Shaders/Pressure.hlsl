@@ -3,6 +3,7 @@ float stiffness;
 float pressureKernelGradConstant;
 float nearPressureKernelGradConstant;
 
+float pressureMultiplier;
 float nearPressureMultiplier;
 
 float restDensity;
@@ -33,7 +34,7 @@ float CalculatePressure(uint i) {
 
     float inner = pow(Densities[i] / restDensity, stiffness) - 1;
     
-    return speedOfSound * speedOfSound * inner * (restDensity / stiffness);
+    return pressureMultiplier * inner * (restDensity / stiffness);
 }
 
 float CalculateNearPressure(uint i) {
