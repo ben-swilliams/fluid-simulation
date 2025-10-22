@@ -263,7 +263,7 @@ public class Simulate : MonoBehaviour
         float pressureKernelGradConstant = 45 / (Mathf.PI * Mathf.Pow(smoothingRadius, 6));
         float nearPressureKernelGradConstant = 30 / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
         float particleMass = spawner.Area * 1.0f / instanceCount;
-        float viscosityKernelLapConstant = 45 / (Mathf.PI * Mathf.Pow(smoothingRadius, 6));
+        float viscosityKernelGradConstant = 10 / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
 
         object[] keyValues =
         {
@@ -273,17 +273,17 @@ public class Simulate : MonoBehaviour
             "smoothingRadius", smoothingRadius,
             "dampingFactor", dampingFactor,
             "gravity", gravity,
+            "pressureMultiplier", pressureMultiplier,
             "pressureKernelGradConstant", pressureKernelGradConstant,
             "nearPressureKernelGradConstant", nearPressureKernelGradConstant,
-            "pressureMultiplier", pressureMultiplier,
             "nearPressureMultiplier", nearPressureMultiplier,
             "restDensity", restDensity,
             "stiffness", stiffness,
             "particleMass", particleMass,
-            "viscosityKernelLapConstant", viscosityKernelLapConstant,
+            "viscosityKernelGradConstant", viscosityKernelGradConstant,
             "viscosityMultiplier", viscosityMultiplier,
             "surfaceTensionConstant", surfaceTensionConstant,
-            "velocitySmoothing", velocitySmoothing
+            "velocitySmoothing", velocitySmoothing,
         };
 
         shader.SetValues(keyValues);
