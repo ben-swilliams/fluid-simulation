@@ -36,7 +36,6 @@ uint instanceCount;
 float deltaTime;
 float particleMass;
 float smoothingRadius;
-float generalKernelConstant;
 
 // Vectors
 float2 containerSize;
@@ -64,21 +63,7 @@ uint gridY;
 uint tableSize;
 uint numBlockSums;
 
-/*
-Helper functions
-*/
-float GeneralKernel(float2 offset) {
-    float oSquared = dot(offset, offset);
-    if (oSquared > smoothingRadius * smoothingRadius) {
-        return 0;
-    } else {
-
-        float diff = (smoothingRadius * smoothingRadius) - oSquared;
-
-        return generalKernelConstant * diff * diff * diff;
-    }
-}
-
+#include "Kernels.hlsl"
 #include "Partition.hlsl"
 #include "Scan.hlsl"
 #include "Scatter.hlsl"
@@ -112,8 +97,8 @@ void CalculateComponents(uint i, out float2 pressure, out float2 nearPressure, o
                 nearPressure += CalculateNearPressureContribution(i, j);
                 viscosity += CalculateViscosityContribution(i, j);
                 
-                surfaceTensionN += massOverDensity * GeneralKernelGrad(offset);
-                surfaceTensionLap += massOverDensity * GeneralKernelLap(offset);
+                surfaceTensionN += massOverDensity * Poly6KernelGrad(offset);
+                surfaceTensionLap += massOverDensity * Poly6KernelLap(offset);
             }
         }
     }

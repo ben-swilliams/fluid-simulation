@@ -259,8 +259,8 @@ public class Simulate : MonoBehaviour
         int gridX = Mathf.CeilToInt(containerSize.x / smoothingRadius);
         int gridY = Mathf.CeilToInt(containerSize.y / smoothingRadius);
 
-        float generalKernelConstant = 315 / (64 * Mathf.PI * Mathf.Pow(smoothingRadius, 9f));
-        float pressureKernelGradConstant = 45 / (Mathf.PI * Mathf.Pow(smoothingRadius, 6));
+        float poly6KernelConstant = 315 / (64 * Mathf.PI * Mathf.Pow(smoothingRadius, 9f));
+        float spikyKernelGradConstant = 45 / (Mathf.PI * Mathf.Pow(smoothingRadius, 6));
         float nearPressureKernelGradConstant = 30 / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
         float particleMass = spawner.Area * 1.0f / instanceCount;
         float viscosityKernelGradConstant = 10 / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
@@ -269,12 +269,12 @@ public class Simulate : MonoBehaviour
         {
             "gridX", gridX,
             "gridY", gridY,
-            "generalKernelConstant", generalKernelConstant,
+            "poly6KernelConstant", poly6KernelConstant,
             "smoothingRadius", smoothingRadius,
             "dampingFactor", dampingFactor,
             "gravity", gravity,
             "pressureMultiplier", pressureMultiplier,
-            "pressureKernelGradConstant", pressureKernelGradConstant,
+            "spikyKernelGradConstant", spikyKernelGradConstant,
             "nearPressureKernelGradConstant", nearPressureKernelGradConstant,
             "nearPressureMultiplier", nearPressureMultiplier,
             "restDensity", restDensity,
