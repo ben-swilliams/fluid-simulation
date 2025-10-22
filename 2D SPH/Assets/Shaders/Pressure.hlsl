@@ -1,3 +1,5 @@
+float stiffness;
+
 float pressureKernelGradConstant;
 float nearPressureKernelGradConstant;
 
@@ -28,7 +30,11 @@ float2 NearPressureKernelGrad(float2 offset) {
 }
 
 float CalculatePressure(uint i) {
-    return pressureMultiplier * (Densities[i] - restDensity);
+    if (stiffness == 0) return 0;
+
+    float inner = pow(Densities[i] / restDensity, stiffness) - 1;
+    
+    return pressureMultiplier * inner * (restDensity / stiffness);
 }
 
 float CalculateNearPressure(uint i) {

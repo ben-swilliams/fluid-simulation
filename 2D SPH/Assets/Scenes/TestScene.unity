@@ -290,17 +290,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
   computeShader: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
-  physicsStepsPerSecond: 300
+  physicsStepsPerSecond: 500
   simulationSpeed: 1
-  smoothingRadius: 0.701
+  smoothingRadius: 0.3
   velocitySmoothing: 0.1
   initSpeed: 0
   gravity: {x: 0, y: -9.8}
   dampingFactor: 0.95
   pressureMultiplier: 500
-  nearPressureMultiplier: 20
+  nearPressureMultiplier: 2
   restDensity: 1
-  viscosityMultiplier: 1
+  stiffness: 1
+  viscosityMultiplier: 0
   surfaceTensionConstant: 1
 --- !u!4 &1274155412
 Transform:
@@ -333,8 +334,8 @@ MonoBehaviour:
   instanceCount: 25000
   size: 0.1
   spacing: 0
-  spawnArea: {x: 64.7, y: 24.3}
-  spawnPosition: {x: 0, y: -6.37}
+  spawnArea: {x: 43.6, y: 7.01}
+  spawnPosition: {x: 0, y: -14.9}
   asGrid: 0
 --- !u!114 &1274155414
 MonoBehaviour:
@@ -365,7 +366,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8ee7f52ab7854cb9b31b85c00333ff6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MouseForce
-  power: 500
+  power: 100
 --- !u!120 &1274155416
 LineRenderer:
   serializedVersion: 2
@@ -506,7 +507,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3322910ee2f44accaabe65cfbc676a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Container
-  boundary: {x: 75.3, y: 38.5}
+  boundary: {x: 47, y: 38.7}
   thickness: 0.1
   mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!4 &1607714413

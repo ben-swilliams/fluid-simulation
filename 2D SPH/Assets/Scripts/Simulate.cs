@@ -25,6 +25,7 @@ public class Simulate : MonoBehaviour
     [SerializeField] float pressureMultiplier = 1f;
     [SerializeField] float nearPressureMultiplier = 1f;
     [SerializeField] float restDensity = 1f;
+    [SerializeField] float stiffness = 1f;
 
     [Header("Viscosity")]
     [SerializeField] float viscosityMultiplier = 1f;
@@ -277,6 +278,7 @@ public class Simulate : MonoBehaviour
             "pressureMultiplier", pressureMultiplier,
             "nearPressureMultiplier", nearPressureMultiplier,
             "restDensity", restDensity,
+            "stiffness", stiffness,
             "particleMass", particleMass,
             "viscosityKernelLapConstant", viscosityKernelLapConstant,
             "viscosityMultiplier", viscosityMultiplier,
@@ -296,6 +298,7 @@ public class Simulate : MonoBehaviour
         pressureMultiplier = Mathf.Max(0, pressureMultiplier);
         nearPressureMultiplier = Mathf.Max(0, nearPressureMultiplier);
         restDensity = Mathf.Max(0.01f, restDensity);
+        stiffness = Mathf.Max(0, stiffness);
         viscosityMultiplier = Mathf.Max(0, viscosityMultiplier);
     }
 
