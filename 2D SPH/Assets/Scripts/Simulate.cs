@@ -30,7 +30,7 @@ public class Simulate : MonoBehaviour
     [Header("Viscosity")]
     [SerializeField] float viscosityMultiplier = 1f;
     [Header("Surface tension")]
-    [SerializeField] float surfaceTensionConstant = 1f;
+    [SerializeField] float surfaceTensionMultiplier = 1f;
 
     /*
     Private properties
@@ -282,7 +282,7 @@ public class Simulate : MonoBehaviour
             "particleMass", particleMass,
             "viscosityKernelGradConstant", viscosityKernelGradConstant,
             "viscosityMultiplier", viscosityMultiplier,
-            "surfaceTensionConstant", surfaceTensionConstant,
+            "surfaceTensionMultiplier", surfaceTensionMultiplier,
             "velocitySmoothing", velocitySmoothing,
         };
 
