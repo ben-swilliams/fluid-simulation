@@ -297,8 +297,9 @@ MonoBehaviour:
   initSpeed: 0
   gravity: {x: 0, y: -9.8}
   dampingFactor: 0.95
-  gasConstant: 5000
-  restDensity: 10
+  pressureMultiplier: 500
+  nearPressureMultiplier: 20
+  restDensity: 1
   viscosityMultiplier: 1
   surfaceTensionConstant: 1
 --- !u!4 &1274155412
