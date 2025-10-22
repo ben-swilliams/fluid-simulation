@@ -22,7 +22,7 @@ float2 CalculateXSPHCorrection(uint i) {
                 float2 velDiff = Velocities[j] - Velocities[i];
 
                 float2 offset = Positions[i] - Positions[j];
-                float weight = GeneralKernel(offset);
+                float weight = Poly6Kernel(offset);
 
                 velAcc += massOverDensity * weight * velDiff;
             }

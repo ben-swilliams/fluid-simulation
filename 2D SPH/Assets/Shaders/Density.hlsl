@@ -25,7 +25,7 @@ float2 CalculateDensities(uint i) {
 
             for (uint j = startIndex; j < endIndex; j++) {
                 float2 offset = Positions[j] - Positions[i];
-                densities.x += particleMass * GeneralKernel(offset);
+                densities.x += particleMass * Poly6Kernel(offset);
                 densities.y += particleMass * NearDensityKernel(offset);
             }
         }

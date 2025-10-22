@@ -297,11 +297,11 @@ MonoBehaviour:
   initSpeed: 0
   gravity: {x: 0, y: -9.8}
   dampingFactor: 0.95
-  pressureMultiplier: 500
-  nearPressureMultiplier: 2
+  pressureMultiplier: 100
+  nearPressureMultiplier: 0
   restDensity: 1
   stiffness: 1
-  viscosityMultiplier: 0
+  viscosityMultiplier: 0.1
   surfaceTensionConstant: 1
 --- !u!4 &1274155412
 Transform:
