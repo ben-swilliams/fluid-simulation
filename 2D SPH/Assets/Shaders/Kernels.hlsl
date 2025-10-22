@@ -42,6 +42,16 @@ float2 SpikyKernelGrad(float2 offset) {
     return spikyKernelGradConstant * inner * inner * offset / r;
 }
 
+float2 NearPressureKernelGrad(float2 offset) {
+    float r = length(offset);
+
+    if (r < 1e-7 || r > smoothingRadius)
+        return float2(0, 0);
+
+    float inner = 1 - r/smoothingRadius;
+
+    return nearPressureKernelGradConstant * inner * inner * offset / r;
+}
 
 /*
 LAPLACIANS
@@ -55,19 +65,4 @@ float Poly6KernelLap(float2 offset) {
     float rSq = r * r;
 
     return 12 * poly6KernelConstant * (hSq - rSq) * (3 * rSq - hSq);
-}
-
-/*
-OUT OF USE FOR NOW
-*/
-
-float2 NearPressureKernelGrad(float2 offset) {
-    float r = length(offset);
-
-    if (r < 1e-7 || r > smoothingRadius)
-        return float2(0, 0);
-
-    float inner = 1 - r/smoothingRadius;
-
-    return nearPressureKernelGradConstant * inner * inner * offset / r;
 }
