@@ -261,7 +261,7 @@ public class Simulate : MonoBehaviour
         float generalKernelConstant = 315 / (64 * Mathf.PI * Mathf.Pow(smoothingRadius, 9f));
         float pressureKernelGradConstant = 45 / (Mathf.PI * Mathf.Pow(smoothingRadius, 6));
         float nearPressureKernelGradConstant = 30 / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
-        float particleMass = spawner.Area * restDensity / instanceCount;
+        float particleMass = spawner.Area * 1.0f / instanceCount;
         float viscosityKernelLapConstant = 45 / (Mathf.PI * Mathf.Pow(smoothingRadius, 6));
 
         object[] keyValues =
