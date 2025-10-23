@@ -227,7 +227,7 @@ public class Simulate : MonoBehaviour
         densityKernel = computeShader.FindKernel("Density");
         intermediateAccelerationKernel = computeShader.FindKernel("IntermediateAcceleration");
         intermediateVelocityAndDKernel = computeShader.FindKernel("IntermediateVelocityAndD");
-        intermediateDensityKernel = computeShader.FindKernel("IntermediateDensityKernel");
+        intermediateDensityKernel = computeShader.FindKernel("IntermediateDensity");
         velocityKernel = computeShader.FindKernel("UpdateVelocities");
         positionKernel = computeShader.FindKernel("UpdatePositions");
 
@@ -237,8 +237,8 @@ public class Simulate : MonoBehaviour
                           scanBlockSumsKernel,
                           addBlockSumsKernel,
                           finalizeScanKernel,
-                          densityKernel,
                           scatterKernel,
+                          densityKernel,
                           intermediateAccelerationKernel,
                           intermediateVelocityAndDKernel,
                           intermediateDensityKernel,

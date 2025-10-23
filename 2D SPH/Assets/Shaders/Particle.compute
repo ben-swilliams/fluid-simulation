@@ -186,7 +186,7 @@ void IntermediateVelocityAndD(uint3 id : SV_DispatchThreadID) {
 void IntermediateDensity(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Densities[id.x] += CalculateIntermediateDensity(id.x) * deltaTime;
+    Densities[id.x] += CalculateIntermediateDensityChange(id.x) * deltaTime;
 }
 
 [numthreads(NumThreads, 1, 1)]
