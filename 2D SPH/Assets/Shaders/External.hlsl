@@ -26,5 +26,5 @@ float2 MouseForce(uint idx) {
 
     float2 forceVector = normalize(diff) * power;
 
-    return forceVector;
+    return forceVector / particleMass;
 }

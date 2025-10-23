@@ -5,7 +5,7 @@
 #pragma kernel AddBlockSums
 #pragma kernel FinalizeScan
 #pragma kernel Scatter
-#pragma kernel NonPressureForce
+#pragma kernel IntermediateAcceleration
 #pragma kernel Density
 
 #pragma kernel UpdateVelocities
@@ -30,7 +30,7 @@ RWStructuredBuffer<float> NearDensities;
 RWStructuredBuffer<float2> Positions;
 RWStructuredBuffer<float2> Velocities;
 
-RWStructuredBuffer<float2> NonPressureForces;
+RWStructuredBuffer<float2> IntermediateAccelerations;
 
 // Integers
 uint instanceCount;
@@ -153,10 +153,10 @@ void Scatter(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void NonPressureForce(uint3 id : SV_DispatchThreadID) {
+void IntermediateAcceleration(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    NonPressureForces[id.x] = CalculateAcceleration(id.x);
+    IntermediateAccelerations[id.x] = CalculateAcceleration(id.x);
 }
 
 [numthreads(NumThreads, 1, 1)]
