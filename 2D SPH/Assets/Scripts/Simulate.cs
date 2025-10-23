@@ -26,6 +26,7 @@ public class Simulate : MonoBehaviour
     [SerializeField] float nearPressureMultiplier = 1f;
     [SerializeField] float restDensity = 1f;
     [SerializeField] float stiffness = 1f;
+    [SerializeField] float relaxationFactor = 0.5f;
 
     [Header("Viscosity")]
     [SerializeField] float viscosityMultiplier = 1f;
@@ -89,6 +90,7 @@ public class Simulate : MonoBehaviour
             int stepsThisFrame = 0;
             while (accumulator >= physicsTimeStep && stepsThisFrame < maxStepsPerFrame)
             {
+                shader.SetValues(new object[] { "deltaTime", physicsTimeStep });
                 RunPhysicsStep();
                 accumulator -= physicsTimeStep;
                 stepsThisFrame++;
@@ -104,8 +106,6 @@ public class Simulate : MonoBehaviour
 
     void RunPhysicsStep()
     {
-        shader.SetValues(new object[] { "deltaTime", physicsTimeStep });
-
         shader.BindDynamicBuffers();
 
         ScanAndScatter();
@@ -198,14 +198,7 @@ public class Simulate : MonoBehaviour
         // Set half timestep for initialization
         shader.SetValues(new object[] { "deltaTime", physicsTimeStep * 0.5f });
 
-        shader.BindDynamicBuffers();
-
-        ScanAndScatter();
-
-        shader.Dispatch(densityKernel, velocityKernel);
-
-        // Restore full timestep for subsequent steps
-        shader.SetValues(new object[] { "deltaTime", physicsTimeStep });
+        RunPhysicsStep();
     }
 
     void BindExternalBuffers()
@@ -306,6 +299,7 @@ public class Simulate : MonoBehaviour
             "nearPressureMultiplier", nearPressureMultiplier,
             "restDensity", restDensity,
             "stiffness", stiffness,
+            "relaxationFactor", relaxationFactor,
             "particleMass", particleMass,
             "viscosityKernelGradConstant", viscosityKernelGradConstant,
             "viscosityMultiplier", viscosityMultiplier,
@@ -326,6 +320,7 @@ public class Simulate : MonoBehaviour
         nearPressureMultiplier = Mathf.Max(0, nearPressureMultiplier);
         restDensity = Mathf.Max(0.01f, restDensity);
         stiffness = Mathf.Max(0, stiffness);
+        relaxationFactor = Mathf.Clamp01(relaxationFactor);
         viscosityMultiplier = Mathf.Max(0, viscosityMultiplier);
     }
 

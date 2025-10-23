@@ -29,9 +29,9 @@ RWStructuredBuffer<uint> LocalOffsets;
 
 // Float buffers
 RWStructuredBuffer<float> Densities;
-RWStructuredBuffer<float> AdvDensities;
 RWStructuredBuffer<float> NearDensities;
 RWStructuredBuffer<float> Aii;
+RWStructuredBuffer<float> IterPressures;
 RWStructuredBuffer<float> Pressures;
 
 // Vector buffers
@@ -198,13 +198,13 @@ void IntermediateDensityAndA(uint3 id : SV_DispatchThreadID) {
     float deltaDensity = values.x;
     float a = values.y;
 
-    AdvDensities[id.x] = Densities[id.x] + deltaDensity * deltaTime;
+    Densities[instanceCount + id.x] = Densities[id.x] + deltaDensity * deltaTime;
     Aii[id.x] = a;
 }
 
 [numthreads(NumThreads, 1, 1)]
 void ZeroPressures(uint3 id : SV_DispatchThreadID) {
-    Pressures[id.x] = 0;
+    IterPressures[id.x] = 0;
 }
 
 [numthreads(NumThreads, 1, 1)]
@@ -218,17 +218,16 @@ void PressureSumIteration(uint3 id : SV_DispatchThreadID) {
 void PressureConvergeIteration(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Pressures[id.x] = CalculateNextPressure(id.x);
+    IterPressures[id.x] = CalculateNextPressure(id.x);
 }
 
 [numthreads(NumThreads, 1, 1)]
 void UpdateVelocities(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    float2 acceleration = CalculateAcceleration(id.x);
     float2 xsphCorrection = CalculateXSPHCorrection(id.x);
 
-    Velocities[id.x] += acceleration * deltaTime + xsphCorrection;
+    Velocities[id.x] += CalculatePressureForce(id.x) * deltaTime / particleMass + xsphCorrection;
 }
 
 [numthreads(NumThreads, 1, 1)]

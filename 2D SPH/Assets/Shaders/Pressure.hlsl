@@ -1,41 +1,31 @@
-float stiffness;
+float2 CalculatePressureForce(uint i) {
+    float2 pressureForce = float2(0, 0);
 
-float pressureMultiplier;
-float nearPressureMultiplier;
+    int2 gridPosI = GetGridPos(Positions[i]);
 
-float restDensity;
+    for (int x = -1; x < 2; x++) {
+        for (int y = -1; y < 2; y++) {
+            int2 gridPosJ = gridPosI + int2(x, y);
+            if (!IsInBounds(gridPosJ)) continue;
 
+            uint hash = CalculateHashFromGrid(gridPosJ);
 
-float CalculatePressure(uint i) {
-    if (stiffness == 0) return 0;
+            uint startIndex = Offsets[hash];
+            uint endIndex = Offsets[hash + 1];
 
-    float inner = pow(Densities[i] / restDensity, stiffness) - 1;
-    
-    return pressureMultiplier * inner * (restDensity / stiffness);
-}
+            float pressureI = Pressures[i] / (Densities[i] * Densities[i]);
 
-float CalculateNearPressure(uint i) {
-    return nearPressureMultiplier * NearDensities[i]; 
-}
+            for (uint j = startIndex; j < endIndex; j++) {
+                if (i == j) continue;
 
-float2 CalculatePressureContribution(uint i, uint j) {
-    float pressureI = CalculatePressure(i);
-    float pressureJ = CalculatePressure(j);
-    float2 offset = Positions[i] - Positions[j];
+                float2 offset = Positions[i] - Positions[j];
 
-    float pressureSum = pressureI / (Densities[i] * Densities[i]) + pressureJ / (Densities[j] * Densities[j]);
-    float2 pressureForce = particleMass * pressureSum * SpikyKernelGrad(offset);
+                float pressureJ = Pressures[j] / (Densities[j] * Densities[j]);
 
-    return pressureForce;
-}
+                pressureForce += (pressureI + pressureJ) * SpikyKernelGrad(offset);
+            }
+        }
+    }
 
-float2 CalculateNearPressureContribution(uint i, uint j) {
-    float nearPressureI = CalculateNearPressure(i);
-    float nearPressureJ = CalculateNearPressure(j);
-    float2 offset = Positions[i] - Positions[j];
-
-    float nearPressureSum = nearPressureI / (NearDensities[i] * NearDensities[i]) + nearPressureJ / (NearDensities[j] * NearDensities[j]);
-    float2 nearPressureForce = particleMass * nearPressureSum * NearPressureKernelGrad(offset);
-
-    return nearPressureForce;
+    return -pressureForce;
 }
