@@ -103,6 +103,7 @@ class ShaderHelper
                       int intermediateAccelerationKernel,
                       int intermediateVelocityAndDKernel,
                       int intermediateDensityAndAKernel,
+                      int pressureIterationKernel,
                       int velocityKernel,
                       int positionKernel
     )
