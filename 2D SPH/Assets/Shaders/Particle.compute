@@ -5,9 +5,10 @@
 #pragma kernel AddBlockSums
 #pragma kernel FinalizeScan
 #pragma kernel Scatter
+#pragma kernel Density
 #pragma kernel IntermediateAcceleration
 #pragma kernel IntermediateVelocityAndD
-#pragma kernel Density
+#pragma kernel IntermediateDensity
 
 #pragma kernel UpdateVelocities
 #pragma kernel UpdatePositions
@@ -156,6 +157,17 @@ void Scatter(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
+void Density(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    float2 densities = CalculateDensities(id.x);
+
+    Densities[id.x] = densities.x;
+    NearDensities[id.x] = densities.y;
+}
+
+
+[numthreads(NumThreads, 1, 1)]
 void IntermediateAcceleration(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
@@ -171,13 +183,10 @@ void IntermediateVelocityAndD(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void Density(uint3 id : SV_DispatchThreadID) {
+void IntermediateDensity(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    float2 densities = CalculateDensities(id.x);
-
-    Densities[id.x] = densities.x;
-    NearDensities[id.x] = densities.y;
+    Densities[id.x] += CalculateIntermediateDensity(id.x) * deltaTime;
 }
 
 [numthreads(NumThreads, 1, 1)]
