@@ -117,7 +117,7 @@ class ShaderHelper
         kernelStaticBufferMap.Add(densityKernel, new string[] { "Densities", "NearDensities", "Offsets" });
         kernelStaticBufferMap.Add(intermediateAccelerationKernel, new string[] { "Offsets", "IntermediateAccelerations", "Densities" });
         kernelStaticBufferMap.Add(intermediateVelocityAndDKernel, new string[] { "IntermediateAccelerations", "Dii", "Offsets", "Densities" });
-        kernelStaticBufferMap.Add(intermediateDensityAndAKernel, new string[] { "Densities", "Offsets", "Aii" });
+        kernelStaticBufferMap.Add(intermediateDensityAndAKernel, new string[] { "Densities", "Offsets", "Dii", "Aii" });
         kernelStaticBufferMap.Add(velocityKernel, new string[] { "Densities", "NearDensities", "Offsets" });
         kernelStaticBufferMap.Add(positionKernel, new string[] { "Densities", "Offsets" });
 

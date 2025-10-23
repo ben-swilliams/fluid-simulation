@@ -47,13 +47,14 @@ float2 CalculateDeltaDensityAndA(uint i) {
 
                 float2 posOffset = Positions[i] - Positions[j];
                 float2 velOffset = Velocities[i] - Velocities[j];
-                float2 grad = Poly6KernelGrad(posOffset);
+                float2 densityGrad = Poly6KernelGrad(posOffset);
+                float2 pressureGrad = SpikyKernelGrad(posOffset);
 
-                deltaDensity += particleMass * dot(velOffset, grad);
+                deltaDensity += particleMass * dot(velOffset, densityGrad);
 
-                float d_ji = deltaTime * deltaTime * particleMass * grad / (Densities[i] * Densities[i]);
+                float2 d_ji = deltaTime * deltaTime * particleMass * pressureGrad / (Densities[i] * Densities[i]);
 
-                a += particleMass * dot(Dii[i] - d_ji, grad);
+                a += particleMass * dot(Dii[i] - d_ji, pressureGrad);
             }
         }
     }

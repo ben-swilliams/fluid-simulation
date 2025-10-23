@@ -192,7 +192,7 @@ void IntermediateDensityAndA(uint3 id : SV_DispatchThreadID) {
     float a = values.y;
 
     Densities[id.x] += deltaDensity * deltaTime;
-    A[id.x] = a;
+    Aii[id.x] = a;
 }
 
 [numthreads(NumThreads, 1, 1)]
