@@ -5,8 +5,10 @@
 #pragma kernel AddBlockSums
 #pragma kernel FinalizeScan
 #pragma kernel Scatter
-#pragma kernel IntermediateAcceleration
 #pragma kernel Density
+#pragma kernel IntermediateAcceleration
+#pragma kernel IntermediateVelocityAndD
+#pragma kernel IntermediateDensity
 
 #pragma kernel UpdateVelocities
 #pragma kernel UpdatePositions
@@ -31,6 +33,7 @@ RWStructuredBuffer<float2> Positions;
 RWStructuredBuffer<float2> Velocities;
 
 RWStructuredBuffer<float2> IntermediateAccelerations;
+RWStructuredBuffer<float2> Dii;
 
 // Integers
 uint instanceCount;
@@ -71,6 +74,7 @@ uint numBlockSums;
 #include "Scan.hlsl"
 #include "Scatter.hlsl"
 #include "External.hlsl"
+#include "IISPH.hlsl"
 #include "Density.hlsl"
 #include "Pressure.hlsl"
 #include "Viscosity.hlsl"
@@ -153,13 +157,6 @@ void Scatter(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void IntermediateAcceleration(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    IntermediateAccelerations[id.x] = CalculateAcceleration(id.x);
-}
-
-[numthreads(NumThreads, 1, 1)]
 void Density(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
@@ -167,6 +164,29 @@ void Density(uint3 id : SV_DispatchThreadID) {
 
     Densities[id.x] = densities.x;
     NearDensities[id.x] = densities.y;
+}
+
+
+[numthreads(NumThreads, 1, 1)]
+void IntermediateAcceleration(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    IntermediateAccelerations[id.x] = CalculateAcceleration(id.x);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void IntermediateVelocityAndD(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Velocities[id.x] += IntermediateAccelerations[id.x] * deltaTime;
+    Dii[id.x] = CalculateD(id.x);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void IntermediateDensity(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Densities[id.x] += CalculateIntermediateDensityChange(id.x) * deltaTime;
 }
 
 [numthreads(NumThreads, 1, 1)]

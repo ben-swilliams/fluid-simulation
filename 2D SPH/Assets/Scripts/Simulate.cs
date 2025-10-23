@@ -53,8 +53,10 @@ public class Simulate : MonoBehaviour
     int addBlockSumsKernel;
     int finalizeScanKernel;
     int scatterKernel;
-    int IntermediateAccelerationKernel;
     int densityKernel;
+    int intermediateAccelerationKernel;
+    int intermediateVelocityAndDKernel;
+    int intermediateDensityKernel;
     int velocityKernel;
     int positionKernel;
 
@@ -105,7 +107,7 @@ public class Simulate : MonoBehaviour
 
         ScanAndScatter();
 
-        shader.Dispatch(IntermediateAccelerationKernel, densityKernel, velocityKernel, positionKernel);
+        shader.Dispatch(densityKernel, intermediateAccelerationKernel, intermediateVelocityAndDKernel, intermediateDensityKernel, velocityKernel, positionKernel);
     }
 
     void ScanAndScatter()
@@ -222,8 +224,10 @@ public class Simulate : MonoBehaviour
         addBlockSumsKernel = computeShader.FindKernel("AddBlockSums");
         finalizeScanKernel = computeShader.FindKernel("FinalizeScan");
         scatterKernel = computeShader.FindKernel("Scatter");
-        IntermediateAccelerationKernel = computeShader.FindKernel("IntermediateAcceleration");
         densityKernel = computeShader.FindKernel("Density");
+        intermediateAccelerationKernel = computeShader.FindKernel("IntermediateAcceleration");
+        intermediateVelocityAndDKernel = computeShader.FindKernel("IntermediateVelocityAndD");
+        intermediateDensityKernel = computeShader.FindKernel("IntermediateDensity");
         velocityKernel = computeShader.FindKernel("UpdateVelocities");
         positionKernel = computeShader.FindKernel("UpdatePositions");
 
@@ -234,8 +238,10 @@ public class Simulate : MonoBehaviour
                           addBlockSumsKernel,
                           finalizeScanKernel,
                           scatterKernel,
-                          IntermediateAccelerationKernel,
                           densityKernel,
+                          intermediateAccelerationKernel,
+                          intermediateVelocityAndDKernel,
+                          intermediateDensityKernel,
                           velocityKernel,
                           positionKernel);
     }
