@@ -6,6 +6,7 @@
 #pragma kernel FinalizeScan
 #pragma kernel Scatter
 #pragma kernel IntermediateAcceleration
+#pragma kernel IntermediateVelocity
 #pragma kernel Density
 
 #pragma kernel UpdateVelocities
@@ -157,6 +158,13 @@ void IntermediateAcceleration(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     IntermediateAccelerations[id.x] = CalculateAcceleration(id.x);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void IntermediateVelocity(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Velocities[id.x] += IntermediateAccelerations[id.x] * deltaTime;
 }
 
 [numthreads(NumThreads, 1, 1)]
