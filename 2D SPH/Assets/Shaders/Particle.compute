@@ -9,6 +9,8 @@
 #pragma kernel IntermediateAcceleration
 #pragma kernel IntermediateVelocityAndD
 #pragma kernel IntermediateDensityAndA
+#pragma kernel ZeroPressures
+#pragma kernel PressureSumIteration
 
 #pragma kernel UpdateVelocities
 #pragma kernel UpdatePositions
@@ -26,7 +28,10 @@ RWStructuredBuffer<uint> LocalOffsets;
 
 // Float buffers
 RWStructuredBuffer<float> Densities;
+RWStructuredBuffer<float> AdvDensities;
 RWStructuredBuffer<float> NearDensities;
+RWStructuredBuffer<float> Aii;
+RWStructuredBuffer<float> Pressures;
 
 // Vector buffers
 RWStructuredBuffer<float2> Positions;
@@ -34,7 +39,8 @@ RWStructuredBuffer<float2> Velocities;
 
 RWStructuredBuffer<float2> IntermediateAccelerations;
 RWStructuredBuffer<float2> Dii;
-RWStructuredBuffer<float> Aii;
+RWStructuredBuffer<float2> DPSum;
+
 
 // Integers
 uint instanceCount;
@@ -191,8 +197,20 @@ void IntermediateDensityAndA(uint3 id : SV_DispatchThreadID) {
     float deltaDensity = values.x;
     float a = values.y;
 
-    Densities[id.x] += deltaDensity * deltaTime;
+    AdvDensities[id.x] = Densities[id.x] + deltaDensity * deltaTime;
     Aii[id.x] = a;
+}
+
+[numthreads(NumThreads, 1, 1)]
+void ZeroPressures(uint3 id : SV_DispatchThreadID) {
+    Pressures[id.x] = 0;
+}
+
+[numthreads(NumThreads, 1, 1)]
+void PressureSumIteration(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    DPSum[id.x] = CalculatePressureSum(id.x);
 }
 
 [numthreads(NumThreads, 1, 1)]

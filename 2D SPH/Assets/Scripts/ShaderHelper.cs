@@ -24,10 +24,13 @@ class ShaderHelper
     ComputeBuffer velocityBufferA;
     ComputeBuffer velocityBufferB;
     ComputeBuffer densityBuffer;
+    ComputeBuffer advDensityBuffer;
     ComputeBuffer nearDensityBuffer;
     ComputeBuffer intermediateAccelerationBuffer;
     ComputeBuffer diiBuffer;
     ComputeBuffer aiiBuffer;
+    ComputeBuffer dpSumBuffer;
+    ComputeBuffer pressureBuffer;
 
     // Maps
     Dictionary<int, string[]> kernelStaticBufferMap = new Dictionary<int, string[]>();
@@ -63,10 +66,13 @@ class ShaderHelper
         nameBufferMap.Add("Offsets", offsetBuffer);
         nameBufferMap.Add("BlockSums", blockSumsBuffer);
         nameBufferMap.Add("Densities", densityBuffer);
+        nameBufferMap.Add("AdvDensities", advDensityBuffer);
         nameBufferMap.Add("NearDensities", nearDensityBuffer);
         nameBufferMap.Add("IntermediateAccelerations", intermediateAccelerationBuffer);
         nameBufferMap.Add("Dii", diiBuffer);
         nameBufferMap.Add("Aii", aiiBuffer);
+        nameBufferMap.Add("DPSum", dpSumBuffer);
+        nameBufferMap.Add("Pressures", pressureBuffer);
         nameBufferMap.Add("Velocities", velocityBuffer);
         nameBufferMap.Add("Positions", positionBuffer);
 
@@ -103,7 +109,8 @@ class ShaderHelper
                       int intermediateAccelerationKernel,
                       int intermediateVelocityAndDKernel,
                       int intermediateDensityAndAKernel,
-                      int pressureIterationKernel,
+                      int zeroPressuresKernel,
+                      int pressureSumIterationKernel,
                       int velocityKernel,
                       int positionKernel
     )
@@ -118,7 +125,9 @@ class ShaderHelper
         kernelStaticBufferMap.Add(densityKernel, new string[] { "Densities", "NearDensities", "Offsets" });
         kernelStaticBufferMap.Add(intermediateAccelerationKernel, new string[] { "Offsets", "IntermediateAccelerations", "Densities" });
         kernelStaticBufferMap.Add(intermediateVelocityAndDKernel, new string[] { "IntermediateAccelerations", "Dii", "Offsets", "Densities" });
-        kernelStaticBufferMap.Add(intermediateDensityAndAKernel, new string[] { "Densities", "Offsets", "Dii", "Aii" });
+        kernelStaticBufferMap.Add(intermediateDensityAndAKernel, new string[] { "Densities", "AdvDensities", "Offsets", "Dii", "Aii" });
+        kernelStaticBufferMap.Add(zeroPressuresKernel, new string[] { "Pressures" });
+        kernelStaticBufferMap.Add(pressureSumIterationKernel, new string[] { "Offsets", "Densities", "Dii", "Aii", "DPSum", "Pressures" });
         kernelStaticBufferMap.Add(velocityKernel, new string[] { "Densities", "NearDensities", "Offsets" });
         kernelStaticBufferMap.Add(positionKernel, new string[] { "Densities", "Offsets" });
 
@@ -129,6 +138,7 @@ class ShaderHelper
         kernelDynamicBufferMap.Add(intermediateAccelerationKernel, new string[] { "Positions", "Velocities" });
         kernelDynamicBufferMap.Add(intermediateVelocityAndDKernel, new string[] { "Positions", "Velocities" });
         kernelDynamicBufferMap.Add(intermediateDensityAndAKernel, new string[] { "Positions", "Velocities" });
+        kernelDynamicBufferMap.Add(pressureSumIterationKernel, new string[] { "Positions" });
         kernelDynamicBufferMap.Add(velocityKernel, new string[] { "Velocities", "Positions" });
         kernelDynamicBufferMap.Add(positionKernel, new string[] { "Velocities", "Positions" });
 
@@ -178,12 +188,16 @@ class ShaderHelper
         velocityBuffer = velocityBufferA;
 
         densityBuffer = new ComputeBuffer(instanceCount, sizeof(float));
+        advDensityBuffer = new ComputeBuffer(instanceCount, sizeof(float));
         nearDensityBuffer = new ComputeBuffer(instanceCount, sizeof(float));
 
         intermediateAccelerationBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
 
         diiBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
         aiiBuffer = new ComputeBuffer(instanceCount, sizeof(float));
+        dpSumBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
+
+        pressureBuffer = new ComputeBuffer(instanceCount, sizeof(float));
 
         MapBuffers();
     }
@@ -242,6 +256,8 @@ class ShaderHelper
             velocityBufferB.Release();
         if (densityBuffer != null)
             densityBuffer.Release();
+        if (advDensityBuffer != null)
+            advDensityBuffer.Release();
         if (nearDensityBuffer != null)
             nearDensityBuffer.Release();
         if (intermediateAccelerationBuffer != null)
@@ -250,5 +266,9 @@ class ShaderHelper
             diiBuffer.Release();
         if (aiiBuffer != null)
             aiiBuffer.Release();
+        if (dpSumBuffer != null)
+            dpSumBuffer.Release();
+        if (pressureBuffer != null)
+            pressureBuffer.Release();
     }
 }
