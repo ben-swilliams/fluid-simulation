@@ -89,3 +89,7 @@ float2 CalculatePressureSum(uint i) {
 
     return deltaTime * deltaTime * pressureSum;
 }
+
+float CalculateNextPressure(uint i) {
+    return Pressures[i];
+}

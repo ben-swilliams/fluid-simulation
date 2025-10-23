@@ -111,6 +111,7 @@ class ShaderHelper
                       int intermediateDensityAndAKernel,
                       int zeroPressuresKernel,
                       int pressureSumIterationKernel,
+                      int pressureConvergeIterationKernel,
                       int velocityKernel,
                       int positionKernel
     )
@@ -128,6 +129,7 @@ class ShaderHelper
         kernelStaticBufferMap.Add(intermediateDensityAndAKernel, new string[] { "Densities", "AdvDensities", "Offsets", "Dii", "Aii" });
         kernelStaticBufferMap.Add(zeroPressuresKernel, new string[] { "Pressures" });
         kernelStaticBufferMap.Add(pressureSumIterationKernel, new string[] { "Offsets", "Densities", "Dii", "Aii", "DPSum", "Pressures" });
+        kernelStaticBufferMap.Add(pressureConvergeIterationKernel, new string[] { "Offsets", "AdvDensities", "Dii", "Aii", "DPSum", "Pressures"});
         kernelStaticBufferMap.Add(velocityKernel, new string[] { "Densities", "NearDensities", "Offsets" });
         kernelStaticBufferMap.Add(positionKernel, new string[] { "Densities", "Offsets" });
 
@@ -139,6 +141,7 @@ class ShaderHelper
         kernelDynamicBufferMap.Add(intermediateVelocityAndDKernel, new string[] { "Positions", "Velocities" });
         kernelDynamicBufferMap.Add(intermediateDensityAndAKernel, new string[] { "Positions", "Velocities" });
         kernelDynamicBufferMap.Add(pressureSumIterationKernel, new string[] { "Positions" });
+        kernelDynamicBufferMap.Add(pressureConvergeIterationKernel, new string[] { "Positions" });
         kernelDynamicBufferMap.Add(velocityKernel, new string[] { "Velocities", "Positions" });
         kernelDynamicBufferMap.Add(positionKernel, new string[] { "Velocities", "Positions" });
 

@@ -11,6 +11,7 @@
 #pragma kernel IntermediateDensityAndA
 #pragma kernel ZeroPressures
 #pragma kernel PressureSumIteration
+#pragma kernel PressureConvergeIteration
 
 #pragma kernel UpdateVelocities
 #pragma kernel UpdatePositions
@@ -211,6 +212,13 @@ void PressureSumIteration(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     DPSum[id.x] = CalculatePressureSum(id.x);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void PressureConvergeIteration(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Pressures[id.x] = CalculateNextPressure(id.x);
 }
 
 [numthreads(NumThreads, 1, 1)]
