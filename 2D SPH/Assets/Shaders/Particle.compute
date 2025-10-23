@@ -5,6 +5,7 @@
 #pragma kernel AddBlockSums
 #pragma kernel FinalizeScan
 #pragma kernel Scatter
+#pragma kernel NonPressureForce
 #pragma kernel Density
 
 #pragma kernel UpdateVelocities
@@ -28,6 +29,8 @@ RWStructuredBuffer<float> NearDensities;
 // Vector buffers
 RWStructuredBuffer<float2> Positions;
 RWStructuredBuffer<float2> Velocities;
+
+RWStructuredBuffer<float2> NonPressureForces;
 
 // Integers
 uint instanceCount;
@@ -74,7 +77,7 @@ uint numBlockSums;
 #include "SurfaceTension.hlsl"
 #include "XSPH.hlsl"
 
-void CalculateComponents(uint i, out float2 pressure, out float2 nearPressure, out float2 viscosity, out float2 surfaceTension) {
+void CalculateComponents(uint i, out float2 viscosity, out float2 surfaceTension) {
     int2 gridPosI = GetGridPos(Positions[i]);
 
     for (int x = -1; x < 2; x++) {
@@ -93,8 +96,6 @@ void CalculateComponents(uint i, out float2 pressure, out float2 nearPressure, o
                 float massOverDensity = particleMass / Densities[j];
                 float2 offset = Positions[i] - Positions[j];
 
-                pressure += CalculatePressureContribution(i, j);
-                nearPressure += CalculateNearPressureContribution(i, j);
                 viscosity += CalculateViscosityContribution(i, j);
                 surfaceTension += CalculateSurfaceTensionContribution(i, j);
             }
@@ -103,12 +104,11 @@ void CalculateComponents(uint i, out float2 pressure, out float2 nearPressure, o
 }
 
 float2 CalculateAcceleration(uint i) {
-    float2 pressure, nearPressure, viscosity, surfaceTension;
+    float2 viscosity, surfaceTension;
 
-    CalculateComponents(i, pressure, nearPressure, viscosity, surfaceTension);
+    CalculateComponents(i, viscosity, surfaceTension);
 
-    // return MouseForce(i) + gravity + (pressure + viscosity + surfaceTension) / Densities[i] + nearPressure / NearDensities[i];
-    return MouseForce(i) + gravity + pressure + nearPressure + viscosity + surfaceTension;
+    return MouseForce(i) + gravity + viscosity + surfaceTension;
 }
 
 [numthreads(NumThreads, 1, 1)]
@@ -150,6 +150,13 @@ void Scatter(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     SortParticle(id.x);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void NonPressureForce(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    NonPressureForces[id.x] = CalculateAcceleration(id.x);
 }
 
 [numthreads(NumThreads, 1, 1)]
