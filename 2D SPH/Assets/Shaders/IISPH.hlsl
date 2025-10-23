@@ -26,8 +26,9 @@ float2 CalculateD(uint i) {
     return deltaTime * deltaTime * d;
 }
 
-float CalculateIntermediateDensityChange(uint i) {
+float2 CalculateDeltaDensityAndA(uint i) {
     float deltaDensity = 0;
+    float a = 0;
 
     int2 gridPosI = GetGridPos(Positions[i]);
 
@@ -46,11 +47,17 @@ float CalculateIntermediateDensityChange(uint i) {
 
                 float2 posOffset = Positions[i] - Positions[j];
                 float2 velOffset = Velocities[i] - Velocities[j];
+                float2 densityGrad = Poly6KernelGrad(posOffset);
+                float2 pressureGrad = SpikyKernelGrad(posOffset);
 
-                deltaDensity += particleMass * dot(velOffset, Poly6KernelGrad(posOffset));
+                deltaDensity += particleMass * dot(velOffset, densityGrad);
+
+                float2 d_ji = deltaTime * deltaTime * particleMass * pressureGrad / (Densities[i] * Densities[i]);
+
+                a += particleMass * dot(Dii[i] - d_ji, pressureGrad);
             }
         }
     }
 
-    return deltaDensity;
+    return float2(deltaDensity, a);
 }

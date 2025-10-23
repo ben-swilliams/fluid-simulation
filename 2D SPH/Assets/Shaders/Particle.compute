@@ -8,7 +8,7 @@
 #pragma kernel Density
 #pragma kernel IntermediateAcceleration
 #pragma kernel IntermediateVelocityAndD
-#pragma kernel IntermediateDensity
+#pragma kernel IntermediateDensityAndA
 
 #pragma kernel UpdateVelocities
 #pragma kernel UpdatePositions
@@ -34,6 +34,7 @@ RWStructuredBuffer<float2> Velocities;
 
 RWStructuredBuffer<float2> IntermediateAccelerations;
 RWStructuredBuffer<float2> Dii;
+RWStructuredBuffer<float> Aii;
 
 // Integers
 uint instanceCount;
@@ -183,10 +184,15 @@ void IntermediateVelocityAndD(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void IntermediateDensity(uint3 id : SV_DispatchThreadID) {
+void IntermediateDensityAndA(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Densities[id.x] += CalculateIntermediateDensityChange(id.x) * deltaTime;
+    float2 values = CalculateDeltaDensityAndA(id.x);
+    float deltaDensity = values.x;
+    float a = values.y;
+
+    Densities[id.x] += deltaDensity * deltaTime;
+    Aii[id.x] = a;
 }
 
 [numthreads(NumThreads, 1, 1)]
