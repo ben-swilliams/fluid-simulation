@@ -6,7 +6,7 @@
 #pragma kernel FinalizeScan
 #pragma kernel Scatter
 #pragma kernel IntermediateAcceleration
-#pragma kernel IntermediateVelocity
+#pragma kernel IntermediateVelocityAndD
 #pragma kernel Density
 
 #pragma kernel UpdateVelocities
@@ -32,6 +32,7 @@ RWStructuredBuffer<float2> Positions;
 RWStructuredBuffer<float2> Velocities;
 
 RWStructuredBuffer<float2> IntermediateAccelerations;
+RWStructuredBuffer<float2> Dii;
 
 // Integers
 uint instanceCount;
@@ -72,6 +73,7 @@ uint numBlockSums;
 #include "Scan.hlsl"
 #include "Scatter.hlsl"
 #include "External.hlsl"
+#include "IISPH.hlsl"
 #include "Density.hlsl"
 #include "Pressure.hlsl"
 #include "Viscosity.hlsl"
@@ -161,10 +163,11 @@ void IntermediateAcceleration(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void IntermediateVelocity(uint3 id : SV_DispatchThreadID) {
+void IntermediateVelocityAndD(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     Velocities[id.x] += IntermediateAccelerations[id.x] * deltaTime;
+    Dii[id.x] = CalculateD(id.x);
 }
 
 [numthreads(NumThreads, 1, 1)]
