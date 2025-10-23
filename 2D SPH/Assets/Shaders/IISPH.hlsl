@@ -20,7 +20,7 @@ float2 CalculateD(uint i) {
                 if (i == j) continue;
 
                 float2 offset = Positions[i] - Positions[j];
-                
+
                 d += (-particleMass / (Densities[i] * Densities[i])) * SpikyKernelGrad(offset);
             }
         }
@@ -54,13 +54,14 @@ float2 CalculateDeltaDensityAndA(uint i) {
                 float2 velOffset = Velocities[i] - Velocities[j];
 
                 float2 densityGrad = Poly6KernelGrad(posOffset);
-                float2 pressureGrad = SpikyKernelGrad(posOffset);
+                float2 pressureGradIJ = SpikyKernelGrad(posOffset);
+                float2 pressureGradJI = SpikyKernelGrad(-posOffset);
 
                 deltaDensity += particleMass * dot(velOffset, densityGrad);
 
-                float2 d_ji = -deltaTime * deltaTime * particleMass * pressureGrad / (Densities[j] * Densities[j]);
+                float2 d_ji = -deltaTime * deltaTime * particleMass * pressureGradJI / (Densities[i] * Densities[i]);
 
-                a += particleMass * dot(Dii[i] - d_ji, pressureGrad);
+                a += particleMass * dot(Dii[i] - d_ji, pressureGradIJ);
             }
         }
     }
