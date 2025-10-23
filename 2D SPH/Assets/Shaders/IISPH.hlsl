@@ -58,7 +58,7 @@ float2 CalculateDeltaDensityAndA(uint i) {
 
                 deltaDensity += particleMass * dot(velOffset, densityGrad);
 
-                float2 d_ji = -deltaTime * deltaTime * particleMass * pressureGrad / (Densities[i] * Densities[i]);
+                float2 d_ji = -deltaTime * deltaTime * particleMass * pressureGrad / (Densities[j] * Densities[j]);
 
                 a += particleMass * dot(Dii[i] - d_ji, pressureGrad);
             }
@@ -117,7 +117,7 @@ float CalculateNextPressure(uint i) {
                 float2 offset = Positions[i] - Positions[j];
                 float2 pressureGrad = SpikyKernelGrad(offset);
 
-                float2 d_ji = -deltaTime * deltaTime * particleMass * pressureGrad / (Densities[i] * Densities[i]);
+                float2 d_ji = -deltaTime * deltaTime * particleMass * pressureGrad / (Densities[j] * Densities[j]);
 
                 float2 inner = DPSum[i] - Dii[j] * IterPressures[j] - (DPSum[j] - d_ji * IterPressures[i]);
 

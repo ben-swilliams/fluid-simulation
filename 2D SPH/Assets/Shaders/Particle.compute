@@ -12,6 +12,7 @@
 #pragma kernel ZeroPressures
 #pragma kernel PressureSumIteration
 #pragma kernel PressureConvergeIteration
+#pragma kernel PressureFinaliseIteration
 
 #pragma kernel UpdateVelocities
 #pragma kernel UpdatePositions
@@ -218,7 +219,14 @@ void PressureSumIteration(uint3 id : SV_DispatchThreadID) {
 void PressureConvergeIteration(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    IterPressures[id.x] = CalculateNextPressure(id.x);
+    Pressures[id.x] = CalculateNextPressure(id.x);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void PressureFinaliseIteration(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    IterPressures[id.x] = Pressures[id.x];
 }
 
 [numthreads(NumThreads, 1, 1)]
