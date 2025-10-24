@@ -21,12 +21,12 @@ float2 CalculateD(uint i) {
 
                 float2 offset = Positions[i] - Positions[j];
 
-                d += (-particleMass / (Densities[i] * Densities[i])) * SpikyKernelGrad(offset);
+                d += (particleMass / (Densities[i] * Densities[i])) * SpikyKernelGrad(offset);
             }
         }
     }
 
-    return deltaTime * deltaTime * d;
+    return -deltaTime * deltaTime * d;
 }
 
 float2 CalculateDeltaDensityAndA(uint i) {
@@ -54,17 +54,18 @@ float2 CalculateDeltaDensityAndA(uint i) {
                 float2 velOffset = Velocities[i] - Velocities[j];
 
                 float2 densityGrad = Poly6KernelGrad(posOffset);
-                float2 pressureGradIJ = SpikyKernelGrad(posOffset);
-                float2 pressureGradJI = SpikyKernelGrad(-posOffset);
+                float2 pressureGrad = SpikyKernelGrad(posOffset);
 
                 deltaDensity += particleMass * dot(velOffset, densityGrad);
 
-                float2 d_ji = -deltaTime * deltaTime * particleMass * pressureGradJI / (Densities[i] * Densities[i]);
-
-                a += particleMass * dot(Dii[i] - d_ji, pressureGradIJ);
+                float2 d_ji = -deltaTime * deltaTime * particleMass * pressureGrad / (Densities[i] * Densities[i]);
+        
+                a += dot(Dii[i] - d_ji, pressureGrad);
             }
         }
     }
+
+    a *= particleMass;
 
     return float2(deltaDensity, a);
 }
@@ -118,14 +119,14 @@ float CalculateNextPressure(uint i) {
                 float2 offset = Positions[i] - Positions[j];
                 float2 pressureGrad = SpikyKernelGrad(offset);
 
-                float2 d_ji = -deltaTime * deltaTime * particleMass * pressureGrad / (Densities[j] * Densities[j]);
+                float2 d_ji = -deltaTime * deltaTime * particleMass * pressureGrad / (Densities[i] * Densities[i]);
 
                 float2 inner = DPSum[i] - Dii[j] * IterPressures[j] - (DPSum[j] - d_ji * IterPressures[i]);
 
-                pressureSum += particleMass * dot(inner, pressureGrad);
+                pressureSum +=  dot(inner, pressureGrad);
             }
         }
     }
 
-    return (1 - relaxationFactor) * IterPressures[i] + relaxationFactor * (1 / Aii[i]) * (restDensity - Densities[instanceCount + i] - pressureSum); // Holy
+    return (1 - relaxationFactor) * IterPressures[i] + (relaxationFactor / Aii[i]) * (restDensity - Densities[instanceCount + i] - particleMass * pressureSum); // Holy
 }
