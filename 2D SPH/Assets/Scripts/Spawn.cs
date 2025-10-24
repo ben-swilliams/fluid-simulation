@@ -19,6 +19,7 @@ public class Spawn : MonoBehaviour
     bool prevGridMode = false;
     float sizeWithSpacing;
     ComputeBuffer velocityBuffer;
+    ComputeBuffer propertyBuffer;
 
     /*
     Public getters
@@ -83,6 +84,8 @@ public class Spawn : MonoBehaviour
         positionBuffer.SetData(positions);
 
         velocityBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
+
+        propertyBuffer = new ComputeBuffer(instanceCount, sizeof(float));
     }
 
     void UpdateBuffers()
@@ -101,7 +104,7 @@ public class Spawn : MonoBehaviour
 
     void BindExternalBuffers()
     {
-        GetComponent<Draw>().BindBuffers(positionBuffer, velocityBuffer, size);
+        GetComponent<Draw>().BindBuffers(positionBuffer, velocityBuffer, propertyBuffer, propertyBuffer, size);
     }
 
     void ReleaseBuffers()
@@ -115,6 +118,11 @@ public class Spawn : MonoBehaviour
         {
             velocityBuffer.Release();
             velocityBuffer = null;
+        }
+
+        if (propertyBuffer != null)
+        {
+            propertyBuffer.Release();
         }
     }
 

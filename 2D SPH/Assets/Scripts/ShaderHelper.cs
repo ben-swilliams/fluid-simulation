@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using System.Net.Http.Headers;
 using UnityEngine;
 
-class ShaderHelper
+public class ShaderHelper
 {
     /*
     Private properties
@@ -45,9 +44,6 @@ class ShaderHelper
 
     public ComputeBuffer Densities => densityBuffer;
     public ComputeBuffer Pressures => pressureBuffer;
-    public ComputeBuffer A => aiiBuffer;
-    public ComputeBuffer D => diiBuffer;
-    public ComputeBuffer DP => dpSumBuffer;
 
     void BindStaticBuffers()
     {

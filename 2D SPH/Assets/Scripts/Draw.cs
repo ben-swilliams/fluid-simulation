@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class Draw : MonoBehaviour
 {
+    private enum Property { Velocity, Density, Pressure }
+
     /*
     Inspector properties
     */
@@ -12,7 +14,8 @@ public class Draw : MonoBehaviour
     [SerializeField] Mesh mesh;
     [SerializeField] Color fastColour;
     [SerializeField] Color slowColour;
-    [SerializeField] float maxSpeed = 10f;
+    [SerializeField] float maxProp = 10f;
+    [SerializeField] Property colourProperty;
 
     /*
     Private properties
@@ -23,8 +26,8 @@ public class Draw : MonoBehaviour
     uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
     ComputeBuffer argsBuffer;
 
-    float slowHue;
-    float fastHue;
+    float lowHue;
+    float highHue;
 
     void Start()
     {
@@ -47,16 +50,24 @@ public class Draw : MonoBehaviour
 
     void OnValidate()
     {
-        maxSpeed = Mathf.Max(0, maxSpeed);
+        maxProp = Mathf.Max(0, maxProp);
 
-        Color.RGBToHSV(slowColour, out slowHue, out _, out _);
-        Color.RGBToHSV(fastColour, out fastHue, out _, out _);
+        Color.RGBToHSV(slowColour, out lowHue, out _, out _);
+        Color.RGBToHSV(fastColour, out highHue, out _, out _);
 
         if (!Application.isPlaying || instanceMaterial == null) return;
 
-        instanceMaterial.SetFloat("maxSpeed", maxSpeed);
-        instanceMaterial.SetFloat("slowHue", slowHue);
-        instanceMaterial.SetFloat("fastHue", fastHue);
+        instanceMaterial.SetFloat("maxProp", maxProp);
+        instanceMaterial.SetFloat("lowHue", lowHue);
+        instanceMaterial.SetFloat("highHue", highHue);
+        instanceMaterial.SetInteger("useVelocities", colourProperty == Property.Velocity ? 1 : 0);
+
+        if (colourProperty != Property.Velocity)
+        {
+            ShaderHelper shader = GetComponent<Simulate>().Shader;
+            ComputeBuffer propertyBuffer = colourProperty == Property.Density ? shader.Densities : shader.Pressures;
+            instanceMaterial.SetBuffer("properties", propertyBuffer);
+        }
     }
 
     void OnDestroy()
@@ -85,14 +96,19 @@ public class Draw : MonoBehaviour
         argsBuffer = null;
     }
 
-    public void BindBuffers(ComputeBuffer positionBuffer, ComputeBuffer velocityBuffer, float size)
+    public void BindBuffers(ComputeBuffer positionBuffer, ComputeBuffer velocityBuffer, ComputeBuffer densityBuffer, ComputeBuffer pressureBuffer, float size)
     {
         InitialiseArgsBuffer(positionBuffer.count);
         instanceMaterial.SetFloat("size", size);
-        instanceMaterial.SetFloat("slowHue", slowHue);
-        instanceMaterial.SetFloat("fastHue", fastHue);
-        instanceMaterial.SetFloat("maxSpeed", maxSpeed);
+        instanceMaterial.SetFloat("lowHue", lowHue);
+        instanceMaterial.SetFloat("highHue", highHue);
+        instanceMaterial.SetFloat("maxProp", maxProp);
+        instanceMaterial.SetInteger("useVelocities", colourProperty == Property.Velocity ? 1 : 0);
         instanceMaterial.SetBuffer("positions", positionBuffer);
         instanceMaterial.SetBuffer("velocities", velocityBuffer);
+
+        // Bind the correct property buffer based on colourProperty
+        ComputeBuffer propertyBuffer = colourProperty == Property.Density ? densityBuffer : pressureBuffer;
+        instanceMaterial.SetBuffer("properties", propertyBuffer);
     }
 }
