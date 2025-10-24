@@ -1,68 +1,35 @@
-float poly6KernelConstant;
+float kernelConstant;
+float gradConstant;
 
-float spikyKernelGradConstant;
+float CubicSplineKernel(float2 offset) {
+    float r = length(offset);
+    float q = r / smoothingRadius;
 
-float nearPressureKernelGradConstant;
+    if (q >= 2) return 0;
 
-/*
-KERNELS
-*/
-float Poly6Kernel(float2 offset) {
-    float oSquared = dot(offset, offset);
-    if (oSquared > smoothingRadius * smoothingRadius) {
-        return 0;
+    float result;
+    if (q >= 1) {
+        result = 0.25 * pow(2 - q, 3);
     } else {
-
-        float diff = (smoothingRadius * smoothingRadius) - oSquared;
-
-        return poly6KernelConstant * diff * diff * diff;
+        result = (1 - 1.5 * q * q + 0.75 * q * q * q);
     }
+
+    return kernelConstant * result;
 }
 
-/*
-GRADIENTS
-*/
-float2 Poly6KernelGrad(float2 offset) {
+float2 CubicSplineGrad(float2 offset) {
     float r = length(offset);
-
-    if (r > smoothingRadius || r < 1e-7) return 0;
-
-    float diffSq = smoothingRadius * smoothingRadius - r * r;
-
-    return poly6KernelConstant * -6 * diffSq * diffSq * offset;
-}
-
-float2 SpikyKernelGrad(float2 offset) {
-    float r = length(offset);
+    float q = r / smoothingRadius;
+    if (q < 1e-7 || q >= 2) return float2(0, 0);
     
-    if (r < 1e-7 || r > smoothingRadius)
-        return float2(0, 0);
-    
-    float inner = smoothingRadius - r;
-    return spikyKernelGradConstant * inner * inner * offset / r;
-}
+    float2 dir = offset / r;
+    float coeff;
 
-float2 NearPressureKernelGrad(float2 offset) {
-    float r = length(offset);
+    if (q >= 1) {
+        coeff = -0.75 * (2 - q) * (2 - q);
+    } else {
+        coeff = -3 * q + 2.25 * q * q;
+    }
 
-    if (r < 1e-7 || r > smoothingRadius)
-        return float2(0, 0);
-
-    float inner = 1 - r/smoothingRadius;
-
-    return nearPressureKernelGradConstant * inner * inner * offset / r;
-}
-
-/*
-LAPLACIANS
-*/
-float Poly6KernelLap(float2 offset) {
-    float r = length(offset);
-
-    if (r > smoothingRadius) return 0;
-
-    float hSq = smoothingRadius * smoothingRadius;
-    float rSq = r * r;
-
-    return 12 * poly6KernelConstant * (hSq - rSq) * (3 * rSq - hSq);
+    return gradConstant * coeff * dir;
 }

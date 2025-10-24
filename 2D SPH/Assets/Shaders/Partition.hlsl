@@ -4,7 +4,7 @@ static const uint primeZ = 83492791;
 
 int2 GetGridPos(float2 pos) {
     float2 offsetPos = pos + containerSize / 2;
-    int2 gridPos = int2(floor(offsetPos.x / smoothingRadius), floor(offsetPos.y / smoothingRadius));
+    int2 gridPos = int2(floor(offsetPos.x / (2 * smoothingRadius)), floor(offsetPos.y / (2 * smoothingRadius)));
 
     return gridPos;
 }
