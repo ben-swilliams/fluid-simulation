@@ -1,3 +1,4 @@
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -45,6 +46,8 @@ public class Simulate : MonoBehaviour
     int maxStepsPerFrame = 5;
 
     int instanceCount;
+
+    int count = 0;
 
     // Kernel indices
     int clearCountsKernel;
@@ -121,6 +124,40 @@ public class Simulate : MonoBehaviour
         }
 
         shader.Dispatch(velocityKernel, positionKernel);
+
+        Vector2[] positions = new Vector2[instanceCount];
+        Vector2[] velocities = new Vector2[instanceCount];
+        float[] densities = new float[instanceCount * 2];
+        float[] pressures = new float[instanceCount];
+        Vector2[] d = new Vector2[instanceCount];
+        float[] a = new float[instanceCount];
+        Vector2[] dp = new Vector2[instanceCount];
+        if (count < 3)
+        {
+            shader.PositionBuffer.GetData(positions);
+            shader.VelocityBuffer.GetData(velocities);
+            shader.Densities.GetData(densities);
+            shader.Pressures.GetData(pressures);
+            shader.D.GetData(d);
+            shader.A.GetData(a);
+            shader.DP.GetData(dp);
+
+            Debug.Log("FRAME " + count);
+            for (int i = 0; i < instanceCount; i++)
+            {
+                Debug.Log("PARTICLE " + i);
+                Debug.Log("Position: " + positions[i] + 
+                          " Velocity: " + velocities[i] +
+                          " Density: " + densities[i] +
+                          " AdvDensity: " + densities[instanceCount + i] +
+                          " Pressure: " + pressures[i] +
+                          " Dii: " + d[i] +
+                          " aii: " + a[i] +
+                          " DPSum: " + dp[i]
+                          );
+            }
+            count += 1;
+        }
     }
 
     void ScanAndScatter()
@@ -199,7 +236,7 @@ public class Simulate : MonoBehaviour
         // Set half timestep for initialization
         shader.SetValues(new object[] { "deltaTime", physicsTimeStep * 0.5f });
 
-        RunPhysicsStep();
+        // RunPhysicsStep();
     }
 
     void BindExternalBuffers()

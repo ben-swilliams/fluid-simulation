@@ -123,10 +123,18 @@ float CalculateNextPressure(uint i) {
 
                 float2 inner = DPSum[i] - Dii[j] * IterPressures[j] - (DPSum[j] - d_ji * IterPressures[i]);
 
+<<<<<<< Updated upstream
                 pressureSum +=  dot(inner, pressureGrad);
+=======
+                pressureSum += deltaTime * deltaTime * particleMass * dot(SOMETHING, pressureGrad);
+>>>>>>> Stashed changes
             }
         }
     }
 
+<<<<<<< Updated upstream
     return (1 - relaxationFactor) * IterPressures[i] + (relaxationFactor / Aii[i]) * (restDensity - Densities[instanceCount + i] - particleMass * pressureSum); // Holy
+=======
+    return IterPressures[i] + (relaxationFactor / Aii[i]) * (restDensity - Densities[instanceCount + i] - pressureSum);
+>>>>>>> Stashed changes
 }

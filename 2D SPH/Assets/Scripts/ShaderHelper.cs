@@ -43,6 +43,12 @@ class ShaderHelper
     public ComputeBuffer PositionBuffer => positionBuffer;
     public ComputeBuffer VelocityBuffer => velocityBuffer;
 
+    public ComputeBuffer Densities => densityBuffer;
+    public ComputeBuffer Pressures => pressureBuffer;
+    public ComputeBuffer A => aiiBuffer;
+    public ComputeBuffer D => diiBuffer;
+    public ComputeBuffer DP => dpSumBuffer;
+
     void BindStaticBuffers()
     {
         BindBuffers(kernelStaticBufferMap);
