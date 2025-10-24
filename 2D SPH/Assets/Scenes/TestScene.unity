@@ -290,19 +290,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
   computeShader: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
-  physicsStepsPerSecond: 500
+  physicsStepsPerSecond: 1000
   simulationSpeed: 1
-  smoothingRadius: 0.3
+  smoothingRadius: 0.5
   velocitySmoothing: 0.1
   initSpeed: 0
   gravity: {x: 0, y: -9.8}
   dampingFactor: 0.95
-  pressureMultiplier: 200
-  nearPressureMultiplier: 0
   restDensity: 1
-  stiffness: 7
-  viscosityMultiplier: 0.5
-  surfaceTensionMultiplier: 1
+  relaxationFactor: 0.5
+  viscosityMultiplier: 0
+  surfaceTensionMultiplier: 0
 --- !u!4 &1274155412
 Transform:
   m_ObjectHideFlags: 0
@@ -331,12 +329,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90a21f46cb45640b88337bf5d5a09f85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawn
-  instanceCount: 25000
-  size: 0.1
+  instanceCount: 324
+  size: 0.5
   spacing: 0
-  spawnArea: {x: 43.6, y: 7.01}
-  spawnPosition: {x: 0, y: -14.9}
-  asGrid: 0
+  spawnArea: {x: 9, y: 9}
+  spawnPosition: {x: 0, y: -13.4}
+  asGrid: 1
 --- !u!114 &1274155414
 MonoBehaviour:
   m_ObjectHideFlags: 0

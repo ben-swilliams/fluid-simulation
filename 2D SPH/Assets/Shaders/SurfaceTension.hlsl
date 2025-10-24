@@ -6,5 +6,5 @@ float2 CalculateSurfaceTensionContribution(uint i, uint j) {
 
     if (r > smoothingRadius || r < 1e-7) return float2(0, 0);
 
-    return -surfaceTensionMultiplier * Poly6Kernel(offset) * (offset / r);
+    return -surfaceTensionMultiplier * CubicSplineKernel(offset) * (offset / r);
 }

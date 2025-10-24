@@ -22,10 +22,10 @@ float2 CalculatePressureForce(uint i) {
 
                 float pressureJ = Pressures[j] / (Densities[j] * Densities[j]);
 
-                pressureForce += (pressureI + pressureJ) * SpikyKernelGrad(offset);
+                pressureForce += (pressureI + pressureJ) * CubicSplineGrad(offset);
             }
         }
     }
 
-    return -pressureForce;
+    return -particleMass * particleMass * pressureForce;
 }

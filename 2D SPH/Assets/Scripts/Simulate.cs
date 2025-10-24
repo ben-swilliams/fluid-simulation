@@ -23,10 +23,7 @@ public class Simulate : MonoBehaviour
     [SerializeField] float dampingFactor = 0.9f;
 
     [Header("Pressure")]
-    [SerializeField] float pressureMultiplier = 1f;
-    [SerializeField] float nearPressureMultiplier = 1f;
     [SerializeField] float restDensity = 1f;
-    [SerializeField] float stiffness = 1f;
     [SerializeField] float relaxationFactor = 0.5f;
 
     [Header("Viscosity")]
@@ -116,7 +113,7 @@ public class Simulate : MonoBehaviour
 
         shader.Dispatch(densityKernel, intermediateAccelerationKernel, intermediateVelocityAndDKernel, intermediateDensityAndAKernel, zeroPressuresKernel);
 
-        int minIterations = 5;
+        int minIterations = 3;
 
         for (int l = 0; l < minIterations; l++)
         {
@@ -132,7 +129,7 @@ public class Simulate : MonoBehaviour
         Vector2[] d = new Vector2[instanceCount];
         float[] a = new float[instanceCount];
         Vector2[] dp = new Vector2[instanceCount];
-        if (count < 3)
+        if (UnityEngine.InputSystem.Keyboard.current.dKey.wasPressedThisFrame)
         {
             shader.PositionBuffer.GetData(positions);
             shader.VelocityBuffer.GetData(velocities);
@@ -319,32 +316,25 @@ public class Simulate : MonoBehaviour
         int gridX = Mathf.CeilToInt(containerSize.x / smoothingRadius);
         int gridY = Mathf.CeilToInt(containerSize.y / smoothingRadius);
 
-        float poly6KernelConstant = 315 / (64 * Mathf.PI * Mathf.Pow(smoothingRadius, 9f));
-        float spikyKernelGradConstant = 45 / (Mathf.PI * Mathf.Pow(smoothingRadius, 6));
-        float nearPressureKernelGradConstant = 30 / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
-        float particleMass = spawner.Area * 1.0f / instanceCount;
-        float viscosityKernelGradConstant = 10 / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
+        float particleMass = restDensity * smoothingRadius * smoothingRadius;
+        float kernelConstant = 10f / (7 * Mathf.PI * smoothingRadius * smoothingRadius);
+        float gradConstant = kernelConstant / smoothingRadius;
 
         object[] keyValues =
         {
             "gridX", gridX,
             "gridY", gridY,
-            "poly6KernelConstant", poly6KernelConstant,
             "smoothingRadius", smoothingRadius,
             "dampingFactor", dampingFactor,
             "gravity", gravity,
-            "pressureMultiplier", pressureMultiplier,
-            "spikyKernelGradConstant", spikyKernelGradConstant,
-            "nearPressureKernelGradConstant", nearPressureKernelGradConstant,
-            "nearPressureMultiplier", nearPressureMultiplier,
             "restDensity", restDensity,
-            "stiffness", stiffness,
             "relaxationFactor", relaxationFactor,
             "particleMass", particleMass,
-            "viscosityKernelGradConstant", viscosityKernelGradConstant,
             "viscosityMultiplier", viscosityMultiplier,
             "surfaceTensionMultiplier", surfaceTensionMultiplier,
             "velocitySmoothing", velocitySmoothing,
+            "kernelConstant", kernelConstant,
+            "gradConstant", gradConstant
         };
 
         shader.SetValues(keyValues);
@@ -356,10 +346,7 @@ public class Simulate : MonoBehaviour
         initSpeed = Mathf.Max(0, initSpeed);
         dampingFactor = Mathf.Max(0, dampingFactor);
         smoothingRadius = Mathf.Max(0.01f, smoothingRadius);
-        pressureMultiplier = Mathf.Max(0, pressureMultiplier);
-        nearPressureMultiplier = Mathf.Max(0, nearPressureMultiplier);
         restDensity = Mathf.Max(0.01f, restDensity);
-        stiffness = Mathf.Max(0, stiffness);
         relaxationFactor = Mathf.Clamp01(relaxationFactor);
         viscosityMultiplier = Mathf.Max(0, viscosityMultiplier);
     }

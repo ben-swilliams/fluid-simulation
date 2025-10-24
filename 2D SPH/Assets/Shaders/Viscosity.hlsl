@@ -10,7 +10,7 @@ float2 CalculateViscosityContribution(uint i, uint j) {
 
     if (velPosDot >= 0) return float2(0, 0);
 
-    float2 gradient = SpikyKernelGrad(posOffset);
+    float2 gradient = CubicSplineGrad(posOffset);
 
     float viscosityCoefficient = viscosityMultiplier * smoothingRadius / (Densities[i] + Densities[j]);
     

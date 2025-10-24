@@ -30,7 +30,6 @@ RWStructuredBuffer<uint> LocalOffsets;
 
 // Float buffers
 RWStructuredBuffer<float> Densities;
-RWStructuredBuffer<float> NearDensities;
 RWStructuredBuffer<float> Aii;
 RWStructuredBuffer<float> IterPressures;
 RWStructuredBuffer<float> Pressures;
@@ -63,7 +62,6 @@ float size;
 float dampingFactor;
 float power;
 float mouseRadius;
-float speedOfSound;
 
 // Vectors
 float2 mousePos;
@@ -169,10 +167,7 @@ void Scatter(uint3 id : SV_DispatchThreadID) {
 void Density(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    float2 densities = CalculateDensities(id.x);
-
-    Densities[id.x] = densities.x;
-    NearDensities[id.x] = densities.y;
+    Densities[id.x] = CalculateDensity(id.x);
 }
 
 
