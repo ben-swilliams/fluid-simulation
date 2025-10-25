@@ -16,6 +16,7 @@ public class Simulate : MonoBehaviour
     [SerializeField] float simulationSpeed = 1f;
     [SerializeField] float smoothingRadius = 1f;
     [SerializeField] float velocitySmoothing = 0f;
+    [SerializeField] int stepSize = 10;
 
     [Header("External forces")]
     [SerializeField] float initSpeed = 5f;
@@ -85,23 +86,28 @@ public class Simulate : MonoBehaviour
 
         if (started)
         {
-            accumulator += Time.deltaTime * simulationSpeed;
-
-            int stepsThisFrame = 0;
-            while (accumulator >= physicsTimeStep && stepsThisFrame < maxStepsPerFrame)
-            {
-                shader.SetValues(new object[] { "deltaTime", physicsTimeStep });
-                RunPhysicsStep();
-                accumulator -= physicsTimeStep;
-                stepsThisFrame++;
-            }
-
-            // Prevent spiral of death - if we're too far behind, reset accumulator
-            if (accumulator > physicsTimeStep * maxStepsPerFrame)
-            {
-                accumulator = 0f;
-            }
+            AdvanceFrame();
         }
+    }
+
+    void AdvanceFrame()
+    {
+        accumulator += Time.deltaTime * simulationSpeed;
+
+        int stepsThisFrame = 0;
+        while (accumulator >= physicsTimeStep && stepsThisFrame < maxStepsPerFrame)
+        {
+            shader.SetValues(new object[] { "deltaTime", physicsTimeStep });
+            RunPhysicsStep();
+            accumulator -= physicsTimeStep;
+            stepsThisFrame++;
+        }
+
+        // Prevent spiral of death - if we're too far behind, reset accumulator
+        if (accumulator > physicsTimeStep * maxStepsPerFrame)
+        {
+            accumulator = 0f;
+        }    
     }
 
     void RunPhysicsStep()
@@ -317,6 +323,7 @@ public class Simulate : MonoBehaviour
         restDensity = Mathf.Max(0.01f, restDensity);
         relaxationFactor = Mathf.Clamp01(relaxationFactor);
         viscosityMultiplier = Mathf.Max(0, viscosityMultiplier);
+        stepSize = Mathf.Max(0, stepSize);
     }
 
     void HandleKeyPresses()
@@ -329,14 +336,23 @@ public class Simulate : MonoBehaviour
                 SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
 
-        if (UnityEngine.InputSystem.Keyboard.current.enterKey.wasPressedThisFrame)
-            simulationSpeed = simulationSpeed == 1 ? 0 : 1;
-
         if (UnityEngine.InputSystem.Keyboard.current.downArrowKey.wasPressedThisFrame)
             simulationSpeed = Mathf.Max(0, simulationSpeed - 0.1f);
 
         if (UnityEngine.InputSystem.Keyboard.current.upArrowKey.wasPressedThisFrame)
             simulationSpeed = Mathf.Min(1, simulationSpeed + 0.1f);
+
+        if (UnityEngine.InputSystem.Keyboard.current.rightArrowKey.wasPressedThisFrame)
+        {
+            if (simulationSpeed != 0) return;
+            simulationSpeed = 1;
+            for (int _ = 0; _ < stepSize; _++) AdvanceFrame();
+            simulationSpeed = 0;
+        }
+
+        if (UnityEngine.InputSystem.Keyboard.current.enterKey.wasPressedThisFrame)
+            simulationSpeed = simulationSpeed == 1 ? 0 : 1;
+
     }
 
     public void UpdateMouseForce(Vector2 origin, float radius, float power)
