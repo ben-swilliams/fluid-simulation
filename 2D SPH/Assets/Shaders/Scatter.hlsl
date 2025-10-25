@@ -6,7 +6,6 @@ RWStructuredBuffer<float2> NewVelocities;
 
 void SortParticle(uint i)
 {
-    
     uint hash = CalculateHash(OldPositions[i]);
 
     uint oldOffset;
@@ -19,4 +18,5 @@ void SortParticle(uint i)
 
     NewPositions[destIndex]  = OldPositions[i];
     NewVelocities[destIndex] = OldVelocities[i];
+    IterPressures[destIndex] = Pressures[i] * 0.5;
 }

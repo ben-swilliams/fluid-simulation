@@ -125,7 +125,7 @@ public class Simulate : MonoBehaviour
 
         ScanAndScatter();
 
-        shader.Dispatch(densityKernel, intermediateAccelerationKernel, intermediateVelocityAndDKernel, intermediateDensityAndAKernel, zeroPressuresKernel);
+        shader.Dispatch(densityKernel, intermediateAccelerationKernel, intermediateVelocityAndDKernel, intermediateDensityAndAKernel);
 
         int minIterations = 4;
 

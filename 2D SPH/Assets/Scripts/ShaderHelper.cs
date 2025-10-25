@@ -139,7 +139,8 @@ public class ShaderHelper
 
         kernelDynamicBufferMap.Add(partitionKernel, new string[] { "Positions" });
         kernelDynamicBufferMap.Add(densityKernel, new string[] {  "Positions" });
-        kernelDynamicBufferMap.Add(scatterKernel, new string[] {"OldVelocities", "NewVelocities",
+        kernelDynamicBufferMap.Add(scatterKernel, new string[] { "Pressures", "IterPressures",
+                                                                 "OldVelocities", "NewVelocities",
                                                                  "OldPositions", "NewPositions" });
         kernelDynamicBufferMap.Add(intermediateAccelerationKernel, new string[] { "Positions", "Velocities" });
         kernelDynamicBufferMap.Add(intermediateVelocityAndDKernel, new string[] { "Positions", "Velocities" });
