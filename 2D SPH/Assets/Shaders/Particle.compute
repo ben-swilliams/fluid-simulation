@@ -52,6 +52,7 @@ uint instanceCount;
 float deltaTime;
 float particleMass;
 float smoothingRadius;
+float maxVelocity;
 
 // Vectors
 float2 containerSize;
@@ -235,6 +236,10 @@ void UpdateVelocities(uint3 id : SV_DispatchThreadID) {
     float2 xsphCorrection = CalculateXSPHCorrection(id.x);
 
     Velocities[id.x] += CalculatePressureForce(id.x) * deltaTime / particleMass + xsphCorrection;
+    float mag = length(Velocities[id.x]);
+    if (mag > maxVelocity) {
+        Velocities[id.x] = maxVelocity * Velocities[id.x] / mag;
+    }
 }
 
 [numthreads(NumThreads, 1, 1)]

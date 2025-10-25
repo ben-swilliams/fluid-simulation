@@ -294,10 +294,12 @@ MonoBehaviour:
   simulationSpeed: 1
   smoothingRadius: 0.1
   velocitySmoothing: 0.1
+  stepSize: 10
+  maxVelocity: 100
   initSpeed: 0
   gravity: {x: 0, y: -9.8}
   dampingFactor: 0.95
-  restDensity: 50
+  restDensity: 3
   relaxationFactor: 0.5
   viscosityMultiplier: 0
   surfaceTensionMultiplier: 0
@@ -351,7 +353,10 @@ MonoBehaviour:
   mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   fastColour: {r: 1, g: 0.14044955, b: 0, a: 1}
   slowColour: {r: 0, g: 0.69803923, b: 1, a: 1}
-  maxSpeed: 20
+  maxVelocity: 10
+  maxDensityFluctuation: 0.1
+  maxPressure: 300
+  colourProperty: 0
 --- !u!114 &1274155415
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -364,7 +369,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8ee7f52ab7854cb9b31b85c00333ff6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MouseForce
-  power: 100
+  power: 10
 --- !u!120 &1274155416
 LineRenderer:
   serializedVersion: 2

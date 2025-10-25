@@ -26,6 +26,7 @@ public class Spawn : MonoBehaviour
     */
     public int InstanceCount => instanceCount;
     public float Size => size;
+    public float Spacing => spacing;
     public ComputeBuffer positionBuffer { get; private set; }
     public float Area => spawnArea.x * spawnArea.y;
 
