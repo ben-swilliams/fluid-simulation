@@ -61,7 +61,7 @@ Shader "Custom/Particle" {
                 else {
                     float minDensity = (1 - propMaxes.y) * restDensity;
                     float maxDensity = (1 + propMaxes.y) * restDensity;
-                    propNorm = (prop - minDensity) / (maxDensity - minDensity);
+                    propNorm = saturate((prop - minDensity) / (maxDensity - minDensity));
                 }
 
                 float hue = lerp(lowHue, highHue, propNorm);
