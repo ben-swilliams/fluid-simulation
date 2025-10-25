@@ -9,7 +9,7 @@ float2 CalculateD(uint i) {
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
             for (int z = -1; z < 2; z++) {
-                int3 gridPosJ = gridPosI + int3(x, y);
+                int3 gridPosJ = gridPosI + int3(x, y, z);
                 if (!IsInBounds(gridPosJ)) continue;
 
                 uint hash = CalculateHashFromGrid(gridPosJ);
@@ -39,7 +39,7 @@ float2 CalculateDeltaDensityAndA(uint i) {
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
             for (int z = -1; z < 2; z++) {
-                int3 gridPosJ = gridPosI + int3(x, y);
+                int3 gridPosJ = gridPosI + int3(x, y, z);
                 if (!IsInBounds(gridPosJ)) continue;
 
                 uint hash = CalculateHashFromGrid(gridPosJ);
@@ -79,7 +79,7 @@ float3 CalculatePressureSum(uint i) {
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
             for (int z = -1; z < 2; z++) {
-                int3 gridPosJ = gridPosI + int3(x, y);
+                int3 gridPosJ = gridPosI + int3(x, y, z);
                 if (!IsInBounds(gridPosJ)) continue;
 
                 uint hash = CalculateHashFromGrid(gridPosJ);
@@ -109,7 +109,7 @@ float CalculateNextPressureValue(uint i) {
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
             for (int z = -1; z < 2; z++) {
-                int3 gridPosJ = gridPosI + int3(x, y);
+                int3 gridPosJ = gridPosI + int3(x, y, z);
                 if (!IsInBounds(gridPosJ)) continue;
 
                 uint hash = CalculateHashFromGrid(gridPosJ);
