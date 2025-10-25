@@ -33,7 +33,7 @@ class MouseForce : MonoBehaviour
         mousePos = FindClickPos();
         HandleScroll();
         HandleClick();
-        DrawRadius();
+        // DrawRadius();
     }
 
     void OnValidate()

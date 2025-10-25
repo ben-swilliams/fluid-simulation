@@ -1,7 +1,7 @@
 float restDensity;
 float relaxationFactor;
 
-float2 CalculateD(uint i) {
+float3 CalculateD(uint i) {
     float3 d = float3(0, 0, 0);
 
     int3 gridPosI = GetGridPos(Positions[i]);
