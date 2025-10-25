@@ -109,9 +109,7 @@ public class Simulate : MonoBehaviour
 
         shader.Dispatch(kernels.PrePressureKernels);
 
-        int minIterations = 4;
-
-        for (int l = 0; l < minIterations; l++)
+        for (int l = 0; l < solverIterations; l++)
         {
             shader.Dispatch(kernels.PressureKernels);
         }
