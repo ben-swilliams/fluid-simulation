@@ -181,6 +181,9 @@ public class Spawn : MonoBehaviour
                     x * sizeWithSpacing,
                     -y * sizeWithSpacing
                 );
+
+                // Add tiny offset so things don't stack
+                positions[idx] += new Vector2(Random.Range(-0.05f, 0.05f), Random.Range(-0.05f, 0.05f));
             }
         }
 
