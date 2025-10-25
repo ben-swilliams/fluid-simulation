@@ -1,5 +1,3 @@
-using UnityEditor.Connect;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -28,6 +26,7 @@ public class Simulate : MonoBehaviour
     [Header("Pressure")]
     [SerializeField] float restDensity = 1f;
     [SerializeField] float relaxationFactor = 0.5f;
+    [SerializeField] int solverIterations = 4;
 
     [Header("Viscosity")]
     [SerializeField] float viscosityMultiplier = 1f;
@@ -48,24 +47,7 @@ public class Simulate : MonoBehaviour
 
     int instanceCount;
 
-    // Kernel indices
-    int clearCountsKernel;
-    int partitionKernel;
-    int scanKernel;
-    int scanBlockSumsKernel;
-    int addBlockSumsKernel;
-    int finalizeScanKernel;
-    int scatterKernel;
-    int densityKernel;
-    int intermediateAccelerationKernel;
-    int intermediateVelocityAndDKernel;
-    int intermediateDensityAndAKernel;
-    int pressureSumIterationKernel;
-    int pressureConvergeIterationKernel;
-    int pressureFinaliseIterationKernel;
-    int velocityKernel;
-    int positionKernel;
-
+    KernelSet kernels;
 
     /*
     Public getters
@@ -121,35 +103,35 @@ public class Simulate : MonoBehaviour
 
     void RunPhysicsStep()
     {
-        shader.BindDynamicBuffers();
+        shader.BindDynamicBuffers(kernels);
 
         ScanAndScatter();
 
-        shader.Dispatch(densityKernel, intermediateAccelerationKernel, intermediateVelocityAndDKernel, intermediateDensityAndAKernel);
+        shader.Dispatch(kernels.PrePressureKernels);
 
         int minIterations = 4;
 
         for (int l = 0; l < minIterations; l++)
         {
-            shader.Dispatch(pressureSumIterationKernel, pressureConvergeIterationKernel, pressureFinaliseIterationKernel);
+            shader.Dispatch(kernels.PressureKernels);
         }
 
-        shader.Dispatch(velocityKernel, positionKernel);
+        shader.Dispatch(kernels.PostPressureKernels);
     }
 
     void ScanAndScatter()
     {
         int clearCountsGroupNum = Mathf.CeilToInt(Constants.binNumber / (float)Constants.threadGroupSize);
-        shader.Dispatch(true, clearCountsGroupNum, clearCountsKernel);
+        shader.Dispatch(true, clearCountsGroupNum, kernels.ClearCounts);
 
-        shader.Dispatch(partitionKernel);
+        shader.Dispatch(kernels.Partition);
 
         HierarchicalScan();
 
-        shader.Dispatch(scatterKernel);
+        shader.Dispatch(kernels.Scatter);
 
         shader.SwapBuffers();
-        shader.BindDynamicBuffers();
+        shader.BindDynamicBuffers(kernels);
     }
 
     void HierarchicalScan()
@@ -157,7 +139,7 @@ public class Simulate : MonoBehaviour
         int numBlocks = Mathf.CeilToInt(Constants.binNumber / (float)Constants.scanBlockSize);
 
         // Phase 1: Local scan in each block (stores block sums in BlockSums buffer)
-        shader.Dispatch(true, numBlocks, scanKernel);
+        shader.Dispatch(true, numBlocks, kernels.Scan);
 
         // Phase 2: If we have multiple blocks, scan the block sums themselves
         if (numBlocks > 1)
@@ -165,18 +147,18 @@ public class Simulate : MonoBehaviour
             // For 1000 bins with scanBlockSize=128: numBlocks = 8
             computeShader.SetInt("numBlockSums", numBlocks);
             shader.SetValues(new object[] { "numBlockSums", numBlocks });
-            shader.Dispatch(true, 1, scanBlockSumsKernel);
+            shader.Dispatch(true, 1, kernels.ScanBlockSums);
         }
 
         // Phase 3: Add scanned block sums to each block's elements
         if (numBlocks > 1)
         {
             int addThreadGroups = Mathf.CeilToInt(Constants.binNumber / (float)Constants.threadGroupSize);
-            shader.Dispatch(true, addThreadGroups, addBlockSumsKernel);
+            shader.Dispatch(true, addThreadGroups, kernels.AddBlockSums);
         }
 
         // Phase 4: Write final element (total particle count)
-        shader.Dispatch(true, 1, finalizeScanKernel);
+        shader.Dispatch(true, 1, kernels.FinalizeScan);
     }
 
     void OnValidate()
@@ -203,22 +185,21 @@ public class Simulate : MonoBehaviour
         InitialiseVariables();
         UpdateBoundary();
         BindExternalBuffers();
-        InitializeLeapFrogVelocities();
+        InitialiseLeapFrogVelocities();
 
         started = true;
     }
 
-    void InitializeLeapFrogVelocities()
+    void InitialiseLeapFrogVelocities()
     {
         // Set half timestep for initialization
         shader.SetValues(new object[] { "deltaTime", physicsTimeStep * 0.5f });
 
-        // RunPhysicsStep();
+        RunPhysicsStep();
     }
 
     void BindExternalBuffers()
     {
-        Draw drawer = GetComponent<Draw>();
         drawer.BindBuffers(shader.PositionBuffer, shader.VelocityBuffer, shader.Densities, shader.Pressures);
         drawer.UpdateVariables(spawner.Size, restDensity);
     }
@@ -239,39 +220,9 @@ public class Simulate : MonoBehaviour
 
     void FindKernels()
     {
-        clearCountsKernel = computeShader.FindKernel("ZeroCounts");
-        partitionKernel = computeShader.FindKernel("Partition");
-        scanKernel = computeShader.FindKernel("Scan");
-        scanBlockSumsKernel = computeShader.FindKernel("ScanBlockSums");
-        addBlockSumsKernel = computeShader.FindKernel("AddBlockSums");
-        finalizeScanKernel = computeShader.FindKernel("FinalizeScan");
-        scatterKernel = computeShader.FindKernel("Scatter");
-        densityKernel = computeShader.FindKernel("Density");
-        intermediateAccelerationKernel = computeShader.FindKernel("IntermediateAcceleration");
-        intermediateVelocityAndDKernel = computeShader.FindKernel("IntermediateVelocityAndD");
-        intermediateDensityAndAKernel = computeShader.FindKernel("IntermediateDensityAndA");
-        pressureSumIterationKernel = computeShader.FindKernel("PressureSumIteration");
-        pressureConvergeIterationKernel = computeShader.FindKernel("PressureConvergeIteration");
-        pressureFinaliseIterationKernel = computeShader.FindKernel("PressureFinaliseIteration");
-        velocityKernel = computeShader.FindKernel("UpdateVelocities");
-        positionKernel = computeShader.FindKernel("UpdatePositions");
+        kernels = new KernelSet(computeShader);
 
-        shader.MapKernels(clearCountsKernel,
-                          partitionKernel,
-                          scanKernel,
-                          scanBlockSumsKernel,
-                          addBlockSumsKernel,
-                          finalizeScanKernel,
-                          scatterKernel,
-                          densityKernel,
-                          intermediateAccelerationKernel,
-                          intermediateVelocityAndDKernel,
-                          intermediateDensityAndAKernel,
-                          pressureSumIterationKernel,
-                          pressureConvergeIterationKernel,
-                          pressureFinaliseIterationKernel,
-                          velocityKernel,
-                          positionKernel);
+        shader.BindStaticBuffers(kernels);
     }
 
     void InitialiseVariables()
@@ -320,7 +271,7 @@ public class Simulate : MonoBehaviour
         };
 
         shader.SetValues(keyValues);
-        GetComponent<Draw>().UpdateVariables(-1, restDensity);
+        drawer.UpdateVariables(restDensity: restDensity);
     }
 
     void ValidateInspectorProperties()
@@ -334,6 +285,7 @@ public class Simulate : MonoBehaviour
         viscosityMultiplier = Mathf.Max(0, viscosityMultiplier);
         stepSize = Mathf.Max(0, stepSize);
         maxVelocity = Mathf.Max(0.01f, maxVelocity);
+        solverIterations = Mathf.Max(0, solverIterations);
     }
 
     void HandleKeyPresses()

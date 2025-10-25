@@ -94,7 +94,7 @@ float2 CalculatePressureSum(uint i) {
     return deltaTime * deltaTime * pressureSum;
 }
 
-float CalculateNextPressure(uint i) {
+float CalculateNextPressureValue(uint i) {
     if (abs(Aii[i]) < 1e-7) return 0;
     float pressureSum = 0;
     
@@ -124,7 +124,9 @@ float CalculateNextPressure(uint i) {
         }
     }
 
-    float nextPressure = (1 - relaxationFactor) * IterPressures[i] + (relaxationFactor / Aii[i]) * (restDensity - Densities[instanceCount + i] - particleMass * pressureSum); // Holy
+    float nextPressure = (1 - relaxationFactor) * IterPressures[i] + 
+                        (relaxationFactor / Aii[i]) * (restDensity - Densities[instanceCount + i] - particleMass * pressureSum);
+
     // return nextPressure;
     return max(0, nextPressure);
 }
