@@ -20,11 +20,11 @@ void Collisions(uint idx) {
     }
 }
 
-float2 MouseForce(uint idx) {
-    float2 diff = mousePos - Positions[idx];
-    if (dot(diff, diff) > mouseRadius * mouseRadius) return float2(0, 0);
+float3 MouseForce(uint idx) {
+    float3 diff = mousePos - Positions[idx];
+    if (dot(diff, diff) > mouseRadius * mouseRadius) return float3(0, 0, 0);
 
-    float2 forceVector = normalize(diff) * power;
+    float3 forceVector = normalize(diff) * power;
 
     return forceVector / particleMass;
 }

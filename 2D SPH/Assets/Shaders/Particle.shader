@@ -18,8 +18,8 @@ Shader "Custom/Particle" {
 
             #include "UnityCG.cginc"
 
-            StructuredBuffer<float2> positions;
-            StructuredBuffer<float2> velocities;
+            StructuredBuffer<float3> positions;
+            StructuredBuffer<float3> velocities;
             StructuredBuffer<float> properties;
 
             // X: Velocity, Y: Density, Z: Pressure

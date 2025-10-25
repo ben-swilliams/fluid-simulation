@@ -64,7 +64,7 @@ float power;
 float mouseRadius;
 
 // Vectors
-float2 mousePos;
+float3 mousePos;
 float3 gravity;
 
 /*
@@ -88,12 +88,12 @@ uint numBlockSums;
 #include "SurfaceTension.hlsl"
 #include "XSPH.hlsl"
 
-void CalculateComponents(uint i, out float2 viscosity, out float2 surfaceTension) {
-    int2 gridPosI = GetGridPos(Positions[i]);
+void CalculateComponents(uint i, out float3 viscosity, out float3 surfaceTension) {
+    int3 gridPosI = GetGridPos(Positions[i]);
 
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
-            int2 gridPosJ = gridPosI + int2(x, y);
+            int3 gridPosJ = gridPosI + int3(x, y);
             if (!IsInBounds(gridPosJ)) continue;
 
             uint hash = CalculateHashFromGrid(gridPosJ);
@@ -105,7 +105,7 @@ void CalculateComponents(uint i, out float2 viscosity, out float2 surfaceTension
                 if (i == j) continue;
 
                 float massOverDensity = particleMass / Densities[j];
-                float2 offset = Positions[i] - Positions[j];
+                float3 offset = Positions[i] - Positions[j];
 
                 viscosity += CalculateViscosityContribution(i, j);
                 surfaceTension += CalculateSurfaceTensionContribution(i, j);
@@ -189,7 +189,7 @@ void PredictVelocityAndCalculateD(uint3 id : SV_DispatchThreadID) {
 void PredictDensityAndCalculateA(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    float2 values = CalculateDeltaDensityAndA(id.x);
+    float3 values = CalculateDeltaDensityAndA(id.x);
     float deltaDensity = values.x;
     float a = values.y;
 
@@ -222,7 +222,7 @@ void FinalisePressureIteration(uint3 id : SV_DispatchThreadID) {
 void UpdateVelocities(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    float2 xsphCorrection = CalculateXSPHCorrection(id.x);
+    float3 xsphCorrection = CalculateXSPHCorrection(id.x);
 
     Velocities[id.x] += CalculatePressureForce(id.x) * deltaTime / particleMass + xsphCorrection;
     float mag = length(Velocities[id.x]);

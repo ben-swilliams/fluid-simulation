@@ -1,6 +1,6 @@
 float surfaceTensionMultiplier;
 
-float2 CalculateSurfaceTensionContribution(uint i, uint j) {
+float3 CalculateSurfaceTensionContribution(uint i, uint j) {
     float3 offset = Positions[i] - Positions[j];
     float r = length(offset);
 

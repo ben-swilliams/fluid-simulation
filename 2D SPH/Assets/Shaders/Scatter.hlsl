@@ -1,8 +1,8 @@
-RWStructuredBuffer<float2> OldPositions;
-RWStructuredBuffer<float2> NewPositions;
+RWStructuredBuffer<float3> OldPositions;
+RWStructuredBuffer<float3> NewPositions;
 
-RWStructuredBuffer<float2> OldVelocities;
-RWStructuredBuffer<float2> NewVelocities;
+RWStructuredBuffer<float3> OldVelocities;
+RWStructuredBuffer<float3> NewVelocities;
 
 void SortParticle(uint i)
 {
