@@ -104,7 +104,9 @@ public class Spawn : MonoBehaviour
 
     void BindExternalBuffers()
     {
-        GetComponent<Draw>().BindBuffers(positionBuffer, velocityBuffer, propertyBuffer, propertyBuffer, size);
+        Draw drawer = GetComponent<Draw>();
+        drawer.BindBuffers(positionBuffer, velocityBuffer, propertyBuffer, propertyBuffer);
+        drawer.UpdateVariables(size, -1);
     }
 
     void ReleaseBuffers()

@@ -203,7 +203,9 @@ public class Simulate : MonoBehaviour
 
     void BindExternalBuffers()
     {
-        GetComponent<Draw>().BindBuffers(shader.PositionBuffer, shader.VelocityBuffer, shader.Densities, shader.Pressures, spawner.Size);
+        Draw drawer = GetComponent<Draw>();
+        drawer.BindBuffers(shader.PositionBuffer, shader.VelocityBuffer, shader.Densities, shader.Pressures);
+        drawer.UpdateVariables(spawner.Size, restDensity);
     }
 
     Vector2[] GenerateVelocityData()
@@ -303,6 +305,7 @@ public class Simulate : MonoBehaviour
         };
 
         shader.SetValues(keyValues);
+        GetComponent<Draw>().UpdateVariables(-1, restDensity);
     }
 
     void ValidateInspectorProperties()

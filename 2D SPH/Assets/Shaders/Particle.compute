@@ -14,6 +14,8 @@
 #pragma kernel PressureConvergeIteration
 #pragma kernel PressureFinaliseIteration
 
+#pragma kernel SmoothPressures
+
 #pragma kernel UpdateVelocities
 #pragma kernel UpdatePositions
 
@@ -33,6 +35,7 @@ RWStructuredBuffer<float> Densities;
 RWStructuredBuffer<float> Aii;
 RWStructuredBuffer<float> IterPressures;
 RWStructuredBuffer<float> Pressures;
+RWStructuredBuffer<float> SmoothedPressures;
 
 // Vector buffers
 RWStructuredBuffer<float2> Positions;
@@ -223,6 +226,13 @@ void PressureFinaliseIteration(uint3 id : SV_DispatchThreadID) {
 
     IterPressures[id.x] = Pressures[id.x];
 }
+
+  [numthreads(NumThreads, 1, 1)]
+  void SmoothPressures(uint3 id : SV_DispatchThreadID) {
+      if (id.x >= instanceCount) return;
+
+      SmoothedPressures[id.x] = lerp(SmoothedPressures[id.x], Pressures[id.x], 0.1);
+  }
 
 [numthreads(NumThreads, 1, 1)]
 void UpdateVelocities(uint3 id : SV_DispatchThreadID) {

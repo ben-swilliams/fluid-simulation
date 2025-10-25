@@ -22,11 +22,14 @@ Shader "Custom/Particle" {
             StructuredBuffer<float2> velocities;
             StructuredBuffer<float> properties;
 
-            float size;
-            float maxProp;
+            // X: Velocity, Y: Density, Z: Pressure
+            float3 colourTarget;
+            float3 propMaxes;
+
             float lowHue;
             float highHue;
-            int useVelocities;
+            float size;
+            float restDensity;
 
             struct v2f {
                 float4 pos : SV_POSITION;
@@ -46,14 +49,22 @@ Shader "Custom/Particle" {
                 float3 vertObj = centreObj + v.vertex * size;
 
                 float prop;
-                if (useVelocities) {
+                if (colourTarget.x != 0) {
                     prop = length(velocities[id]);
                 } else {
                     prop = properties[id];
                 }
-                float normProp = saturate(prop / maxProp);
+                float propMax = dot(colourTarget, propMaxes);
 
-                float hue = lerp(lowHue, highHue, normProp);
+                float propNorm;
+                if (colourTarget.y == 0) propNorm = saturate(prop / propMax);
+                else {
+                    float minDensity = (1 - propMaxes.y) * restDensity;
+                    float maxDensity = (1 + propMaxes.y) * restDensity;
+                    propNorm = (prop - minDensity) / (maxDensity - minDensity);
+                }
+
+                float hue = lerp(lowHue, highHue, propNorm);
                 float3 rgb = hsv2rgb(float3(hue, 1.0, 1.0));
 
                 v2f o;
@@ -69,7 +80,6 @@ Shader "Custom/Particle" {
 
                 float w = fwidth(distSq) * 0.5;
                 float alpha = 1.0 - smoothstep(1.0 - w, 1.0 + w, distSq);
-                alpha = 0.75;
 
                 return float4(i.col, alpha);
             }
