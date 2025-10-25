@@ -61,10 +61,33 @@ public class Container : MonoBehaviour
     void SetPoints()
     {
         float offset = thickness / 2f;
-        
-        lr.SetPosition(0, new Vector3(-boundary.x / 2f - offset, -boundary.y / 2f - offset));
-        lr.SetPosition(1, new Vector3(boundary.x / 2f + offset, -boundary.y / 2f - offset));
-        lr.SetPosition(2, new Vector3(boundary.x / 2f + offset, boundary.y / 2f + offset));
-        lr.SetPosition(3, new Vector3(-boundary.x / 2f - offset, boundary.y / 2f + offset));
+
+        Vector3 half = boundary / 2f + Vector3.one * offset;
+
+        Vector3[] corners = new Vector3[8]
+        {
+            new Vector3(-half.x, -half.y, -half.z),
+            new Vector3( half.x, -half.y, -half.z),
+            new Vector3( half.x,  half.y, -half.z),
+            new Vector3(-half.x,  half.y, -half.z),
+            new Vector3(-half.x, -half.y,  half.z),
+            new Vector3( half.x, -half.y,  half.z),
+            new Vector3( half.x,  half.y,  half.z),
+            new Vector3(-half.x,  half.y,  half.z)
+        };
+
+        int[] edgeIndices = new int[]
+        {
+            0, 1, 1, 2, 2, 3, 3, 0,
+            4, 5, 5, 6, 6, 7, 7, 4,
+            0, 4, 1, 5, 2, 6, 3, 7
+        };
+
+        lr.positionCount = edgeIndices.Length;
+
+        for (int i = 0; i < edgeIndices.Length; i++)
+        {
+            lr.SetPosition(i, corners[edgeIndices[i]]);
+        }
     }
 }
