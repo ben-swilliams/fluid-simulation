@@ -58,7 +58,7 @@ class MouseForce : MonoBehaviour
         else
         {
             if (UnityEngine.InputSystem.Mouse.current.rightButton.wasPressedThisFrame) repulse = !repulse;
-            GetComponent<Simulate>().UpdateMouseForce(Vector2.zero, 0, 0);
+            GetComponent<Simulate>().UpdateMouseForce(Vector3.zero, 0, 0);
         }
     }
 

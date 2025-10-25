@@ -34,11 +34,7 @@ public class Draw : MonoBehaviour
     void Start()
     {
         instanceMaterial = new Material(shader);
-        bounds = new Bounds(Vector2.zero, Vector2.one * 1000f);
-    }
-
-    void Update()
-    {
+        bounds = new Bounds(Vector3.zero, Vector3.one * 1000f);
     }
 
     void OnValidate()

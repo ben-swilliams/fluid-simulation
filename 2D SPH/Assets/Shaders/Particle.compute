@@ -34,12 +34,12 @@ RWStructuredBuffer<float> IterPressures;
 RWStructuredBuffer<float> Pressures;
 
 // Vector buffers
-RWStructuredBuffer<float2> Positions;
-RWStructuredBuffer<float2> Velocities;
+RWStructuredBuffer<float3> Positions;
+RWStructuredBuffer<float3> Velocities;
 
-RWStructuredBuffer<float2> IntermediateAccelerations;
-RWStructuredBuffer<float2> Dii;
-RWStructuredBuffer<float2> DPSum;
+RWStructuredBuffer<float3> IntermediateAccelerations;
+RWStructuredBuffer<float3> Dii;
+RWStructuredBuffer<float3> DPSum;
 
 
 // Integers
@@ -52,7 +52,7 @@ float smoothingRadius;
 float maxVelocity;
 
 // Vectors
-float2 containerSize;
+float3 containerSize;
 
 /*
 External force parameters
@@ -65,7 +65,7 @@ float mouseRadius;
 
 // Vectors
 float2 mousePos;
-float2 gravity;
+float3 gravity;
 
 /*
 Scan/partition parameters

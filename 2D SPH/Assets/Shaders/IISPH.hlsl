@@ -2,13 +2,13 @@ float restDensity;
 float relaxationFactor;
 
 float2 CalculateD(uint i) {
-    float2 d = float2(0, 0);
+    float3 d = float3(0, 0, 0);
 
-    int2 gridPosI = GetGridPos(Positions[i]);
+    int3 gridPosI = GetGridPos(Positions[i]);
 
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
-            int2 gridPosJ = gridPosI + int2(x, y);
+            int3 gridPosJ = gridPosI + int2(x, y);
             if (!IsInBounds(gridPosJ)) continue;
 
             uint hash = CalculateHashFromGrid(gridPosJ);
@@ -18,7 +18,7 @@ float2 CalculateD(uint i) {
 
             for (uint j = startIndex; j < endIndex; j++) {
                 if (i == j) continue;
-                float2 offset = Positions[i] - Positions[j];
+                float3 offset = Positions[i] - Positions[j];
 
                 d += (particleMass / (Densities[i] * Densities[i])) * CubicSplineGrad(offset);
             }
@@ -32,11 +32,11 @@ float2 CalculateDeltaDensityAndA(uint i) {
     float deltaDensity = 0;
     float a = 0;
 
-    int2 gridPosI = GetGridPos(Positions[i]);
+    int3 gridPosI = GetGridPos(Positions[i]);
 
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
-            int2 gridPosJ = gridPosI + int2(x, y);
+            int3 gridPosJ = gridPosI + int2(x, y);
             if (!IsInBounds(gridPosJ)) continue;
 
             uint hash = CalculateHashFromGrid(gridPosJ);
@@ -46,16 +46,16 @@ float2 CalculateDeltaDensityAndA(uint i) {
 
             for (uint j = startIndex; j < endIndex; j++) {
                 if (i == j) continue;
-                float2 posOffset = Positions[i] - Positions[j];
+                float3 posOffset = Positions[i] - Positions[j];
                 float r = length(posOffset);
 
-                float2 velOffset = Velocities[i] - Velocities[j];
+                float3 velOffset = Velocities[i] - Velocities[j];
 
-                float2 grad = CubicSplineGrad(posOffset);
+                float3 grad = CubicSplineGrad(posOffset);
 
                 deltaDensity += particleMass * dot(velOffset, grad);
 
-                float2 d_ji = deltaTime * deltaTime * particleMass * grad / (Densities[i] * Densities[i]);
+                float3 d_ji = deltaTime * deltaTime * particleMass * grad / (Densities[i] * Densities[i]);
         
                 a += dot(Dii[i] - d_ji, grad);
             }
@@ -67,14 +67,14 @@ float2 CalculateDeltaDensityAndA(uint i) {
     return float2(deltaDensity, a);
 }
 
-float2 CalculatePressureSum(uint i) {
-    float2 pressureSum = float2(0, 0);
+float3 CalculatePressureSum(uint i) {
+    float3 pressureSum = float2(0, 0, 0);
 
-    int2 gridPosI = GetGridPos(Positions[i]);
+    int3 gridPosI = GetGridPos(Positions[i]);
 
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
-            int2 gridPosJ = gridPosI + int2(x, y);
+            int3 gridPosJ = gridPosI + int2(x, y);
             if (!IsInBounds(gridPosJ)) continue;
 
             uint hash = CalculateHashFromGrid(gridPosJ);
@@ -84,7 +84,7 @@ float2 CalculatePressureSum(uint i) {
 
             for (uint j = startIndex; j < endIndex; j++) {
                 if (i == j) continue;
-                float2 offset = Positions[i] - Positions[j];
+                float3 offset = Positions[i] - Positions[j];
 
                 pressureSum += -particleMass * IterPressures[j] * CubicSplineGrad(offset) / (Densities[j] * Densities[j]);
             }
@@ -98,11 +98,11 @@ float CalculateNextPressureValue(uint i) {
     if (abs(Aii[i]) < 1e-7) return 0;
     float pressureSum = 0;
     
-    int2 gridPosI = GetGridPos(Positions[i]);
+    int3 gridPosI = GetGridPos(Positions[i]);
 
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
-            int2 gridPosJ = gridPosI + int2(x, y);
+            int3 gridPosJ = gridPosI + int3(x, y);
             if (!IsInBounds(gridPosJ)) continue;
 
             uint hash = CalculateHashFromGrid(gridPosJ);
@@ -112,12 +112,12 @@ float CalculateNextPressureValue(uint i) {
 
             for (uint j = startIndex; j < endIndex; j++) {
                 if (i == j) continue;
-                float2 offset = Positions[i] - Positions[j];
-                float2 grad = CubicSplineGrad(offset);
+                float3 offset = Positions[i] - Positions[j];
+                float3 grad = CubicSplineGrad(offset);
 
-                float2 d_ji = deltaTime * deltaTime * particleMass * grad / (Densities[i] * Densities[i]);
+                float3 d_ji = deltaTime * deltaTime * particleMass * grad / (Densities[i] * Densities[i]);
 
-                float2 inner = DPSum[i] - Dii[j] * IterPressures[j] - (DPSum[j] - d_ji * IterPressures[i]);
+                float3 inner = DPSum[i] - Dii[j] * IterPressures[j] - (DPSum[j] - d_ji * IterPressures[i]);
 
                 pressureSum += dot(inner, grad);
             }
