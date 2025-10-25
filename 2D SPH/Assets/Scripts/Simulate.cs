@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -246,9 +247,9 @@ public class Simulate : MonoBehaviour
         int gridY = Mathf.CeilToInt(containerSize.y / smoothingRadius);
 
         float particleSpacing = spawner.Size + spawner.Spacing;
-        float particleMass = particleSpacing * particleSpacing;
-        float kernelConstant = 10f / (7 * Mathf.PI * smoothingRadius * smoothingRadius);
-        float gradConstant = kernelConstant / smoothingRadius;
+        float particleMass = particleSpacing * particleSpacing * particleSpacing;
+        float kernelConstant = 8f / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
+        float gradConstant = 6 * kernelConstant / smoothingRadius;
 
         object[] keyValues =
         {
@@ -315,7 +316,7 @@ public class Simulate : MonoBehaviour
 
     }
 
-    public void UpdateMouseForce(Vector2 origin, float radius, float power)
+    public void UpdateMouseForce(Vector3 origin, float radius, float power)
     {
         if (shader == null) return;
 
