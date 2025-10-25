@@ -1,3 +1,4 @@
+using UnityEditor.Connect;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -38,6 +39,7 @@ public class Simulate : MonoBehaviour
     ShaderHelper shader;
 
     Spawn spawner;
+    Draw drawer;
     bool started;
     float physicsTimeStep;
     float accumulator = 0f;
@@ -75,6 +77,8 @@ public class Simulate : MonoBehaviour
     void Start()
     {
         spawner = GetComponent<Spawn>();
+        drawer = GetComponent<Draw>();
+        
         shader = new ShaderHelper(computeShader);
 
         physicsTimeStep = 1f / physicsStepsPerSecond;
@@ -88,6 +92,8 @@ public class Simulate : MonoBehaviour
         {
             AdvanceFrame();
         }
+
+        drawer.DrawFrame();
     }
 
     void AdvanceFrame()
@@ -107,7 +113,10 @@ public class Simulate : MonoBehaviour
         if (accumulator > physicsTimeStep * maxStepsPerFrame)
         {
             accumulator = 0f;
-        }    
+        }
+
+        // Rebind buffers after physics step since buffers swap during scatter
+        BindExternalBuffers();
     }
 
     void RunPhysicsStep()

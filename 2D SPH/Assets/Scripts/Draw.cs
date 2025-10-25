@@ -39,15 +39,6 @@ public class Draw : MonoBehaviour
 
     void Update()
     {
-        if (argsBuffer == null) return;
-
-        Graphics.DrawMeshInstancedIndirect(
-            mesh,
-            0,
-            instanceMaterial,
-            bounds,
-            argsBuffer
-        );
     }
 
     void OnValidate()
@@ -106,6 +97,19 @@ public class Draw : MonoBehaviour
         return new Vector3(colourProperty == Property.Velocity ? 1 : 0,
                            colourProperty == Property.Density ? 1 : 0,
                            colourProperty == Property.Pressure ? 1 : 0);
+    }
+
+    public void DrawFrame()
+    {
+        if (argsBuffer == null) return;
+
+        Graphics.DrawMeshInstancedIndirect(
+            mesh,
+            0,
+            instanceMaterial,
+            bounds,
+            argsBuffer
+        );
     }
 
     public void UpdateVariables(float size, float restDensity)
