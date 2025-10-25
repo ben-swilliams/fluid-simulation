@@ -1,22 +1,33 @@
-void Collisions(uint idx) {
-    if (Positions[idx].y < -containerSize.y/2 + size/2){ 
-        Velocities[idx].y = Velocities[idx].y * -dampingFactor;
-        Positions[idx].y = -containerSize.y/2 + size/2;
+void Collisions(uint idx)
+{
+    if (Positions[idx].y < -containerSize.y / 2 + size / 2) { 
+        Velocities[idx].y *= -dampingFactor;
+        Positions[idx].y = -containerSize.y / 2 + size / 2;
     }
 
-    if (Positions[idx].y > containerSize.y/2 - size/2) {
-        Velocities[idx].y = Velocities[idx].y * -dampingFactor;
-        Positions[idx].y = containerSize.y/2 - size/2;
+    if (Positions[idx].y > containerSize.y / 2 - size / 2) {
+        Velocities[idx].y *= -dampingFactor;
+        Positions[idx].y = containerSize.y / 2 - size / 2;
     }
 
-    if (Positions[idx].x < -containerSize.x/2 + size / 2) {
-        Velocities[idx].x = Velocities[idx].x * -dampingFactor;
-        Positions[idx].x = -containerSize.x/2 + size/2;
+    if (Positions[idx].x < -containerSize.x / 2 + size / 2) {
+        Velocities[idx].x *= -dampingFactor;
+        Positions[idx].x = -containerSize.x / 2 + size / 2;
     }
 
-    if (Positions[idx].x > containerSize.x/2 - size / 2) {
-        Velocities[idx].x = Velocities[idx].x * -dampingFactor;
-        Positions[idx].x = containerSize.x/2 - size/2;
+    if (Positions[idx].x > containerSize.x / 2 - size / 2) {
+        Velocities[idx].x *= -dampingFactor;
+        Positions[idx].x = containerSize.x / 2 - size / 2;
+    }
+
+    if (Positions[idx].z < -containerSize.z / 2 + size / 2) {
+        Velocities[idx].z *= -dampingFactor;
+        Positions[idx].z = -containerSize.z / 2 + size / 2;
+    }
+
+    if (Positions[idx].z > containerSize.z / 2 - size / 2) {
+        Velocities[idx].z *= -dampingFactor;
+        Positions[idx].z = containerSize.z / 2 - size / 2;
     }
 }
 
