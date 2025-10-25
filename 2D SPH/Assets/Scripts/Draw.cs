@@ -71,7 +71,7 @@ public class Draw : MonoBehaviour
         {
             ShaderHelper shader = GetComponent<Simulate>().Shader;
             ComputeBuffer propertyBuffer = colourProperty == Property.Density ? shader.Densities : shader.Pressures;
-            instanceMaterial.SetBuffer("properties", propertyBuffer);
+            if (propertyBuffer != null) instanceMaterial.SetBuffer("properties", propertyBuffer);
         }
     }
 
