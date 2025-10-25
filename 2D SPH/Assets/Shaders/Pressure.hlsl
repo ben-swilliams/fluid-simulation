@@ -5,24 +5,26 @@ float3 CalculatePressureForce(uint i) {
 
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
-            int3 gridPosJ = gridPosI + int3(x, y);
-            if (!IsInBounds(gridPosJ)) continue;
+            for (int z = -1; z < 2; z++) {
+                int3 gridPosJ = gridPosI + int3(x, y);
+                if (!IsInBounds(gridPosJ)) continue;
 
-            uint hash = CalculateHashFromGrid(gridPosJ);
+                uint hash = CalculateHashFromGrid(gridPosJ);
 
-            uint startIndex = Offsets[hash];
-            uint endIndex = Offsets[hash + 1];
+                uint startIndex = Offsets[hash];
+                uint endIndex = Offsets[hash + 1];
 
-            float pressureI = Pressures[i] / (Densities[i] * Densities[i]);
+                float pressureI = Pressures[i] / (Densities[i] * Densities[i]);
 
-            for (uint j = startIndex; j < endIndex; j++) {
-                if (i == j) continue;
+                for (uint j = startIndex; j < endIndex; j++) {
+                    if (i == j) continue;
 
-                float3 offset = Positions[i] - Positions[j];
+                    float3 offset = Positions[i] - Positions[j];
 
-                float pressureJ = Pressures[j] / (Densities[j] * Densities[j]);
+                    float pressureJ = Pressures[j] / (Densities[j] * Densities[j]);
 
-                pressureForce += (pressureI + pressureJ) * CubicSplineGrad(offset);
+                    pressureForce += (pressureI + pressureJ) * CubicSplineGrad(offset);
+                }
             }
         }
     }
