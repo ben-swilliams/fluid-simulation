@@ -107,7 +107,7 @@ public class Spawn : MonoBehaviour
     {
         Draw drawer = GetComponent<Draw>();
         drawer.BindBuffers(positionBuffer, velocityBuffer, propertyBuffer, propertyBuffer);
-        drawer.UpdateVariables(size, -1);
+        drawer.UpdateVariables(size: size);
     }
 
     void ReleaseBuffers()

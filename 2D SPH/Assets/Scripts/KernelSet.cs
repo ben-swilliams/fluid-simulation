@@ -1,0 +1,88 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+public class KernelSet
+{
+    public int ClearCounts;
+    public int Partition;
+    public int Scan;
+    public int ScanBlockSums;
+    public int AddBlockSums;
+    public int FinalizeScan;
+    public int Scatter;
+    public int CalculateDensity;
+    public int CalculateNonPressureAcceleration;
+    public int PredictVelocityAndCalculateD;
+    public int PredictDensityAndCalculateA;
+    public int CalculatePressureSums;
+    public int CalculateNextPressure;
+    public int FinalisePressureIteration;
+    public int UpdateVelocities;
+    public int UpdatePositions;
+
+    public Dictionary<int, string[]> kernelStaticBufferMap;
+    public Dictionary<int, string[]> kernelDynamicBufferMap;
+
+    public int[] PrePressureKernels => new int[] { CalculateDensity, CalculateNonPressureAcceleration, PredictVelocityAndCalculateD, PredictDensityAndCalculateA };
+    public int[] PressureKernels => new int[] { CalculatePressureSums, CalculateNextPressure, FinalisePressureIteration };
+    public int[] PostPressureKernels => new int[] { UpdateVelocities, UpdatePositions };
+
+    public KernelSet(ComputeShader shader)
+    {
+        SetKernels(shader);
+
+        kernelStaticBufferMap = new Dictionary<int, string[]>
+        {
+            { ClearCounts, new[] { "CellCounts", "LocalOffsets" } },
+            { Partition, new[] { "CellCounts" } },
+            { Scan, new[] { "Offsets", "CellCounts", "BlockSums" } },
+            { ScanBlockSums, new[] { "BlockSums" } },
+            { AddBlockSums, new[] { "Offsets", "CellCounts", "BlockSums" } },
+            { FinalizeScan, new[] { "Offsets" } },
+            { Scatter, new[] { "LocalOffsets", "Offsets" } },
+            { CalculateDensity, new[] { "Densities", "Offsets" } },
+            { CalculateNonPressureAcceleration, new[] { "Offsets", "IntermediateAccelerations", "Densities" } },
+            { PredictVelocityAndCalculateD, new[] { "IntermediateAccelerations", "Dii", "Offsets", "Densities" } },
+            { PredictDensityAndCalculateA, new[] { "Densities", "Offsets", "Dii", "Aii" } },
+            { CalculatePressureSums, new[] { "Offsets", "Densities", "Dii", "Aii", "DPSum", "IterPressures" } },
+            { CalculateNextPressure, new[] { "Offsets", "Densities", "Dii", "Aii", "DPSum", "IterPressures", "Pressures" } },
+            { FinalisePressureIteration, new[] { "Pressures", "IterPressures" } },
+            { UpdateVelocities, new[] { "Densities", "Offsets", "Pressures" } },
+            { UpdatePositions, new[] { "Densities", "Offsets" } }
+        };
+
+        kernelDynamicBufferMap = new Dictionary<int, string[]>
+        {
+            { Partition, new[] { "Positions" } },
+            { CalculateDensity, new[] { "Positions" } },
+            { Scatter, new[] { "Pressures", "IterPressures", "OldVelocities", "NewVelocities", "OldPositions", "NewPositions" } },
+            { CalculateNonPressureAcceleration, new[] { "Positions", "Velocities" } },
+            { PredictVelocityAndCalculateD, new[] { "Positions", "Velocities" } },
+            { PredictDensityAndCalculateA, new[] { "Positions", "Velocities" } },
+            { CalculatePressureSums, new[] { "Positions" } },
+            { CalculateNextPressure, new[] { "Positions" } },
+            { UpdateVelocities, new[] { "Velocities", "Positions" } },
+            { UpdatePositions, new[] { "Velocities", "Positions" } }
+        };
+    }
+
+    private void SetKernels(ComputeShader shader)
+    {
+        ClearCounts = shader.FindKernel("ClearCounts");
+        Partition = shader.FindKernel("Partition");
+        Scan = shader.FindKernel("Scan");
+        ScanBlockSums = shader.FindKernel("ScanBlockSums");
+        AddBlockSums = shader.FindKernel("AddBlockSums");
+        FinalizeScan = shader.FindKernel("FinalizeScan");
+        Scatter = shader.FindKernel("Scatter");
+        CalculateDensity = shader.FindKernel("CalculateDensity");
+        CalculateNonPressureAcceleration = shader.FindKernel("CalculateNonPressureAcceleration");
+        PredictVelocityAndCalculateD = shader.FindKernel("PredictVelocityAndCalculateD");
+        PredictDensityAndCalculateA = shader.FindKernel("PredictDensityAndCalculateA");
+        CalculatePressureSums = shader.FindKernel("CalculatePressureSums");
+        CalculateNextPressure = shader.FindKernel("CalculateNextPressure");
+        FinalisePressureIteration = shader.FindKernel("FinalisePressureIteration");
+        UpdateVelocities = shader.FindKernel("UpdateVelocities");
+        UpdatePositions = shader.FindKernel("UpdatePositions");
+    }
+}

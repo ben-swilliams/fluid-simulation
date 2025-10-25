@@ -1,19 +1,17 @@
-#pragma kernel ZeroCounts
+#pragma kernel ClearCounts
 #pragma kernel Partition
 #pragma kernel Scan
 #pragma kernel ScanBlockSums
 #pragma kernel AddBlockSums
 #pragma kernel FinalizeScan
 #pragma kernel Scatter
-#pragma kernel Density
-#pragma kernel IntermediateAcceleration
-#pragma kernel IntermediateVelocityAndD
-#pragma kernel IntermediateDensityAndA
-#pragma kernel PressureSumIteration
-#pragma kernel PressureConvergeIteration
-#pragma kernel PressureFinaliseIteration
-
-#pragma kernel SmoothPressures
+#pragma kernel CalculateDensity
+#pragma kernel CalculateNonPressureAcceleration
+#pragma kernel PredictVelocityAndCalculateD
+#pragma kernel PredictDensityAndCalculateA
+#pragma kernel CalculatePressureSums
+#pragma kernel CalculateNextPressure
+#pragma kernel FinalisePressureIteration
 
 #pragma kernel UpdateVelocities
 #pragma kernel UpdatePositions
@@ -34,7 +32,6 @@ RWStructuredBuffer<float> Densities;
 RWStructuredBuffer<float> Aii;
 RWStructuredBuffer<float> IterPressures;
 RWStructuredBuffer<float> Pressures;
-RWStructuredBuffer<float> SmoothedPressures;
 
 // Vector buffers
 RWStructuredBuffer<float2> Positions;
@@ -126,7 +123,7 @@ float2 CalculateAcceleration(uint i) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void ZeroCounts(uint id : SV_DispatchThreadID) {
+void ClearCounts(uint id : SV_DispatchThreadID) {
     if (id.x >= tableSize) return;
 
     CellCounts[id.x] = 0;
@@ -167,22 +164,21 @@ void Scatter(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void Density(uint3 id : SV_DispatchThreadID) {
+void CalculateDensity(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     Densities[id.x] = CalculateDensity(id.x);
 }
 
-
 [numthreads(NumThreads, 1, 1)]
-void IntermediateAcceleration(uint3 id : SV_DispatchThreadID) {
+void CalculateNonPressureAcceleration(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     IntermediateAccelerations[id.x] = CalculateAcceleration(id.x);
 }
 
 [numthreads(NumThreads, 1, 1)]
-void IntermediateVelocityAndD(uint3 id : SV_DispatchThreadID) {
+void PredictVelocityAndCalculateD(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     Velocities[id.x] += IntermediateAccelerations[id.x] * deltaTime;
@@ -190,7 +186,7 @@ void IntermediateVelocityAndD(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void IntermediateDensityAndA(uint3 id : SV_DispatchThreadID) {
+void PredictDensityAndCalculateA(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     float2 values = CalculateDeltaDensityAndA(id.x);
@@ -202,32 +198,25 @@ void IntermediateDensityAndA(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void PressureSumIteration(uint3 id : SV_DispatchThreadID) {
+void CalculatePressureSums(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     DPSum[id.x] = CalculatePressureSum(id.x);
 }
 
 [numthreads(NumThreads, 1, 1)]
-void PressureConvergeIteration(uint3 id : SV_DispatchThreadID) {
+void CalculateNextPressure(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Pressures[id.x] = CalculateNextPressure(id.x);
+    Pressures[id.x] = CalculateNextPressureValue(id.x);
 }
 
 [numthreads(NumThreads, 1, 1)]
-void PressureFinaliseIteration(uint3 id : SV_DispatchThreadID) {
+void FinalisePressureIteration(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     IterPressures[id.x] = Pressures[id.x];
 }
-
-  [numthreads(NumThreads, 1, 1)]
-  void SmoothPressures(uint3 id : SV_DispatchThreadID) {
-      if (id.x >= instanceCount) return;
-
-      SmoothedPressures[id.x] = lerp(SmoothedPressures[id.x], Pressures[id.x], 0.1);
-  }
 
 [numthreads(NumThreads, 1, 1)]
 void UpdateVelocities(uint3 id : SV_DispatchThreadID) {

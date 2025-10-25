@@ -112,10 +112,10 @@ public class Draw : MonoBehaviour
         );
     }
 
-    public void UpdateVariables(float size, float restDensity)
+    public void UpdateVariables(float? size = null, float? restDensity = null)
     {
-        if (size != -1) instanceMaterial.SetFloat("size", size);
-        if (restDensity != -1) instanceMaterial.SetFloat("restDensity", restDensity);
+        if (size.HasValue) instanceMaterial.SetFloat("size", size.Value);
+        if (restDensity.HasValue) instanceMaterial.SetFloat("restDensity", restDensity.Value);
     }
 
     public void BindBuffers(ComputeBuffer positionBuffer, ComputeBuffer velocityBuffer, ComputeBuffer densityBuffer, ComputeBuffer pressureBuffer)
