@@ -18,6 +18,7 @@ public class Simulate : MonoBehaviour
     [SerializeField] float smoothingRadius = 1f;
     [SerializeField] float velocitySmoothing = 0f;
     [SerializeField] int stepSize = 10;
+    [SerializeField] float maxVelocity = 100f;
 
     [Header("External forces")]
     [SerializeField] float initSpeed = 5f;
@@ -295,7 +296,8 @@ public class Simulate : MonoBehaviour
         int gridX = Mathf.CeilToInt(containerSize.x / smoothingRadius);
         int gridY = Mathf.CeilToInt(containerSize.y / smoothingRadius);
 
-        float particleMass = restDensity * smoothingRadius * smoothingRadius;
+        float particleSpacing = spawner.Size + spawner.Spacing;
+        float particleMass = particleSpacing * particleSpacing;
         float kernelConstant = 10f / (7 * Mathf.PI * smoothingRadius * smoothingRadius);
         float gradConstant = kernelConstant / smoothingRadius;
 
@@ -313,7 +315,8 @@ public class Simulate : MonoBehaviour
             "surfaceTensionMultiplier", surfaceTensionMultiplier,
             "velocitySmoothing", velocitySmoothing,
             "kernelConstant", kernelConstant,
-            "gradConstant", gradConstant
+            "gradConstant", gradConstant,
+            "maxVelocity", maxVelocity
         };
 
         shader.SetValues(keyValues);
@@ -330,6 +333,7 @@ public class Simulate : MonoBehaviour
         relaxationFactor = Mathf.Clamp01(relaxationFactor);
         viscosityMultiplier = Mathf.Max(0, viscosityMultiplier);
         stepSize = Mathf.Max(0, stepSize);
+        maxVelocity = Mathf.Max(0.01f, maxVelocity);
     }
 
     void HandleKeyPresses()
