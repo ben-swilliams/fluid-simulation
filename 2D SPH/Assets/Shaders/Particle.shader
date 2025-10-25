@@ -44,7 +44,7 @@ Shader "Custom/Particle" {
             }
 
             v2f vert(appdata_full v, uint id : SV_InstanceID) {
-                float3 centreWorld = float3(positions[id], 0);
+                float3 centreWorld =  positions[id];
                 float3 centreObj = mul(unity_WorldToObject, float4(centreWorld, 1)).xyz;
                 float3 vertObj = centreObj + v.vertex * size;
 

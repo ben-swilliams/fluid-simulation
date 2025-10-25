@@ -92,7 +92,7 @@ void CalculateComponents(uint i, out float3 viscosity, out float3 surfaceTension
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
             for (int z = -1; z < 2; z++) {
-                int3 gridPosJ = gridPosI + int3(x, y);
+                int3 gridPosJ = gridPosI + int3(x, y, z);
                 if (!IsInBounds(gridPosJ)) continue;
 
                 uint hash = CalculateHashFromGrid(gridPosJ);
@@ -114,8 +114,8 @@ void CalculateComponents(uint i, out float3 viscosity, out float3 surfaceTension
     }
 }
 
-float2 CalculateAcceleration(uint i) {
-    float2 viscosity, surfaceTension;
+float3 CalculateAcceleration(uint i) {
+    float3 viscosity, surfaceTension;
 
     CalculateComponents(i, viscosity, surfaceTension);
 
@@ -189,7 +189,7 @@ void PredictVelocityAndCalculateD(uint3 id : SV_DispatchThreadID) {
 void PredictDensityAndCalculateA(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    float3 values = CalculateDeltaDensityAndA(id.x);
+    float2 values = CalculateDeltaDensityAndA(id.x);
     float deltaDensity = values.x;
     float a = values.y;
 

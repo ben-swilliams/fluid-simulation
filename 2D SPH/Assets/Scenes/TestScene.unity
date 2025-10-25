@@ -180,7 +180,7 @@ Camera:
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
-  orthographic: 1
+  orthographic: 0
   orthographic size: 20.69
   m_Depth: -1
   m_CullingMask:
@@ -205,13 +205,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 854739752}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalRotation: {x: 0.35355338, y: -0.35355338, z: 0.1464466, w: 0.8535535}
+  m_LocalPosition: {x: 7, y: 8, z: -7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 45, y: -45, z: 0}
 --- !u!114 &854739756
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -297,10 +297,11 @@ MonoBehaviour:
   stepSize: 10
   maxVelocity: 100
   initSpeed: 0
-  gravity: {x: 0, y: -9.8}
+  gravity: {x: 0, y: -9.8, z: 0}
   dampingFactor: 0.95
-  restDensity: 3
+  restDensity: 150
   relaxationFactor: 0.5
+  solverIterations: 3
   viscosityMultiplier: 0.08
   surfaceTensionMultiplier: 0.1
 --- !u!4 &1274155412
@@ -331,11 +332,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90a21f46cb45640b88337bf5d5a09f85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawn
-  instanceCount: 20553
+  instanceCount: 59319
   size: 0.2
   spacing: 0
-  spawnArea: {x: 44.3, y: 18.6}
-  spawnPosition: {x: 0, y: -8.99}
+  spawnArea: {x: 8, y: 8, z: 8}
+  spawnPosition: {x: 0, y: 0, z: 0}
   asGrid: 1
 --- !u!114 &1274155414
 MonoBehaviour:
@@ -510,7 +511,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3322910ee2f44accaabe65cfbc676a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Container
-  boundary: {x: 47, y: 38.7}
+  boundary: {x: 10, y: 10, z: 10}
   thickness: 0.1
   mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!4 &1607714413
