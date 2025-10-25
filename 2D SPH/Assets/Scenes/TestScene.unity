@@ -301,8 +301,8 @@ MonoBehaviour:
   dampingFactor: 0.95
   restDensity: 3
   relaxationFactor: 0.5
-  viscosityMultiplier: 0
-  surfaceTensionMultiplier: 0
+  viscosityMultiplier: 0.08
+  surfaceTensionMultiplier: 0.1
 --- !u!4 &1274155412
 Transform:
   m_ObjectHideFlags: 0
@@ -331,11 +331,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90a21f46cb45640b88337bf5d5a09f85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawn
-  instanceCount: 39216
+  instanceCount: 20553
   size: 0.2
   spacing: 0
-  spawnArea: {x: 45.8, y: 34.57}
-  spawnPosition: {x: 0, y: -1.6}
+  spawnArea: {x: 44.3, y: 18.6}
+  spawnPosition: {x: 0, y: -8.99}
   asGrid: 1
 --- !u!114 &1274155414
 MonoBehaviour:
