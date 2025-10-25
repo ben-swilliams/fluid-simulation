@@ -71,8 +71,6 @@ float3 gravity;
 Scan/partition parameters
 */
 // Integers
-uint gridX;
-uint gridY;
 uint tableSize;
 uint numBlockSums;
 

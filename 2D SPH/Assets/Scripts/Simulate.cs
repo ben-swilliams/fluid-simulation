@@ -243,8 +243,6 @@ public class Simulate : MonoBehaviour
     void UpdateVariables()
     {
         Vector3 containerSize = GetComponentInChildren<Container>().Boundary;
-        int gridX = Mathf.CeilToInt(containerSize.x / smoothingRadius);
-        int gridY = Mathf.CeilToInt(containerSize.y / smoothingRadius);
 
         float particleSpacing = spawner.Size + spawner.Spacing;
         float particleMass = particleSpacing * particleSpacing * particleSpacing;
@@ -253,8 +251,6 @@ public class Simulate : MonoBehaviour
 
         object[] keyValues =
         {
-            "gridX", gridX,
-            "gridY", gridY,
             "smoothingRadius", smoothingRadius,
             "dampingFactor", dampingFactor,
             "gravity", gravity,

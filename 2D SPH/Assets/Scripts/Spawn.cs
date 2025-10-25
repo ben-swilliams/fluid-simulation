@@ -138,8 +138,9 @@ public class Spawn : MonoBehaviour
     {
         int sizeX = (int)(spawnArea.x / sizeWithSpacing);
         int sizeY = (int)(spawnArea.y / sizeWithSpacing);
+        int sizeZ = (int)(spawnArea.y / sizeWithSpacing);
 
-        return sizeX * sizeY;
+        return sizeX * sizeY * sizeZ;
     }
 
     Vector3[] GenerateRandomPositions()
@@ -150,7 +151,8 @@ public class Spawn : MonoBehaviour
         {
             positions[i] = new Vector3(
                 Random.Range(-spawnArea.x / 2 + size / 2, spawnArea.x / 2 - size / 2),
-                Random.Range(-spawnArea.y / 2 + size / 2, spawnArea.y / 2 - size / 2)
+                Random.Range(-spawnArea.y / 2 + size / 2, spawnArea.y / 2 - size / 2),
+                Random.Range(-spawnArea.z / 2 + size / 2, spawnArea.z / 2 - size / 2)
             );
             positions[i] += spawnPosition;
         }
@@ -162,33 +164,47 @@ public class Spawn : MonoBehaviour
     {
         Vector3[] positions = new Vector3[instanceCount];
 
-        Vector3 topLeft = new Vector3(
+        Vector3 startCorner = new Vector3(
             -spawnArea.x / 2 + sizeWithSpacing / 2,
-            spawnArea.y / 2 - sizeWithSpacing / 2
+            spawnArea.y / 2 - sizeWithSpacing / 2,
+            -spawnArea.z / 2 + sizeWithSpacing / 2
         );
-        topLeft += spawnPosition;
+        startCorner += spawnPosition;
 
         int sizeX = (int)(spawnArea.x / sizeWithSpacing);
         int sizeY = (int)(spawnArea.y / sizeWithSpacing);
+        int sizeZ = (int)(spawnArea.z / sizeWithSpacing);
+
+        int idx = 0;
         for (int x = 0; x < sizeX; x++)
         {
             for (int y = 0; y < sizeY; y++)
             {
-                int idx = y * sizeX + x;
-                if (idx >= instanceCount) continue;
+                for (int z = 0; z < sizeZ; z++)
+                {
+                    if (idx >= instanceCount) break;
 
-                positions[idx] = topLeft + new Vector3(
-                    x * sizeWithSpacing,
-                    -y * sizeWithSpacing
-                );
+                    positions[idx] = startCorner + new Vector3(
+                        x * sizeWithSpacing,
+                        -y * sizeWithSpacing,
+                        z * sizeWithSpacing
+                    );
 
-                // Add tiny offset so things don't stack
-                positions[idx] += new Vector3(Random.Range(-0.05f, 0.05f), Random.Range(-0.05f, 0.05f), Random.Range(-0.05f, 0.05f));
+                    // Small random jitter to avoid perfect stacking
+                    positions[idx] += new Vector3(
+                        Random.Range(-0.05f, 0.05f),
+                        Random.Range(-0.05f, 0.05f),
+                        Random.Range(-0.05f, 0.05f)
+                    );
+
+                    idx++;
+                }
             }
         }
 
         return positions;
     }
+
 
     Vector3[] GeneratePositions()
     {
