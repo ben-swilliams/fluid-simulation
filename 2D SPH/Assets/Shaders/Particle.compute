@@ -9,7 +9,6 @@
 #pragma kernel IntermediateAcceleration
 #pragma kernel IntermediateVelocityAndD
 #pragma kernel IntermediateDensityAndA
-#pragma kernel ZeroPressures
 #pragma kernel PressureSumIteration
 #pragma kernel PressureConvergeIteration
 #pragma kernel PressureFinaliseIteration
@@ -123,14 +122,6 @@ float2 CalculateAcceleration(uint i) {
     CalculateComponents(i, viscosity, surfaceTension);
 
     return MouseForce(i) + gravity + viscosity + surfaceTension;
-}
-
-[numthreads(NumThreads, 1, 1)]
-void ZeroCounts(uint id : SV_DispatchThreadID) {
-    if (id.x >= tableSize) return;
-
-    CellCounts[id.x] = 0;
-    LocalOffsets[id.x] = 0;
 }
 
 [numthreads(NumThreads, 1, 1)]
