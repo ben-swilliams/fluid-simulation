@@ -5,17 +5,19 @@ float CalculateDensity(uint i) {
 
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
-            int3 gridPosJ = gridPosI + int3(x, y);
-            if (!IsInBounds(gridPosJ)) continue;
+            for (int z = -1; z < 2; z++) {
+                int3 gridPosJ = gridPosI + int3(x, y, z);
+                if (!IsInBounds(gridPosJ)) continue;
 
-            uint hash = CalculateHashFromGrid(gridPosJ);
+                uint hash = CalculateHashFromGrid(gridPosJ);
 
-            uint startIndex = Offsets[hash];
-            uint endIndex = Offsets[hash + 1];
+                uint startIndex = Offsets[hash];
+                uint endIndex = Offsets[hash + 1];
 
-            for (uint j = startIndex; j < endIndex; j++) {
-                float3 offset = Positions[j] - Positions[i];
-                density += particleMass * CubicSplineKernel(offset);
+                for (uint j = startIndex; j < endIndex; j++) {
+                    float3 offset = Positions[j] - Positions[i];
+                    density += particleMass * CubicSplineKernel(offset);
+                }
             }
         }
     }
