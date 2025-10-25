@@ -9,7 +9,6 @@
 #pragma kernel IntermediateAcceleration
 #pragma kernel IntermediateVelocityAndD
 #pragma kernel IntermediateDensityAndA
-#pragma kernel ZeroPressures
 #pragma kernel PressureSumIteration
 #pragma kernel PressureConvergeIteration
 #pragma kernel PressureFinaliseIteration
@@ -199,11 +198,6 @@ void IntermediateDensityAndA(uint3 id : SV_DispatchThreadID) {
 
     Densities[instanceCount + id.x] = Densities[id.x] + deltaDensity * deltaTime;
     Aii[id.x] = a;
-}
-
-[numthreads(NumThreads, 1, 1)]
-void ZeroPressures(uint3 id : SV_DispatchThreadID) {
-    IterPressures[id.x] = 0;
 }
 
 [numthreads(NumThreads, 1, 1)]
