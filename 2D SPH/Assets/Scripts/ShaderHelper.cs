@@ -111,7 +111,6 @@ public class ShaderHelper
                       int intermediateAccelerationKernel,
                       int intermediateVelocityAndDKernel,
                       int intermediateDensityAndAKernel,
-                      int zeroPressuresKernel,
                       int pressureSumIterationKernel,
                       int pressureConvergeIterationKernel,
                       int pressureFinaliseIterationKernel,
@@ -130,7 +129,6 @@ public class ShaderHelper
         kernelStaticBufferMap.Add(intermediateAccelerationKernel, new string[] { "Offsets", "IntermediateAccelerations", "Densities" });
         kernelStaticBufferMap.Add(intermediateVelocityAndDKernel, new string[] { "IntermediateAccelerations", "Dii", "Offsets", "Densities" });
         kernelStaticBufferMap.Add(intermediateDensityAndAKernel, new string[] { "Densities", "Offsets", "Dii", "Aii" });
-        kernelStaticBufferMap.Add(zeroPressuresKernel, new string[] { "IterPressures" });
         kernelStaticBufferMap.Add(pressureSumIterationKernel, new string[] { "Offsets", "Densities", "Dii", "Aii", "DPSum", "IterPressures" });
         kernelStaticBufferMap.Add(pressureConvergeIterationKernel, new string[] { "Offsets", "Densities", "Dii", "Aii", "DPSum", "IterPressures", "Pressures"});
         kernelStaticBufferMap.Add(pressureFinaliseIterationKernel, new string[] { "Pressures", "IterPressures" });

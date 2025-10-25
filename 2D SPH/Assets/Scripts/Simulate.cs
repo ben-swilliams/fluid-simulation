@@ -59,7 +59,6 @@ public class Simulate : MonoBehaviour
     int intermediateAccelerationKernel;
     int intermediateVelocityAndDKernel;
     int intermediateDensityAndAKernel;
-    int zeroPressuresKernel;
     int pressureSumIterationKernel;
     int pressureConvergeIterationKernel;
     int pressureFinaliseIterationKernel;
@@ -250,7 +249,6 @@ public class Simulate : MonoBehaviour
         intermediateAccelerationKernel = computeShader.FindKernel("IntermediateAcceleration");
         intermediateVelocityAndDKernel = computeShader.FindKernel("IntermediateVelocityAndD");
         intermediateDensityAndAKernel = computeShader.FindKernel("IntermediateDensityAndA");
-        zeroPressuresKernel = computeShader.FindKernel("ZeroPressures");
         pressureSumIterationKernel = computeShader.FindKernel("PressureSumIteration");
         pressureConvergeIterationKernel = computeShader.FindKernel("PressureConvergeIteration");
         pressureFinaliseIterationKernel = computeShader.FindKernel("PressureFinaliseIteration");
@@ -268,7 +266,6 @@ public class Simulate : MonoBehaviour
                           intermediateAccelerationKernel,
                           intermediateVelocityAndDKernel,
                           intermediateDensityAndAKernel,
-                          zeroPressuresKernel,
                           pressureSumIterationKernel,
                           pressureConvergeIterationKernel,
                           pressureFinaliseIterationKernel,
