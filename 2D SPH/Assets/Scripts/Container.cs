@@ -7,7 +7,7 @@ public class Container : MonoBehaviour
     Inspector settings
     */
     [Header("Size settings")]
-    [SerializeField] Vector2 boundary = new Vector2(5f, 5f);
+    [SerializeField] Vector3 boundary = new Vector3(5f, 5f, 5f);
     [SerializeField] float thickness = 0.1f;
 
     [Header("Miscallaneous")]
@@ -21,7 +21,7 @@ public class Container : MonoBehaviour
     /*
     Public getters
     */
-    public Vector2 Boundary => boundary;
+    public Vector3 Boundary => boundary;
 
     void Start()
     {
@@ -42,7 +42,7 @@ public class Container : MonoBehaviour
     {
         Gizmos.color = Color.red;
 
-        Gizmos.DrawWireCube(transform.position, new Vector3(boundary.x, boundary.y, 0f));
+        Gizmos.DrawWireCube(transform.position, new Vector3(boundary.x, boundary.y, boundary.z));
     }
 
     void SetupBorder()

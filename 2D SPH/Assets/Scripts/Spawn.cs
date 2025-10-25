@@ -9,8 +9,8 @@ public class Spawn : MonoBehaviour
     [SerializeField] int instanceCount = 10;
     [SerializeField] float size = 0.1f;
     [SerializeField] float spacing = 0f;
-    [SerializeField] Vector2 spawnArea = new Vector2(10f, 10f);
-    [SerializeField] Vector2 spawnPosition = new Vector2(0f, 0f);
+    [SerializeField] Vector3 spawnArea = new Vector3(10f, 10f, 10f);
+    [SerializeField] Vector3 spawnPosition = new Vector3(0f, 0f, 0f);
     [SerializeField] bool asGrid;
 
     /*
@@ -28,7 +28,7 @@ public class Spawn : MonoBehaviour
     public float Size => size;
     public float Spacing => spacing;
     public ComputeBuffer positionBuffer { get; private set; }
-    public float Area => spawnArea.x * spawnArea.y;
+    public float Area => spawnArea.x * spawnArea.y * spawnArea.z;
 
 
     void Start()
@@ -62,7 +62,7 @@ public class Spawn : MonoBehaviour
     {
         Gizmos.color = Color.white;
 
-        Gizmos.DrawWireCube(transform.position + new Vector3(spawnPosition.x, spawnPosition.y, 0), new Vector3(spawnArea.x, spawnArea.y, 0f));
+        Gizmos.DrawWireCube(transform.position + new Vector3(spawnPosition.x, spawnPosition.y, spawnPosition.z), new Vector3(spawnArea.x, spawnArea.y, spawnArea.z));
     }
 
     void ValidateInspectorProperties()
@@ -79,12 +79,12 @@ public class Spawn : MonoBehaviour
     void CreateBuffers()
     {
         ReleaseBuffers();
-        positionBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
+        positionBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 3);
 
-        Vector2[] positions = GeneratePositions();
+        Vector3[] positions = GeneratePositions();
         positionBuffer.SetData(positions);
 
-        velocityBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
+        velocityBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 3);
 
         propertyBuffer = new ComputeBuffer(instanceCount, sizeof(float));
     }
@@ -98,7 +98,7 @@ public class Spawn : MonoBehaviour
         }
         else
         {
-            Vector2[] positions = GeneratePositions();
+            Vector3[] positions = GeneratePositions();
             positionBuffer.SetData(positions);
         }
     }
@@ -142,13 +142,13 @@ public class Spawn : MonoBehaviour
         return sizeX * sizeY;
     }
 
-    Vector2[] GenerateRandomPositions()
+    Vector3[] GenerateRandomPositions()
     {
-        Vector2[] positions = new Vector2[instanceCount];
+        Vector3[] positions = new Vector3[instanceCount];
 
         for (int i = 0; i < instanceCount; i++)
         {
-            positions[i] = new Vector2(
+            positions[i] = new Vector3(
                 Random.Range(-spawnArea.x / 2 + size / 2, spawnArea.x / 2 - size / 2),
                 Random.Range(-spawnArea.y / 2 + size / 2, spawnArea.y / 2 - size / 2)
             );
@@ -158,11 +158,11 @@ public class Spawn : MonoBehaviour
         return positions;
     }
 
-    Vector2[] GenerateGridPositions()
+    Vector3[] GenerateGridPositions()
     {
-        Vector2[] positions = new Vector2[instanceCount];
+        Vector3[] positions = new Vector3[instanceCount];
 
-        Vector2 topLeft = new Vector2(
+        Vector3 topLeft = new Vector3(
             -spawnArea.x / 2 + sizeWithSpacing / 2,
             spawnArea.y / 2 - sizeWithSpacing / 2
         );
@@ -177,27 +177,27 @@ public class Spawn : MonoBehaviour
                 int idx = y * sizeX + x;
                 if (idx >= instanceCount) continue;
 
-                positions[idx] = topLeft + new Vector2(
+                positions[idx] = topLeft + new Vector3(
                     x * sizeWithSpacing,
                     -y * sizeWithSpacing
                 );
 
                 // Add tiny offset so things don't stack
-                positions[idx] += new Vector2(Random.Range(-0.05f, 0.05f), Random.Range(-0.05f, 0.05f));
+                positions[idx] += new Vector3(Random.Range(-0.05f, 0.05f), Random.Range(-0.05f, 0.05f), Random.Range(-0.05f, 0.05f));
             }
         }
 
         return positions;
     }
 
-    Vector2[] GeneratePositions()
+    Vector3[] GeneratePositions()
     {
         return asGrid ? GenerateGridPositions() : GenerateRandomPositions();
     }
 
-    public Vector2[] ExtractPositions()
+    public Vector3[] ExtractPositions()
     {
-        Vector2[] positions = new Vector2[instanceCount];
+        Vector3[] positions = new Vector3[instanceCount];
         positionBuffer.GetData(positions);
 
         return positions;

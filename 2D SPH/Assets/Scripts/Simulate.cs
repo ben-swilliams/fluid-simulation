@@ -20,7 +20,7 @@ public class Simulate : MonoBehaviour
 
     [Header("External forces")]
     [SerializeField] float initSpeed = 5f;
-    [SerializeField] Vector2 gravity = new Vector2(0, -9.8f);
+    [SerializeField] Vector3 gravity = new Vector3(0, -9.8f, 0);
     [SerializeField] float dampingFactor = 0.9f;
 
     [Header("Pressure")]
@@ -202,14 +202,14 @@ public class Simulate : MonoBehaviour
         drawer.UpdateVariables(spawner.Size, restDensity);
     }
 
-    Vector2[] GenerateVelocityData()
+    Vector3[] GenerateVelocityData()
     {
-        Vector2[] velocities = new Vector2[spawner.InstanceCount];
+        Vector3[] velocities = new Vector3[spawner.InstanceCount];
 
         for (int i = 0; i < spawner.InstanceCount; i++)
         {
             float random = UnityEngine.Random.Range(0f, 2 * Mathf.PI);
-            Vector2 vel = new Vector2(Mathf.Cos(random), Mathf.Sin(random)) * initSpeed;
+            Vector3 vel = new Vector3(Mathf.Cos(random), Mathf.Sin(random)) * initSpeed;
             velocities[i] = vel;
         }
 
@@ -233,7 +233,7 @@ public class Simulate : MonoBehaviour
         };
         shader.SetValues(keyValues);
 
-        UpdateMouseForce(Vector2.zero, 0, 0);
+        UpdateMouseForce(Vector3.zero, 0, 0);
         UpdateVariables();
 
         FindKernels();
@@ -241,7 +241,7 @@ public class Simulate : MonoBehaviour
 
     void UpdateVariables()
     {
-        Vector2 containerSize = GetComponentInChildren<Container>().Boundary;
+        Vector3 containerSize = GetComponentInChildren<Container>().Boundary;
         int gridX = Mathf.CeilToInt(containerSize.x / smoothingRadius);
         int gridY = Mathf.CeilToInt(containerSize.y / smoothingRadius);
 

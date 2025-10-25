@@ -1,7 +1,7 @@
 float kernelConstant;
 float gradConstant;
 
-float CubicSplineKernel(float2 offset) {
+float CubicSplineKernel(float3 offset) {
     float r = length(offset);
     float q = r / smoothingRadius;
 
@@ -17,12 +17,12 @@ float CubicSplineKernel(float2 offset) {
     return kernelConstant * result;
 }
 
-float2 CubicSplineGrad(float2 offset) {
+float3 CubicSplineGrad(float3 offset) {
     float r = length(offset);
     float q = r / smoothingRadius;
-    if (q < 1e-7 || q >= 2) return float2(0, 0);
+    if (q < 1e-7 || q >= 2) return float3(0, 0, 0);
     
-    float2 dir = offset / r;
+    float3 dir = offset / r;
     float coeff;
 
     if (q >= 1) {

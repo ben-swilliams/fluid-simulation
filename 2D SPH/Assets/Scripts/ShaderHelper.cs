@@ -107,12 +107,12 @@ public class ShaderHelper
                 computeShader.SetInt(name, intVal);
             if (pairs[i + 1] is float floatVal)
                 computeShader.SetFloat(name, floatVal);
-            if (pairs[i + 1] is Vector2 vecVal)
+            if (pairs[i + 1] is Vector3 vecVal)
                 computeShader.SetVector(name, vecVal);
         }
     }
 
-    public void SetupBuffers(Vector2[] positions, Vector2[] velocities)
+    public void SetupBuffers(Vector3[] positions, Vector3[] velocities)
     {
         allBuffers = new List<ComputeBuffer>();
 
@@ -130,20 +130,20 @@ public class ShaderHelper
         localOffsetBuffer = new ComputeBuffer(Constants.binNumber, sizeof(uint));
         allBuffers.Add(localOffsetBuffer);
 
-        positionBufferA = new ComputeBuffer(positions.Length, sizeof(float) * 2);
+        positionBufferA = new ComputeBuffer(positions.Length, sizeof(float) * 3);
         positionBufferA.SetData(positions);
         allBuffers.Add(positionBufferA);
 
-        positionBufferB = new ComputeBuffer(positions.Length, sizeof(float) * 2);
+        positionBufferB = new ComputeBuffer(positions.Length, sizeof(float) * 3);
         allBuffers.Add(positionBufferB);
 
         positionBuffer = positionBufferA;
 
-        velocityBufferA = new ComputeBuffer(velocities.Length, sizeof(float) * 2);
+        velocityBufferA = new ComputeBuffer(velocities.Length, sizeof(float) * 3);
         velocityBufferA.SetData(velocities);
         allBuffers.Add(velocityBufferA);
 
-        velocityBufferB = new ComputeBuffer(velocities.Length, sizeof(float) * 2);
+        velocityBufferB = new ComputeBuffer(velocities.Length, sizeof(float) * 3);
         allBuffers.Add(velocityBufferB);
 
         velocityBuffer = velocityBufferA;
