@@ -152,14 +152,14 @@ public class ShaderHelper
         densityBuffer = new ComputeBuffer(instanceCount * 2, sizeof(float));
         allBuffers.Add(densityBuffer);
 
-        intermediateAccelerationBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
+        intermediateAccelerationBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 3);
         allBuffers.Add(intermediateAccelerationBuffer);
 
-        diiBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
+        diiBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 3);
         allBuffers.Add(diiBuffer);
         aiiBuffer = new ComputeBuffer(instanceCount, sizeof(float));
         allBuffers.Add(aiiBuffer);
-        dpSumBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
+        dpSumBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 3);
         allBuffers.Add(dpSumBuffer);
 
         iterPressureBuffer = new ComputeBuffer(instanceCount, sizeof(float));
