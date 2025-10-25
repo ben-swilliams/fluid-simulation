@@ -290,16 +290,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
   computeShader: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
-  physicsStepsPerSecond: 400
+  physicsStepsPerSecond: 300
   simulationSpeed: 1
-  smoothingRadius: 0.2
+  smoothingRadius: 0.1
   velocitySmoothing: 0.1
   initSpeed: 0
   gravity: {x: 0, y: -9.8}
   dampingFactor: 0.95
-  restDensity: 1000
+  restDensity: 50
   relaxationFactor: 0.5
-  viscosityMultiplier: 100
+  viscosityMultiplier: 0
   surfaceTensionMultiplier: 0
 --- !u!4 &1274155412
 Transform:
@@ -329,11 +329,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90a21f46cb45640b88337bf5d5a09f85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawn
-  instanceCount: 7436
-  size: 0.1
-  spacing: 0.1
-  spawnArea: {x: 33.84, y: 9}
-  spawnPosition: {x: 0, y: -13.4}
+  instanceCount: 39216
+  size: 0.2
+  spacing: 0
+  spawnArea: {x: 45.8, y: 34.57}
+  spawnPosition: {x: 0, y: -1.6}
   asGrid: 1
 --- !u!114 &1274155414
 MonoBehaviour:
@@ -364,7 +364,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8ee7f52ab7854cb9b31b85c00333ff6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MouseForce
-  power: 5
+  power: 100
 --- !u!120 &1274155416
 LineRenderer:
   serializedVersion: 2
