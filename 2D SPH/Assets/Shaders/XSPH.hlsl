@@ -3,7 +3,7 @@ float velocitySmoothing;
 float3 CalculateXSPHCorrection(uint i) {
     int3 gridPosI = GetGridPos(Positions[i]);
 
-    float3 velAcc = float2(0, 0);
+    float3 velAcc = float3(0, 0, 0);
 
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
