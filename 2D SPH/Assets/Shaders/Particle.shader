@@ -4,19 +4,17 @@ Shader "Custom/Particle" {
 
     SubShader {
         Tags {
-            "RenderType"="Transparent"
-            "Queue"="Transparent"
+            "Queue"="Geometry"
         }
-
-        Blend SrcAlpha OneMinusSrcAlpha
-        ZWrite Off
 
         Pass {
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            #pragma target 4.5
 
             #include "UnityCG.cginc"
+            #include "Lighting.cginc"
 
             StructuredBuffer<float3> positions;
             StructuredBuffer<float3> velocities;
@@ -35,6 +33,7 @@ Shader "Custom/Particle" {
                 float4 pos : SV_POSITION;
                 float2 uv : TEXCOORD0;
                 float3 col : TEXCOORD1;
+                float3 normal : NORMAL;
             };
 
             float3 hsv2rgb(float3 c) {
@@ -71,18 +70,18 @@ Shader "Custom/Particle" {
                 o.pos = UnityObjectToClipPos(vertObj);
                 o.col = rgb;
                 o.uv = v.texcoord;
+                o.normal = normalize(v.vertex);
                 return o;
             }
 
-            float4 frag(v2f i) : SV_Target {
-                float2 p = (i.uv - 0.5) * 2;
-                float distSq = dot(p, p);
-
-                float w = fwidth(distSq) * 0.5;
-                float alpha = 1.0 - smoothstep(1.0 - w, 1.0 + w, distSq);
-
-                return float4(i.col, alpha);
-            }
+			float4 frag (v2f i) : SV_Target
+			{
+                float3 normal = normalize(i.normal);
+				float shading = saturate(dot(_WorldSpaceLightPos0.xyz, normal));
+				shading = shading * 0.7 + 0.3;
+				
+				return float4(i.col * shading, 1);
+			}
             ENDCG
         }
     }
