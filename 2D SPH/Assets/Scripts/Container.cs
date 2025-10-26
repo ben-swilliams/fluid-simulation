@@ -15,6 +15,10 @@ public class Container : MonoBehaviour
     */
     public Vector3 Boundary => transform.localScale;
 
+    void Update()
+    {
+        if (transform.hasChanged) OnValidate();
+    }
     void OnValidate()
     {
         if (!Application.isPlaying) return;

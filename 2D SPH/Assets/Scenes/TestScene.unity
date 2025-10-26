@@ -1168,7 +1168,7 @@ Transform:
   m_GameObject: {fileID: 854739752}
   serializedVersion: 2
   m_LocalRotation: {x: 0.25000006, y: -0.24999997, z: 0.066987306, w: 0.9330127}
-  m_LocalPosition: {x: 5, y: 5, z: -8}
+  m_LocalPosition: {x: 2, y: 2, z: -4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1287,20 +1287,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
   computeShader: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
-  physicsStepsPerSecond: 500
+  physicsStepsPerSecond: 1000
   simulationSpeed: 1
-  smoothingRadius: 0.05
+  smoothingRadius: 0.1
   velocitySmoothing: 0.1
   stepSize: 10
   maxVelocity: 100
   initSpeed: 0
   gravity: {x: 0, y: -9.8, z: 0}
   dampingFactor: 0.95
-  restDensity: 500
+  restDensity: 25
   relaxationFactor: 0.5
   solverIterations: 3
-  viscosityMultiplier: 0.08
-  surfaceTensionMultiplier: 0.1
+  viscosityMultiplier: 0
+  surfaceTensionMultiplier: 0
 --- !u!4 &1274155412
 Transform:
   m_ObjectHideFlags: 0
@@ -1329,10 +1329,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90a21f46cb45640b88337bf5d5a09f85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawn
-  instanceCount: 2744
-  size: 0.2
+  instanceCount: 6859
+  size: 0.1
   spacing: 0
-  spawnArea: {x: 3, y: 3, z: 3}
+  spawnArea: {x: 2, y: 2, z: 2}
   spawnPosition: {x: 0, y: 0, z: 0}
   asGrid: 1
 --- !u!114 &1274155414
@@ -1790,7 +1790,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 6, y: 6, z: 6}
+  m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1433972751}
