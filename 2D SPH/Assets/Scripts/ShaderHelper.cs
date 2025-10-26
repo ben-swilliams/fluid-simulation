@@ -206,6 +206,7 @@ public class ShaderHelper
 
     public void Destroy()
     {
+        if (allBuffers == null) return;
         foreach (ComputeBuffer buffer in allBuffers) buffer?.Release();
     }
 }

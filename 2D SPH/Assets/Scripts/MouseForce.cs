@@ -22,17 +22,18 @@ class MouseForce : MonoBehaviour
 
     void Start()
     {
-        lr = GetComponent<LineRenderer>();
+        // lr = GetComponent<LineRenderer>();
         
         // Draw on top of particles
-        lr.material.renderQueue = 4000;
+        // lr.material.renderQueue = 4000;
     }
 
     void Update()
     {
         mousePos = FindClickPos();
-        HandleScroll();
-        HandleClick();
+        // TODO: Raycast mouse force
+        // HandleScroll();
+        // HandleClick();
         // DrawRadius();
     }
 
