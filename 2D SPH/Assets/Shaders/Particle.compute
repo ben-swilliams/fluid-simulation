@@ -6,8 +6,8 @@
 #pragma kernel FinalizeScan
 #pragma kernel Scatter
 #pragma kernel CalculateDensity
-#pragma kernel CalculateNonPressureAcceleration
-#pragma kernel PredictVelocityAndCalculateD
+#pragma kernel CalculateNonPressureAccelerationAndD
+#pragma kernel PredictVelocity
 #pragma kernel PredictDensityAndCalculateA
 #pragma kernel CalculatePressureSums
 #pragma kernel CalculateNextPressure
@@ -86,7 +86,7 @@ uint numBlockSums;
 #include "Viscosity.hlsl"
 #include "SurfaceTension.hlsl"
 
-void CalculateComponents(uint i, out float3 viscosity, out float3 surfaceTension) {
+void CalculateComponents(uint i, out float3 viscosity, out float3 surfaceTension, out float3 D) {
     int3 gridPosI = GetGridPos(Positions[i]);
 
     for (int x = -1; x < 2; x++) {
@@ -108,18 +108,30 @@ void CalculateComponents(uint i, out float3 viscosity, out float3 surfaceTension
 
                     viscosity += CalculateViscosityContribution(i, j);
                     surfaceTension += CalculateSurfaceTensionContribution(i, j);
+                    D += CalculateDContribution(i, j);
                 }
             }
         }
     }
 }
 
-float3 CalculateAcceleration(uint i) {
-    float3 viscosity, surfaceTension;
+struct AccAndD {
+    float3 acceleration;
+    float3 D;
+};
 
-    CalculateComponents(i, viscosity, surfaceTension);
+AccAndD CalculateAccelerationAndD(uint i) {
+    AccAndD result;
+    float3 viscosity = 0;
+    float3 surfaceTension = 0;
+    float3 D = 0;
 
-    return MouseForce(i) + gravity + viscosity + surfaceTension;
+    CalculateComponents(i, viscosity, surfaceTension, D);
+
+    result.acceleration = MouseForce(i) + gravity + viscosity + surfaceTension;
+    result.D = D;
+
+    return result;
 }
 
 [numthreads(NumThreads, 1, 1)]
@@ -171,18 +183,19 @@ void CalculateDensity(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void CalculateNonPressureAcceleration(uint3 id : SV_DispatchThreadID) {
+void CalculateNonPressureAccelerationAndD(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    IntermediateAccelerations[id.x] = CalculateAcceleration(id.x);
+    AccAndD accAndD = CalculateAccelerationAndD(id.x);
+    IntermediateAccelerations[id.x] = accAndD.acceleration;
+    Dii[id.x] = accAndD.D;
 }
 
 [numthreads(NumThreads, 1, 1)]
-void PredictVelocityAndCalculateD(uint3 id : SV_DispatchThreadID) {
+void PredictVelocity(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     Velocities[id.x] += IntermediateAccelerations[id.x] * deltaTime;
-    Dii[id.x] = CalculateD(id.x);
 }
 
 [numthreads(NumThreads, 1, 1)]
