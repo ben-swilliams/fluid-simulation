@@ -21,8 +21,10 @@ public class Simulate : MonoBehaviour
 
     [Header("External forces")]
     [SerializeField] float initSpeed = 5f;
-    [SerializeField] Vector3 gravity = new Vector3(0, -9.8f, 0);
+    [SerializeField] float gravity = -9.8f;
     [SerializeField] float dampingFactor = 0.9f;
+    [SerializeField] float wavePeriod = 0.1f;
+    [SerializeField] float waveStrength = 1f;
 
     [Header("Pressure")]
     [SerializeField] float restDensity = 1f;
@@ -73,10 +75,19 @@ public class Simulate : MonoBehaviour
 
         if (started)
         {
+            UpdateWaveForce();
             AdvanceFrame();
         }
 
         drawer.DrawFrame();
+    }
+
+    void UpdateWaveForce()
+    {
+
+        float angle = wavePeriod * Time.frameCount;
+        Vector3 gravityForce = new Vector3(waveStrength * Mathf.Cos(angle), gravity, waveStrength * Mathf.Sin(angle));
+        shader.SetValues(new object[] { "gravity", gravityForce });
     }
 
     void AdvanceFrame()
