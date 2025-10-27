@@ -1,4 +1,4 @@
-static const uint SCAN_BLOCK_SIZE = 128;  // Each block processes 128 elements (64 threads × 2 elements)
+static const uint SCAN_BLOCK_SIZE = 512;  // Each block processes 128 elements (64 threads × 2 elements)
 
 groupshared uint temp[SCAN_BLOCK_SIZE];
 RWStructuredBuffer<uint> BlockSums;
