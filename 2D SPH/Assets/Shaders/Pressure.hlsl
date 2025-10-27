@@ -1,5 +1,6 @@
-float3 CalculatePressureForce(uint i) {
+float3 CalculateXSPHPressureForce(uint i) {
     float3 pressureForce = float3(0, 0, 0);
+    float3 xsphCorrection = float3(0, 0, 0);
 
     int3 gridPosI = GetGridPos(Positions[i]);
 
@@ -24,10 +25,11 @@ float3 CalculatePressureForce(uint i) {
                     float pressureJ = Pressures[j] / (Densities[j] * Densities[j]);
 
                     pressureForce += (pressureI + pressureJ) * CubicSplineGrad(offset);
+                    xsphCorrection += CalculateXSPHContribution(i, j);
                 }
             }
         }
     }
 
-    return -particleMass * particleMass * pressureForce;
+    return -particleMass * particleMass * pressureForce + xsphCorrection;
 }
