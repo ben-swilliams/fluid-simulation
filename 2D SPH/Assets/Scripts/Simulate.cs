@@ -97,7 +97,6 @@ public class Simulate : MonoBehaviour
         int stepsThisFrame = 0;
         while (accumulator >= physicsTimeStep && stepsThisFrame < maxStepsPerFrame)
         {
-            shader.SetValues(new object[] { "deltaTime", physicsTimeStep });
             RunPhysicsStep();
             accumulator -= physicsTimeStep;
             stepsThisFrame++;
@@ -206,6 +205,8 @@ public class Simulate : MonoBehaviour
         shader.SetValues(new object[] { "deltaTime", physicsTimeStep * 0.5f });
 
         RunPhysicsStep();
+
+        shader.SetValues(new object[] { "deltaTime", physicsTimeStep });
     }
 
     void BindExternalBuffers()
@@ -253,15 +254,15 @@ public class Simulate : MonoBehaviour
 
     void UpdateVariables()
     {
-        Vector3 containerSize = GetComponentInChildren<Container>().Boundary;
-
         float particleSpacing = spawner.Size + spawner.Spacing;
         float particleMass = particleSpacing * particleSpacing * particleSpacing;
         float kernelConstant = 8f / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
         float gradConstant = 6 * kernelConstant / smoothingRadius;
+        physicsTimeStep = 1f / physicsStepsPerSecond;
 
         object[] keyValues =
         {
+            "deltaTime", physicsTimeStep,
             "smoothingRadius", smoothingRadius,
             "dampingFactor", dampingFactor,
             "gravity", gravity,
@@ -283,6 +284,7 @@ public class Simulate : MonoBehaviour
     void ValidateInspectorProperties()
     {
         simulationSpeed = Mathf.Clamp(simulationSpeed, 0, 1);
+        physicsStepsPerSecond = Mathf.Max(1, physicsStepsPerSecond);
         initSpeed = Mathf.Max(0, initSpeed);
         dampingFactor = Mathf.Max(0, dampingFactor);
         smoothingRadius = Mathf.Max(0.01f, smoothingRadius);
