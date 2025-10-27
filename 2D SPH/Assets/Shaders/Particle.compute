@@ -20,7 +20,7 @@
 Global parameters
 */
 
-static const uint NumThreads = 64;
+static const uint NumThreads = 256;
 
 // Integer buffers
 RWStructuredBuffer<uint> CellCounts;
