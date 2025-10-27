@@ -138,7 +138,7 @@ public class Spawn : MonoBehaviour
     {
         int sizeX = (int)(spawnArea.x / sizeWithSpacing);
         int sizeY = (int)(spawnArea.y / sizeWithSpacing);
-        int sizeZ = (int)(spawnArea.y / sizeWithSpacing);
+        int sizeZ = (int)(spawnArea.z / sizeWithSpacing);
 
         return sizeX * sizeY * sizeZ;
     }

@@ -107,9 +107,6 @@ public class Simulate : MonoBehaviour
         {
             accumulator = 0f;
         }
-
-        // Rebind buffers after physics step since buffers swap during scatter
-        BindExternalBuffers();
     }
 
     void RunPhysicsStep()
