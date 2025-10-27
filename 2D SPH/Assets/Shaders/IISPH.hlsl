@@ -3,7 +3,7 @@ float relaxationFactor;
 
 float3 CalculateDContribution(uint i, uint j) {
     float3 offset = Positions[i] - Positions[j];
-    float d = (particleMass / (Densities[i] * Densities[i])) * CubicSplineGrad(offset);
+    float3 d = (particleMass / (Densities[i] * Densities[i])) * CubicSplineGrad(offset);
     return -deltaTime * deltaTime * d;
 }
 
