@@ -1294,8 +1294,10 @@ MonoBehaviour:
   stepSize: 10
   maxVelocity: 100
   initSpeed: 0
-  gravity: {x: 0, y: -9.8, z: 0}
+  gravity: -9.8
   dampingFactor: 0.95
+  wavePeriod: 0.05
+  waveStrength: 5
   restDensity: 25
   relaxationFactor: 0.5
   solverIterations: 3
