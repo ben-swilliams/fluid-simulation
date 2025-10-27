@@ -253,8 +253,6 @@ public class Simulate : MonoBehaviour
 
     void UpdateVariables()
     {
-        Vector3 containerSize = GetComponentInChildren<Container>().Boundary;
-
         float particleSpacing = spawner.Size + spawner.Spacing;
         float particleMass = particleSpacing * particleSpacing * particleSpacing;
         float kernelConstant = 8f / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
@@ -283,6 +281,8 @@ public class Simulate : MonoBehaviour
     void ValidateInspectorProperties()
     {
         simulationSpeed = Mathf.Clamp(simulationSpeed, 0, 1);
+        physicsStepsPerSecond = Mathf.Max(1, physicsStepsPerSecond);
+        physicsTimeStep = 1f / physicsStepsPerSecond;
         initSpeed = Mathf.Max(0, initSpeed);
         dampingFactor = Mathf.Max(0, dampingFactor);
         smoothingRadius = Mathf.Max(0.01f, smoothingRadius);
