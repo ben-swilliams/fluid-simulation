@@ -5,10 +5,11 @@ float CalculateTaitPressure(uint i) {
     return max(0, B * (pow(Densities[i] / restDensity, stiffness) - 1));
 }
 
-void CalculateWCSPHComponents(uint i, out float3 viscosity, out float3 surfaceTension, out float3 pressure) {
+void CalculateWCSPHComponents(uint i, out float3 viscosity, out float3 surfaceTension, out float3 pressure, out float3 xsph) {
     viscosity = 0;
     surfaceTension = 0;
     pressure = 0;
+    xsph = 0;
 
     int3 gridPosI = GetGridPos(Positions[i]);
 
@@ -32,6 +33,7 @@ void CalculateWCSPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
                     viscosity += CalculateViscosityContribution(i, j);
                     surfaceTension += CalculateSurfaceTensionContribution(i, j);
                     pressure += particleMass * -CalculatePressureContribution(i, j);
+                    xsph += CalculateXSPHContribution(i, j);
                 }
             }
         }
@@ -42,8 +44,10 @@ float3 CalculateAcceleration(int i) {
     float3 viscosity;
     float3 surfaceTension;
     float3 pressure;
+    float3 xsph;
 
-    CalculateWCSPHComponents(i, viscosity, surfaceTension, pressure);
+    CalculateWCSPHComponents(i, viscosity, surfaceTension, pressure, xsph);
 
-    return viscosity + surfaceTension + pressure + gravity;
+    // Divide XSPH by deltaTime to make it a direct velocity update
+    return viscosity + surfaceTension + pressure + gravity + xsph / deltaTime;
 }
