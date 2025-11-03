@@ -29,8 +29,14 @@ public class Simulate : MonoBehaviour
     [Header("Pressure")]
     [SerializeField] Solver pressureSolver = Solver.IISPH;
     [SerializeField] float restDensity = 1f;
+    
+    [Header("IISPH Pressure")]
     [SerializeField] float relaxationFactor = 0.5f;
     [SerializeField] int solverIterations = 4;
+
+    [Header("WCSPH Pressure")]
+    [SerializeField] float errorPercentage = 0.1f;
+    [SerializeField] float stiffness = 7f;
 
     [Header("Viscosity")]
     [SerializeField] float viscosityMultiplier = 1f;
