@@ -23,6 +23,7 @@ public class KernelSet
     public Dictionary<int, string[]> kernelStaticBufferMap;
     public Dictionary<int, string[]> kernelDynamicBufferMap;
 
+    public int[] WCSPHKernels => new int[] { CalculateDensity };
     public int[] PrePressureKernels => new int[] { CalculateDensity, CalculateNonPressureAccelerationAndD, PredictVelocity, PredictDensityAndCalculateA };
     public int[] PressureKernels => new int[] { CalculatePressureSums, CalculateNextPressure, FinalisePressureIteration };
     public int[] PostPressureKernels => new int[] { UpdateVelocities, UpdatePositions };

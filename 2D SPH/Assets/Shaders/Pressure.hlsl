@@ -1,3 +1,12 @@
+float3 CalculatePressureContribution(uint i, uint j) {
+    float3 offset = Positions[i] - Positions[j];
+
+    float pressureI = Pressures[i] / (Densities[i] * Densities[i]);
+    float pressureJ = Pressures[j] / (Densities[j] * Densities[j]);
+
+    return (pressureI + pressureJ) * CubicSplineGrad(offset);
+}
+
 float3 CalculateXSPHPressureForce(uint i) {
     float3 pressureForce = float3(0, 0, 0);
     float3 xsphCorrection = float3(0, 0, 0);
@@ -15,16 +24,9 @@ float3 CalculateXSPHPressureForce(uint i) {
                 uint startIndex = Offsets[hash];
                 uint endIndex = Offsets[hash + 1];
 
-                float pressureI = Pressures[i] / (Densities[i] * Densities[i]);
-
                 for (uint j = startIndex; j < endIndex; j++) {
                     if (i == j) continue;
-
-                    float3 offset = Positions[i] - Positions[j];
-
-                    float pressureJ = Pressures[j] / (Densities[j] * Densities[j]);
-
-                    pressureForce += (pressureI + pressureJ) * CubicSplineGrad(offset);
+                    pressureForce += CalculatePressureContribution(i, j);
                     xsphCorrection += CalculateXSPHContribution(i, j);
                 }
             }
