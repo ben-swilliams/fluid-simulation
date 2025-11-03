@@ -1,5 +1,6 @@
-float CalculateDensity(uint i) {
+float2 CalculateDensities(uint i) {
     float density = 1e-3;
+    float nearDensity = 1e-3;
 
     int3 gridPosI = GetGridPos(Positions[i]);
 
@@ -17,9 +18,11 @@ float CalculateDensity(uint i) {
                 for (uint j = startIndex; j < endIndex; j++) {
                     float3 offset = Positions[j] - Positions[i];
                     density += particleMass * CubicSplineKernel(offset);
+                    nearDensity += particleMass * SpikyKernel(offset);
                 }
             }
         }
     }
-    return density;
+
+    return float2(density, nearDensity);
 }

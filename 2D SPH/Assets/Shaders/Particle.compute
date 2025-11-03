@@ -30,10 +30,10 @@ RWStructuredBuffer<uint> Offsets;
 RWStructuredBuffer<uint> LocalOffsets;
 
 // Float buffers
-RWStructuredBuffer<float> Densities;
 RWStructuredBuffer<float> Aii;
 RWStructuredBuffer<float> IterPressures;
 RWStructuredBuffer<float> Pressures;
+RWStructuredBuffer<float> Densities;
 
 // Vector buffers
 RWStructuredBuffer<float3> Positions;
@@ -53,6 +53,7 @@ float particleMass;
 float smoothingRadius;
 float maxVelocity;
 float restDensity;
+float nearPressureMultiplier;
 
 // Vectors
 float3 containerSize;
@@ -138,7 +139,10 @@ void Scatter(uint3 id : SV_DispatchThreadID) {
 void CalculateDensity(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Densities[id.x] = CalculateDensity(id.x);
+    float2 densities = CalculateDensities(id.x);
+
+    Densities[id.x] = densities.x;
+    Densities[instanceCount + id.x] = densities.y;
 }
 
 [numthreads(NumThreads, 1, 1)]
@@ -165,7 +169,7 @@ void PredictDensityAndCalculateA(uint3 id : SV_DispatchThreadID) {
     float deltaDensity = values.x;
     float a = values.y;
 
-    Densities[instanceCount + id.x] = Densities[id.x] + deltaDensity * deltaTime;
+    Densities[2 * instanceCount + id.x] = Densities[id.x] + deltaDensity * deltaTime;
     Aii[id.x] = a;
 }
 
@@ -181,6 +185,9 @@ void CalculateNextPressure(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     Pressures[id.x] = CalculateNextPressureValue(id.x);
+
+    // Near pressure
+    Pressures[instanceCount + id.x] = Densities[instanceCount + id.x] * nearPressureMultiplier;
 }
 
 [numthreads(NumThreads, 1, 1)]
@@ -195,6 +202,8 @@ void CalculatePressure(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     Pressures[id.x] = CalculateTaitPressure(id.x);
+    // Near pressure
+    Pressures[instanceCount + id.x] = Densities[instanceCount + id.x] * nearPressureMultiplier;
 }
 
 [numthreads(NumThreads, 1, 1)]

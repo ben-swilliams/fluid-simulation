@@ -148,8 +148,8 @@ public class ShaderHelper
 
         velocityBuffer = velocityBufferA;
 
-        // Stores both advanced density and density (density first half, advanced second half)
-        densityBuffer = new ComputeBuffer(instanceCount * 2, sizeof(float));
+        // Stores densities first, then near-density, then advanced density
+        densityBuffer = new ComputeBuffer(instanceCount * 3, sizeof(float));
         allBuffers.Add(densityBuffer);
 
         intermediateAccelerationBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 3);
@@ -164,7 +164,7 @@ public class ShaderHelper
 
         iterPressureBuffer = new ComputeBuffer(instanceCount, sizeof(float));
         allBuffers.Add(iterPressureBuffer);
-        pressureBuffer = new ComputeBuffer(instanceCount, sizeof(float));
+        pressureBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
         allBuffers.Add(pressureBuffer);
 
         MapBuffers();
