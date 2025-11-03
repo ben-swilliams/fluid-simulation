@@ -30,6 +30,7 @@ public class Simulate : MonoBehaviour
     [Header("Pressure")]
     [SerializeField] Solver pressureSolver = Solver.IISPH;
     [SerializeField] float restDensity = 1f;
+    [SerializeField] float nearPressureMultiplier = 1f;
     
     [Header("IISPH Pressure")]
     [SerializeField] float relaxationFactor = 0.5f;
@@ -312,7 +313,8 @@ public class Simulate : MonoBehaviour
             "gradConstant", gradConstant,
             "maxVelocity", maxVelocity,
             "stiffness", stiffness,
-            "B", B
+            "B", B,
+            "nearPressureMultiplier", nearPressureMultiplier
         };
 
         shader.SetValues(keyValues);

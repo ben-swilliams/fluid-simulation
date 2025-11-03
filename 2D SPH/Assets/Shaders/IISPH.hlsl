@@ -109,7 +109,7 @@ float CalculateNextPressureValue(uint i) {
     }
 
     float nextPressure = (1 - relaxationFactor) * IterPressures[i] + 
-                        (relaxationFactor / Aii[i]) * (restDensity - Densities[instanceCount + i] - particleMass * pressureSum);
+                        (relaxationFactor / Aii[i]) * (restDensity - Densities[2 * instanceCount + i] - particleMass * pressureSum);
 
     // return nextPressure;
     return max(0, nextPressure);

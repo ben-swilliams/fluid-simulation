@@ -33,3 +33,23 @@ float3 CubicSplineGrad(float3 offset) {
 
     return gradConstant * coeff * dir;
 }
+
+float SpikyKernel(float3 offset) {
+    float r = length(offset);
+    float q = r / smoothingRadius;
+
+    return pow(1 - q, 3);
+}
+
+float3 SpikyKernelGrad(float3 offset) {
+    float r = length(offset);
+    float q = r / smoothingRadius;
+
+    if (q < 1e-7 || r > smoothingRadius) return float3(0, 0, 0);
+
+    float3 dir = offset / r;
+
+    float coeff = (1 - q) * (1 - q);
+
+    return coeff * dir;
+}
