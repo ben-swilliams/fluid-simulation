@@ -212,7 +212,7 @@ public class Simulate : MonoBehaviour
         InitialiseVariables();
         UpdateBoundary();
         BindExternalBuffers();
-        InitialiseLeapFrogVelocities();
+        // InitialiseLeapFrogVelocities();
 
         started = true;
     }
@@ -276,8 +276,8 @@ public class Simulate : MonoBehaviour
         float particleMass = particleSpacing * particleSpacing * particleSpacing;
         float kernelConstant = 8f / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
         float gradConstant = 6 * kernelConstant / smoothingRadius;
-        float speedOfSound = maxVelocity / densityError;
-        float B = restDensity * speedOfSound / stiffness;
+        float speedOfSound = maxVelocity / Mathf.Sqrt(densityError);
+        float B = restDensity * speedOfSound * speedOfSound / stiffness;
         physicsTimeStep = 1f / physicsStepsPerSecond;
 
         object[] keyValues =
