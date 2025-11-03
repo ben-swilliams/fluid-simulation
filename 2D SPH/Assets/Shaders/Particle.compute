@@ -88,6 +88,7 @@ uint numBlockSums;
 #include "Viscosity.hlsl"
 #include "SurfaceTension.hlsl"
 #include "IISPH.hlsl"
+#include "WCSPH.hlsl"
 
 /*
 SPATIAL HASHING

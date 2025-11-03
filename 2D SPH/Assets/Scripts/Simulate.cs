@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -35,7 +36,7 @@ public class Simulate : MonoBehaviour
     [SerializeField] int solverIterations = 4;
 
     [Header("WCSPH Pressure")]
-    [SerializeField] float errorPercentage = 0.1f;
+    [SerializeField, Range(0.001f, 0.1f)] float densityError = 0.01f;
     [SerializeField] float stiffness = 7f;
 
     [Header("Viscosity")]
@@ -142,7 +143,7 @@ public class Simulate : MonoBehaviour
 
     void RunWCSPHStep()
     {
-
+        shader.Dispatch(kernels.WCSPHKernels);
     }
 
     void ScanAndScatter()
@@ -275,6 +276,8 @@ public class Simulate : MonoBehaviour
         float particleMass = particleSpacing * particleSpacing * particleSpacing;
         float kernelConstant = 8f / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
         float gradConstant = 6 * kernelConstant / smoothingRadius;
+        float speedOfSound = maxVelocity / densityError;
+        float B = restDensity * speedOfSound / stiffness;
         physicsTimeStep = 1f / physicsStepsPerSecond;
 
         object[] keyValues =
@@ -291,7 +294,9 @@ public class Simulate : MonoBehaviour
             "velocitySmoothing", velocitySmoothing,
             "kernelConstant", kernelConstant,
             "gradConstant", gradConstant,
-            "maxVelocity", maxVelocity
+            "maxVelocity", maxVelocity,
+            "stiffness", stiffness,
+            "B", B
         };
 
         shader.SetValues(keyValues);

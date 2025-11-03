@@ -1,12 +1,11 @@
+float B;
 float stiffness;
 
-void CalculateTaitPressure(uint i) {
-    float B = 1;
-
+float CalculateTaitPressure(uint i) {
     return B * (pow(Densities[i] / restDensity, stiffness) - 1);
 }
 
-void CalculateWCSPHComponents(out float3 viscosity, out float3 surfaceTension, out float3 pressure) {
+void CalculateWCSPHComponents(uint i, out float3 viscosity, out float3 surfaceTension, out float3 pressure) {
     viscosity = 0;
     surfaceTension = 0;
     pressure = 0;
@@ -44,7 +43,7 @@ float3 CalculateAcceleration(int i) {
     float3 surfaceTension;
     float3 pressure;
 
-    CalculateWCSPHComponents(viscosity, surfaceTension, pressure);
+    CalculateWCSPHComponents(i, viscosity, surfaceTension, pressure);
 
     return viscosity + surfaceTension + pressure + gravity;
 }
