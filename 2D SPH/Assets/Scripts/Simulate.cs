@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 
 public class Simulate : MonoBehaviour
 {
-
+    private enum Solver { WCSPH, IISPH };
     /*
     Inspector properties
     */
@@ -27,6 +27,7 @@ public class Simulate : MonoBehaviour
     [SerializeField] float waveStrength = 1f;
 
     [Header("Pressure")]
+    [SerializeField] Solver pressureSolver = Solver.IISPH;
     [SerializeField] float restDensity = 1f;
     [SerializeField] float relaxationFactor = 0.5f;
     [SerializeField] int solverIterations = 4;
