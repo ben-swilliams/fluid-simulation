@@ -117,6 +117,7 @@ public class Simulate : MonoBehaviour
         }
     }
 
+    int physicsStepCounter = 0;
     void RunPhysicsStep()
     {
         shader.BindDynamicBuffers(kernels);
@@ -126,7 +127,22 @@ public class Simulate : MonoBehaviour
         if (pressureSolver == Solver.IISPH)
             RunIISPHStep();
         if (pressureSolver == Solver.WCSPH)
+        {
             RunWCSPHStep();
+
+            // Debug: Print densities for first few steps
+            if (physicsStepCounter < 3)
+            {
+                float[] densities = new float[Mathf.Min(10, instanceCount)];
+                shader.Densities.GetData(densities, 0, 0, densities.Length);
+                Debug.Log($"[Step {physicsStepCounter}] First 10 densities: {string.Join(", ", System.Array.ConvertAll(densities, d => d.ToString("F2")))}");
+
+                float[] pressures = new float[Mathf.Min(10, instanceCount)];
+                shader.Pressures.GetData(pressures, 0, 0, pressures.Length);
+                Debug.Log($"[Step {physicsStepCounter}] First 10 pressures: {string.Join(", ", System.Array.ConvertAll(pressures, p => p.ToString("F2")))}");
+            }
+            physicsStepCounter++;
+        }
     }
 
     void RunIISPHStep()
@@ -212,7 +228,7 @@ public class Simulate : MonoBehaviour
         InitialiseVariables();
         UpdateBoundary();
         BindExternalBuffers();
-        // InitialiseLeapFrogVelocities();
+        InitialiseLeapFrogVelocities();
 
         started = true;
     }
