@@ -1,6 +1,5 @@
 using UnityEngine;
 
-[RequireComponent(typeof(LineRenderer))]
 class MouseForce : MonoBehaviour
 {
     /*
@@ -8,45 +7,47 @@ class MouseForce : MonoBehaviour
     */
     [Header("Force settings")]
     [SerializeField] float power = 10f;
+    [SerializeField] float radius = 1f;
+
+    GameObject sphere;
 
     /*
     Private properties
     */
-    LineRenderer lr;
     Vector3 mousePos;
-    float radius = 5f;
+    float distance = 0f;
     float scrollSpeed = 10f;
-    int segments = 100;
 
     bool repulse = false;
 
     void Start()
     {
-        // lr = GetComponent<LineRenderer>();
-        
-        // Draw on top of particles
-        // lr.material.renderQueue = 4000;
+        sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        sphere.SetActive(true);
     }
 
     void Update()
     {
         mousePos = FindClickPos();
-        // TODO: Raycast mouse force
-        // HandleScroll();
-        // HandleClick();
-        // DrawRadius();
+        HandleScroll();
+        HandleClick();
     }
 
     void OnValidate()
     {
         power = Mathf.Max(0, power);
+
+        if (!Application.isPlaying || sphere == null) return;
+
+        sphere.transform.localScale = Vector3.one * radius;
     }
 
     void HandleScroll()
     {
         float scroll = UnityEngine.InputSystem.Mouse.current.scroll.ReadValue().y;
-        radius += scroll * scrollSpeed * Time.deltaTime;
-        radius = Mathf.Max(0, radius);
+        distance += scroll * scrollSpeed * Time.deltaTime;
+        distance = Mathf.Max(0, distance);
+        sphere.transform.position = mousePos;
     }
 
     void HandleClick()
@@ -54,7 +55,8 @@ class MouseForce : MonoBehaviour
         float signedPower = repulse ? -1 * power : power;
         if (UnityEngine.InputSystem.Mouse.current.leftButton.isPressed)
         {
-            GetComponent<Simulate>().UpdateMouseForce(mousePos, radius, signedPower);
+            sphere.transform.position = mousePos;
+            GetComponent<Simulate>().UpdateMouseForce(mousePos, radius * 0.5f, signedPower);
         }
         else
         {
@@ -65,27 +67,10 @@ class MouseForce : MonoBehaviour
 
     Vector3 FindClickPos()
     {
-        Vector3 pos = Camera.main.ScreenToWorldPoint(UnityEngine.InputSystem.Mouse.current.position.ReadValue());
-        pos.z = 0;
+        Vector3 mouse = UnityEngine.InputSystem.Mouse.current.position.ReadValue();
+        mouse.z = distance;
+        Vector3 pos = Camera.main.ScreenToWorldPoint(mouse);
 
         return pos;
-    }
-
-    void DrawRadius()
-    {
-        lr.startColor = repulse ? Color.black : Color.white;
-        lr.endColor = repulse ? Color.black : Color.white;
-
-        Vector3[] positions = new Vector3[segments];
-        float angleStep = 2 * Mathf.PI / segments;
-
-        for (int i = 0; i < segments; i++)
-        {
-            float angle = i * angleStep;
-            positions[i] = mousePos + new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, 0);
-        }
-
-        lr.positionCount = segments;
-        lr.SetPositions(positions);
     }
 }

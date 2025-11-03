@@ -1287,7 +1287,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
   computeShader: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
-  physicsStepsPerSecond: 750
+  physicsStepsPerSecond: 300
   simulationSpeed: 1
   smoothingRadius: 0.05
   velocitySmoothing: 0.1
@@ -1298,8 +1298,9 @@ MonoBehaviour:
   dampingFactor: 0.95
   wavePeriod: 0.05
   waveStrength: 0
-  pressureSolver: 0
+  pressureSolver: 1
   restDensity: 25
+  nearPressureMultiplier: 1
   relaxationFactor: 0.5
   solverIterations: 3
   densityError: 0.04
@@ -1373,6 +1374,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MouseForce
   power: 10
+  radius: 1
 --- !u!120 &1274155416
 LineRenderer:
   serializedVersion: 2
