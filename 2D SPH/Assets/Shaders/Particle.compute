@@ -12,8 +12,10 @@
 #pragma kernel CalculatePressureSums
 #pragma kernel CalculateNextPressure
 #pragma kernel FinalisePressureIteration
+#pragma kernel CalculatePressure
 
-#pragma kernel UpdateVelocities
+#pragma kernel UpdateIISPHVelocities
+#pragma kernel UpdateWCSPHVelocities
 #pragma kernel UpdatePositions
 
 /*
@@ -50,6 +52,7 @@ float deltaTime;
 float particleMass;
 float smoothingRadius;
 float maxVelocity;
+float restDensity;
 
 // Vectors
 float3 containerSize;
@@ -79,61 +82,17 @@ uint numBlockSums;
 #include "Scan.hlsl"
 #include "Scatter.hlsl"
 #include "External.hlsl"
-#include "IISPH.hlsl"
 #include "Density.hlsl"
 #include "XSPH.hlsl"
 #include "Pressure.hlsl"
 #include "Viscosity.hlsl"
 #include "SurfaceTension.hlsl"
+#include "IISPH.hlsl"
+#include "WCSPH.hlsl"
 
-void CalculateComponents(uint i, out float3 viscosity, out float3 surfaceTension, out float3 D) {
-    int3 gridPosI = GetGridPos(Positions[i]);
-
-    for (int x = -1; x < 2; x++) {
-        for (int y = -1; y < 2; y++) {
-            for (int z = -1; z < 2; z++) {
-                int3 gridPosJ = gridPosI + int3(x, y, z);
-                if (!IsInBounds(gridPosJ)) continue;
-
-                uint hash = CalculateHashFromGrid(gridPosJ);
-
-                uint startIndex = Offsets[hash];
-                uint endIndex = Offsets[hash + 1];
-
-                for (uint j = startIndex; j < endIndex; j++) {
-                    if (i == j) continue;
-
-                    float massOverDensity = particleMass / Densities[j];
-                    float3 offset = Positions[i] - Positions[j];
-
-                    viscosity += CalculateViscosityContribution(i, j);
-                    surfaceTension += CalculateSurfaceTensionContribution(i, j);
-                    D += CalculateDContribution(i, j);
-                }
-            }
-        }
-    }
-}
-
-struct AccAndD {
-    float3 acceleration;
-    float3 D;
-};
-
-AccAndD CalculateAccelerationAndD(uint i) {
-    AccAndD result;
-    float3 viscosity = 0;
-    float3 surfaceTension = 0;
-    float3 D = 0;
-
-    CalculateComponents(i, viscosity, surfaceTension, D);
-
-    result.acceleration = MouseForce(i) + gravity + viscosity + surfaceTension;
-    result.D = D;
-
-    return result;
-}
-
+/*
+SPATIAL HASHING
+*/
 [numthreads(NumThreads, 1, 1)]
 void ClearCounts(uint id : SV_DispatchThreadID) {
     if (id.x >= tableSize) return;
@@ -232,10 +191,28 @@ void FinalisePressureIteration(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void UpdateVelocities(uint3 id : SV_DispatchThreadID) {
+void CalculatePressure(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Pressures[id.x] = CalculateTaitPressure(id.x);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void UpdateIISPHVelocities(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     Velocities[id.x] += CalculateXSPHPressureForce(id.x) * deltaTime / particleMass;
+    float mag = length(Velocities[id.x]);
+    if (mag > maxVelocity) {
+        Velocities[id.x] = maxVelocity * Velocities[id.x] / mag;
+    }
+}
+
+[numthreads(NumThreads, 1, 1)]
+void UpdateWCSPHVelocities(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Velocities[id.x] += CalculateAcceleration(id.x) * deltaTime;
     float mag = length(Velocities[id.x]);
     if (mag > maxVelocity) {
         Velocities[id.x] = maxVelocity * Velocities[id.x] / mag;

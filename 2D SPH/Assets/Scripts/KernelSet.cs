@@ -17,15 +17,18 @@ public class KernelSet
     public int CalculatePressureSums;
     public int CalculateNextPressure;
     public int FinalisePressureIteration;
-    public int UpdateVelocities;
+    public int CalculatePressure;
+    public int UpdateIISPHVelocities;
+    public int UpdateWCSPHVelocities;
     public int UpdatePositions;
 
     public Dictionary<int, string[]> kernelStaticBufferMap;
     public Dictionary<int, string[]> kernelDynamicBufferMap;
 
+    public int[] WCSPHKernels => new int[] { CalculateDensity, CalculatePressure, UpdateWCSPHVelocities, UpdatePositions };
     public int[] PrePressureKernels => new int[] { CalculateDensity, CalculateNonPressureAccelerationAndD, PredictVelocity, PredictDensityAndCalculateA };
     public int[] PressureKernels => new int[] { CalculatePressureSums, CalculateNextPressure, FinalisePressureIteration };
-    public int[] PostPressureKernels => new int[] { UpdateVelocities, UpdatePositions };
+    public int[] PostPressureKernels => new int[] { UpdateIISPHVelocities, UpdatePositions };
 
     public KernelSet(ComputeShader shader)
     {
@@ -47,7 +50,9 @@ public class KernelSet
             { CalculatePressureSums, new[] { "Offsets", "Densities", "Dii", "Aii", "DPSum", "IterPressures" } },
             { CalculateNextPressure, new[] { "Offsets", "Densities", "Dii", "Aii", "DPSum", "IterPressures", "Pressures" } },
             { FinalisePressureIteration, new[] { "Pressures", "IterPressures" } },
-            { UpdateVelocities, new[] { "Densities", "Offsets", "Pressures" } },
+            { CalculatePressure, new[] { "Pressures", "Densities" }},
+            { UpdateIISPHVelocities, new[] { "Densities", "Offsets", "Pressures" } },
+            { UpdateWCSPHVelocities, new[] { "Densities", "Offsets", "Pressures" }},
             { UpdatePositions, new[] { "Densities", "Offsets" } }
         };
 
@@ -61,7 +66,8 @@ public class KernelSet
             { PredictDensityAndCalculateA, new[] { "Positions", "Velocities" } },
             { CalculatePressureSums, new[] { "Positions" } },
             { CalculateNextPressure, new[] { "Positions" } },
-            { UpdateVelocities, new[] { "Velocities", "Positions" } },
+            { UpdateIISPHVelocities, new[] { "Velocities", "Positions" } },
+            { UpdateWCSPHVelocities, new[] { "Velocities", "Positions" } },
             { UpdatePositions, new[] { "Velocities", "Positions" } }
         };
     }
@@ -82,7 +88,9 @@ public class KernelSet
         CalculatePressureSums = shader.FindKernel("CalculatePressureSums");
         CalculateNextPressure = shader.FindKernel("CalculateNextPressure");
         FinalisePressureIteration = shader.FindKernel("FinalisePressureIteration");
-        UpdateVelocities = shader.FindKernel("UpdateVelocities");
+        CalculatePressure = shader.FindKernel("CalculatePressure");
+        UpdateIISPHVelocities = shader.FindKernel("UpdateIISPHVelocities");
+        UpdateWCSPHVelocities = shader.FindKernel("UpdateWCSPHVelocities");
         UpdatePositions = shader.FindKernel("UpdatePositions");
     }
 }

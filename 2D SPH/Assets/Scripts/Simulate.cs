@@ -1,10 +1,11 @@
 using System;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class Simulate : MonoBehaviour
 {
-
+    private enum Solver { WCSPH, IISPH };
     /*
     Inspector properties
     */
@@ -27,9 +28,16 @@ public class Simulate : MonoBehaviour
     [SerializeField] float waveStrength = 1f;
 
     [Header("Pressure")]
+    [SerializeField] Solver pressureSolver = Solver.IISPH;
     [SerializeField] float restDensity = 1f;
+    
+    [Header("IISPH Pressure")]
     [SerializeField] float relaxationFactor = 0.5f;
     [SerializeField] int solverIterations = 4;
+
+    [Header("WCSPH Pressure")]
+    [SerializeField, Range(0.001f, 0.1f)] float densityError = 0.01f;
+    [SerializeField] float stiffness = 7f;
 
     [Header("Viscosity")]
     [SerializeField] float viscosityMultiplier = 1f;
@@ -109,12 +117,36 @@ public class Simulate : MonoBehaviour
         }
     }
 
+    int physicsStepCounter = 0;
     void RunPhysicsStep()
     {
         shader.BindDynamicBuffers(kernels);
 
         ScanAndScatter();
 
+        if (pressureSolver == Solver.IISPH)
+            RunIISPHStep();
+        if (pressureSolver == Solver.WCSPH)
+        {
+            RunWCSPHStep();
+
+            // Debug: Print densities for first few steps
+            if (physicsStepCounter < 3)
+            {
+                float[] densities = new float[Mathf.Min(10, instanceCount)];
+                shader.Densities.GetData(densities, 0, 0, densities.Length);
+                Debug.Log($"[Step {physicsStepCounter}] First 10 densities: {string.Join(", ", System.Array.ConvertAll(densities, d => d.ToString("F2")))}");
+
+                float[] pressures = new float[Mathf.Min(10, instanceCount)];
+                shader.Pressures.GetData(pressures, 0, 0, pressures.Length);
+                Debug.Log($"[Step {physicsStepCounter}] First 10 pressures: {string.Join(", ", System.Array.ConvertAll(pressures, p => p.ToString("F2")))}");
+            }
+            physicsStepCounter++;
+        }
+    }
+
+    void RunIISPHStep()
+    {
         shader.Dispatch(kernels.PrePressureKernels);
 
         for (int l = 0; l < solverIterations; l++)
@@ -123,6 +155,11 @@ public class Simulate : MonoBehaviour
         }
 
         shader.Dispatch(kernels.PostPressureKernels);
+    }
+
+    void RunWCSPHStep()
+    {
+        shader.Dispatch(kernels.WCSPHKernels);
     }
 
     void ScanAndScatter()
@@ -255,6 +292,8 @@ public class Simulate : MonoBehaviour
         float particleMass = particleSpacing * particleSpacing * particleSpacing;
         float kernelConstant = 8f / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
         float gradConstant = 6 * kernelConstant / smoothingRadius;
+        float speedOfSound = maxVelocity / Mathf.Sqrt(densityError);
+        float B = restDensity * speedOfSound * speedOfSound / stiffness;
         physicsTimeStep = 1f / physicsStepsPerSecond;
 
         object[] keyValues =
@@ -271,7 +310,9 @@ public class Simulate : MonoBehaviour
             "velocitySmoothing", velocitySmoothing,
             "kernelConstant", kernelConstant,
             "gradConstant", gradConstant,
-            "maxVelocity", maxVelocity
+            "maxVelocity", maxVelocity,
+            "stiffness", stiffness,
+            "B", B
         };
 
         shader.SetValues(keyValues);
