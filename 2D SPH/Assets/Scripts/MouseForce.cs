@@ -5,6 +5,8 @@ class MouseForce : MonoBehaviour
     /*
     Inspector properties
     */
+    [SerializeField] Material targetMaterial;
+
     [Header("Force settings")]
     [SerializeField] float power = 10f;
     [SerializeField] float radius = 1f;
@@ -23,6 +25,7 @@ class MouseForce : MonoBehaviour
     void Start()
     {
         sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        sphere.GetComponent<Renderer>().material = targetMaterial;
         sphere.SetActive(true);
     }
 
@@ -60,7 +63,13 @@ class MouseForce : MonoBehaviour
         }
         else
         {
-            if (UnityEngine.InputSystem.Mouse.current.rightButton.wasPressedThisFrame) repulse = !repulse;
+            if (UnityEngine.InputSystem.Mouse.current.rightButton.wasPressedThisFrame)
+            {
+                repulse = !repulse;
+                Color sphereColor = repulse ? Color.black : Color.white;
+                sphereColor.a = 0.3f;
+                sphere.GetComponent<Renderer>().material.color = sphereColor;
+            }
             GetComponent<Simulate>().UpdateMouseForce(Vector3.zero, 0, 0);
         }
     }
