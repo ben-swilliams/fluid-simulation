@@ -116,6 +116,14 @@ public class Simulate : MonoBehaviour
 
         ScanAndScatter();
 
+        if (pressureSolver == Solver.IISPH)
+            RunIISPHStep();
+        if (pressureSolver == Solver.WCSPH)
+            RunWCSPHStep();
+    }
+
+    void RunIISPHStep()
+    {
         shader.Dispatch(kernels.PrePressureKernels);
 
         for (int l = 0; l < solverIterations; l++)
@@ -124,6 +132,11 @@ public class Simulate : MonoBehaviour
         }
 
         shader.Dispatch(kernels.PostPressureKernels);
+    }
+
+    void RunWCSPHStep()
+    {
+
     }
 
     void ScanAndScatter()
