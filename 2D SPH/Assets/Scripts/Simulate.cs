@@ -84,7 +84,6 @@ public class Simulate : MonoBehaviour
 
         if (started)
         {
-            UpdateWaveForce();
             AdvanceFrame();
         }
 
@@ -101,7 +100,8 @@ public class Simulate : MonoBehaviour
 
     void AdvanceFrame()
     {
-        accumulator += Time.deltaTime * simulationSpeed;
+        UpdateWaveForce();
+        accumulator += Time.deltaTime;
 
         int stepsThisFrame = 0;
         while (accumulator >= physicsTimeStep && stepsThisFrame < maxStepsPerFrame)
@@ -285,7 +285,7 @@ public class Simulate : MonoBehaviour
 
         object[] keyValues =
         {
-            "deltaTime", physicsTimeStep,
+            "deltaTime", physicsTimeStep * simulationSpeed,
             "smoothingRadius", smoothingRadius,
             "dampingFactor", dampingFactor,
             "gravity", gravity,
@@ -332,23 +332,38 @@ public class Simulate : MonoBehaviour
                 SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
 
-        if (UnityEngine.InputSystem.Keyboard.current.downArrowKey.wasPressedThisFrame)
-            simulationSpeed = Mathf.Max(0, simulationSpeed - 0.1f);
-
-        if (UnityEngine.InputSystem.Keyboard.current.upArrowKey.wasPressedThisFrame)
-            simulationSpeed = Mathf.Min(1, simulationSpeed + 0.1f);
-
         if (UnityEngine.InputSystem.Keyboard.current.rightArrowKey.wasPressedThisFrame)
         {
             if (simulationSpeed != 0) return;
             simulationSpeed = 1;
+            UpdateVariables();
             for (int _ = 0; _ < stepSize; _++) AdvanceFrame();
             simulationSpeed = 0;
+            UpdateVariables();
+        }
+
+        HandleSpeedControls();
+    }
+
+    void HandleSpeedControls()
+    {
+        if (UnityEngine.InputSystem.Keyboard.current.downArrowKey.wasPressedThisFrame)
+        {
+            simulationSpeed = Mathf.Max(0, simulationSpeed - 0.1f);
+            UpdateVariables();
+        }
+
+        if (UnityEngine.InputSystem.Keyboard.current.upArrowKey.wasPressedThisFrame)
+        {
+            simulationSpeed = Mathf.Min(1, simulationSpeed + 0.1f);
+            UpdateVariables();
         }
 
         if (UnityEngine.InputSystem.Keyboard.current.enterKey.wasPressedThisFrame)
+        {
             simulationSpeed = simulationSpeed == 1 ? 0 : 1;
-
+            UpdateVariables();
+        }
     }
 
     public void UpdateMouseForce(Vector3 origin, float radius, float power)
