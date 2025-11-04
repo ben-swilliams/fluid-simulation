@@ -84,7 +84,6 @@ public class Simulate : MonoBehaviour
 
         if (started)
         {
-            UpdateWaveForce();
             AdvanceFrame();
         }
 
@@ -101,6 +100,7 @@ public class Simulate : MonoBehaviour
 
     void AdvanceFrame()
     {
+        UpdateWaveForce();
         accumulator += Time.deltaTime;
 
         int stepsThisFrame = 0;
@@ -336,8 +336,10 @@ public class Simulate : MonoBehaviour
         {
             if (simulationSpeed != 0) return;
             simulationSpeed = 1;
+            UpdateVariables();
             for (int _ = 0; _ < stepSize; _++) AdvanceFrame();
             simulationSpeed = 0;
+            UpdateVariables();
         }
 
         HandleSpeedControls();
