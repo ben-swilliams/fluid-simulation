@@ -49,5 +49,5 @@ float3 CalculateAcceleration(int i) {
     CalculateWCSPHComponents(i, viscosity, surfaceTension, pressure, xsph);
 
     // Divide XSPH by deltaTime to make it a direct velocity update
-    return viscosity + surfaceTension + pressure + gravity + xsph / deltaTime;
+    return MouseForce(i) + viscosity + surfaceTension + pressure + gravity + xsph / deltaTime;
 }
