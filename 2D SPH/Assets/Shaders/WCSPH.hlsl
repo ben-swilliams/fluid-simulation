@@ -41,6 +41,7 @@ void CalculateWCSPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
 }
 
 float3 CalculateAcceleration(int i) {
+    if (deltaTime == 0) return 0;
     float3 viscosity;
     float3 surfaceTension;
     float3 pressure;
