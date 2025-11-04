@@ -32,7 +32,7 @@ void CalculateWCSPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
 
                     viscosity += CalculateViscosityContribution(i, j);
                     surfaceTension += CalculateSurfaceTensionContribution(i, j);
-                    pressure += particleMass * -CalculatePressureContribution(i, j);
+                    pressure += CalculatePressureContribution(i, j);
                     xsph += CalculateXSPHContribution(i, j);
                 }
             }
@@ -49,5 +49,5 @@ float3 CalculateAcceleration(int i) {
     CalculateWCSPHComponents(i, viscosity, surfaceTension, pressure, xsph);
 
     // Divide XSPH by deltaTime to make it a direct velocity update
-    return viscosity + surfaceTension + pressure + gravity + xsph / deltaTime;
+    return MouseForce(i) + viscosity + surfaceTension + pressure + gravity + xsph / deltaTime;
 }

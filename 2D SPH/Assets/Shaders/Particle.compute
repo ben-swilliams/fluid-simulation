@@ -53,7 +53,6 @@ float particleMass;
 float smoothingRadius;
 float maxVelocity;
 float restDensity;
-float nearPressureMultiplier;
 
 // Vectors
 float3 containerSize;
@@ -185,9 +184,6 @@ void CalculateNextPressure(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     Pressures[id.x] = CalculateNextPressureValue(id.x);
-
-    // Near pressure
-    Pressures[instanceCount + id.x] = Densities[instanceCount + id.x] * nearPressureMultiplier;
 }
 
 [numthreads(NumThreads, 1, 1)]
@@ -202,8 +198,6 @@ void CalculatePressure(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     Pressures[id.x] = CalculateTaitPressure(id.x);
-    // Near pressure
-    Pressures[instanceCount + id.x] = Densities[instanceCount + id.x] * nearPressureMultiplier;
 }
 
 [numthreads(NumThreads, 1, 1)]
