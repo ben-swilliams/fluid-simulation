@@ -164,7 +164,7 @@ public class ShaderHelper
 
         iterPressureBuffer = new ComputeBuffer(instanceCount, sizeof(float));
         allBuffers.Add(iterPressureBuffer);
-        pressureBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 2);
+        pressureBuffer = new ComputeBuffer(instanceCount, sizeof(float));
         allBuffers.Add(pressureBuffer);
 
         MapBuffers();

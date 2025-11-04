@@ -193,5 +193,5 @@ float3 CalculateXSPHPressureForce(uint i) {
         }
     }
 
-    return -particleMass * particleMass * pressureForce + xsphCorrection;
+    return particleMass * pressureForce + xsphCorrection;
 }

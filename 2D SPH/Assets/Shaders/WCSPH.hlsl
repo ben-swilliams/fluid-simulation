@@ -32,7 +32,7 @@ void CalculateWCSPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
 
                     viscosity += CalculateViscosityContribution(i, j);
                     surfaceTension += CalculateSurfaceTensionContribution(i, j);
-                    pressure += particleMass * -CalculatePressureContribution(i, j);
+                    pressure += CalculatePressureContribution(i, j);
                     xsph += CalculateXSPHContribution(i, j);
                 }
             }
