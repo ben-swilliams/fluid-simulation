@@ -332,6 +332,19 @@ public class Simulate : MonoBehaviour
                 SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
 
+        if (UnityEngine.InputSystem.Keyboard.current.rightArrowKey.wasPressedThisFrame)
+        {
+            if (simulationSpeed != 0) return;
+            simulationSpeed = 1;
+            for (int _ = 0; _ < stepSize; _++) AdvanceFrame();
+            simulationSpeed = 0;
+        }
+
+        HandleSpeedControls();
+    }
+
+    void HandleSpeedControls()
+    {
         if (UnityEngine.InputSystem.Keyboard.current.downArrowKey.wasPressedThisFrame)
         {
             simulationSpeed = Mathf.Max(0, simulationSpeed - 0.1f);
@@ -344,20 +357,11 @@ public class Simulate : MonoBehaviour
             UpdateVariables();
         }
 
-        if (UnityEngine.InputSystem.Keyboard.current.rightArrowKey.wasPressedThisFrame)
-        {
-            if (simulationSpeed != 0) return;
-            simulationSpeed = 1;
-            for (int _ = 0; _ < stepSize; _++) AdvanceFrame();
-            simulationSpeed = 0;
-        }
-
         if (UnityEngine.InputSystem.Keyboard.current.enterKey.wasPressedThisFrame)
         {
             simulationSpeed = simulationSpeed == 1 ? 0 : 1;
             UpdateVariables();
         }
-
     }
 
     public void UpdateMouseForce(Vector3 origin, float radius, float power)
