@@ -101,7 +101,7 @@ public class Simulate : MonoBehaviour
 
     void AdvanceFrame()
     {
-        accumulator += Time.deltaTime * simulationSpeed;
+        accumulator += Time.deltaTime;
 
         int stepsThisFrame = 0;
         while (accumulator >= physicsTimeStep && stepsThisFrame < maxStepsPerFrame)
@@ -285,7 +285,7 @@ public class Simulate : MonoBehaviour
 
         object[] keyValues =
         {
-            "deltaTime", physicsTimeStep,
+            "deltaTime", physicsTimeStep * simulationSpeed,
             "smoothingRadius", smoothingRadius,
             "dampingFactor", dampingFactor,
             "gravity", gravity,
@@ -333,10 +333,16 @@ public class Simulate : MonoBehaviour
         }
 
         if (UnityEngine.InputSystem.Keyboard.current.downArrowKey.wasPressedThisFrame)
+        {
             simulationSpeed = Mathf.Max(0, simulationSpeed - 0.1f);
+            UpdateVariables();
+        }
 
         if (UnityEngine.InputSystem.Keyboard.current.upArrowKey.wasPressedThisFrame)
+        {
             simulationSpeed = Mathf.Min(1, simulationSpeed + 0.1f);
+            UpdateVariables();
+        }
 
         if (UnityEngine.InputSystem.Keyboard.current.rightArrowKey.wasPressedThisFrame)
         {
@@ -347,7 +353,10 @@ public class Simulate : MonoBehaviour
         }
 
         if (UnityEngine.InputSystem.Keyboard.current.enterKey.wasPressedThisFrame)
+        {
             simulationSpeed = simulationSpeed == 1 ? 0 : 1;
+            UpdateVariables();
+        }
 
     }
 
