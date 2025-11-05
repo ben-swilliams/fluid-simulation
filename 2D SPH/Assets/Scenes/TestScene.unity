@@ -1296,7 +1296,7 @@ MonoBehaviour:
   initSpeed: 0
   gravity: -9.8
   dampingFactor: 0.95
-  wavePeriod: 0.05
+  wavePeriod: 1
   waveStrength: 0
   pressureSolver: 1
   restDensity: 25
