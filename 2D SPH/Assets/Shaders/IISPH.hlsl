@@ -77,7 +77,7 @@ float3 CalculatePressureSum(uint i) {
 }
 
 float CalculateNextPressureValue(uint i) {
-    if (abs(Aii[i]) < 1e-7) return 0;
+    if (abs(Aii[i]) < Epsilon) return 0;
     float pressureSum = 0;
     
     int3 gridPosI = GetGridPos(Positions[i]);
@@ -111,7 +111,6 @@ float CalculateNextPressureValue(uint i) {
     float nextPressure = (1 - relaxationFactor) * IterPressures[i] + 
                         (relaxationFactor / Aii[i]) * (restDensity - Densities[2 * instanceCount + i] - particleMass * pressureSum);
 
-    // return nextPressure;
     return max(0, nextPressure);
 }
 

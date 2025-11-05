@@ -7,7 +7,7 @@ float3 CalculateViscosityContribution(uint i, uint j) {
     float3 velOffset = Velocities[i] - Velocities[j];
     float r = length(posOffset);
 
-    if (r < 1e-6) return float3(0, 0, 0);
+    if (r < Epsilon) return float3(0, 0, 0);
 
     float3 gradient = CubicSplineGrad(posOffset);
 

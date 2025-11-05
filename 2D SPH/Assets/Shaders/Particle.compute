@@ -23,6 +23,7 @@ Global parameters
 */
 
 static const uint NumThreads = 256;
+static const float Epsilon = 1e-12;
 
 // Integer buffers
 RWStructuredBuffer<uint> CellCounts;
