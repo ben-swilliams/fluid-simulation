@@ -5,7 +5,7 @@ float CubicSplineKernel(float3 offset) {
     float r = length(offset);
     float q = r / smoothingRadius;
 
-    if (q >= 2 || isnan(q)) return 0;
+    if (q >= 2) return 0;
 
     float result;
     if (q >= 1) {
@@ -20,7 +20,7 @@ float CubicSplineKernel(float3 offset) {
 float3 CubicSplineGrad(float3 offset) {
     float r = length(offset);
     float q = r / smoothingRadius;
-    if (q < Epsilon || q >= 2 || isnan(q)) return float3(0, 0, 0);
+    if (q < 1e-7 || q >= 2) return float3(0, 0, 0);
     
     float3 dir = offset / r;
     float coeff;
@@ -38,8 +38,6 @@ float SpikyKernel(float3 offset) {
     float r = length(offset);
     float q = r / smoothingRadius;
 
-    if (isnan(q) || q < 1) return 0;
-
     return pow(1 - q, 3);
 }
 
@@ -47,7 +45,7 @@ float3 SpikyKernelGrad(float3 offset) {
     float r = length(offset);
     float q = r / smoothingRadius;
 
-    if (isnan(q) || r > smoothingRadius || r < Epsilon) return float3(0, 0, 0);
+    if (q < 1e-7 || r > smoothingRadius) return float3(0, 0, 0);
 
     float3 dir = offset / r;
 
