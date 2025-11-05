@@ -159,6 +159,7 @@ void PredictVelocity(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     Velocities[id.x] += IntermediateAccelerations[id.x] * deltaTime;
+    Velocities[id.x] = CollideVelocity(id.x);
 }
 
 [numthreads(NumThreads, 1, 1)]

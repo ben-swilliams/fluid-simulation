@@ -17,5 +17,5 @@ float3 CalculateViscosityContribution(uint i, uint j) {
     float viscosityCoefficient = 2 * viscosityMultiplier * smoothingRadius / (Densities[i] + Densities[j]);
     float Pi = viscosityCoefficient * (velPosDot / max(dot(posOffset, posOffset), Epsilon));
 
-    return particleMass * Pi * CubicSplineKernel(posOffset);
+    return particleMass * Pi * CubicSplineGrad(posOffset);
 }

@@ -1,34 +1,57 @@
-void Collisions(uint idx)
+float3 GetCollisions(float3 pos)
 {
-    if (Positions[idx].y < -containerSize.y / 2 + size / 2) { 
-        Velocities[idx].y *= -dampingFactor;
-        Positions[idx].y = -containerSize.y / 2 + size / 2;
+    float3 collision = float3(0, 0, 0);
+
+    if (pos.x < -containerSize.x / 2 + size / 2) {
+        collision.x = -1;
     }
 
-    if (Positions[idx].y > containerSize.y / 2 - size / 2) {
-        Velocities[idx].y *= -dampingFactor;
-        Positions[idx].y = containerSize.y / 2 - size / 2;
+    if (pos.x > containerSize.x / 2 - size / 2) {
+        collision.x = 1;
     }
 
-    if (Positions[idx].x < -containerSize.x / 2 + size / 2) {
-        Velocities[idx].x *= -dampingFactor;
-        Positions[idx].x = -containerSize.x / 2 + size / 2;
+    if (pos.y < -containerSize.y / 2 + size / 2) { 
+        collision.y = -1;
     }
 
-    if (Positions[idx].x > containerSize.x / 2 - size / 2) {
-        Velocities[idx].x *= -dampingFactor;
-        Positions[idx].x = containerSize.x / 2 - size / 2;
+    if (pos.y > containerSize.y / 2 - size / 2) {
+        collision.y = 1;
     }
 
-    if (Positions[idx].z < -containerSize.z / 2 + size / 2) {
-        Velocities[idx].z *= -dampingFactor;
-        Positions[idx].z = -containerSize.z / 2 + size / 2;
+    if (pos.z < -containerSize.z / 2 + size / 2) {
+        collision.z = -1;
     }
 
-    if (Positions[idx].z > containerSize.z / 2 - size / 2) {
-        Velocities[idx].z *= -dampingFactor;
-        Positions[idx].z = containerSize.z / 2 - size / 2;
+    if (pos.z > containerSize.z / 2 - size / 2) {
+        collision.z = 1;
     }
+
+    return collision;
+}
+
+float3 CollideVelocity(float3 vel, float3 collision) {
+    vel *= float3(
+        collision.x == 0 ? 1 : -dampingFactor,
+        collision.y == 0 ? 1 : -dampingFactor,
+        collision.z == 0 ? 1 : -dampingFactor
+    );
+
+    return vel;
+}
+
+float3 CollideVelocity(uint i) {
+    float3 collision = GetCollisions(Positions[i] + Velocities[i] * deltaTime);
+
+    return CollideVelocity(Velocities[i], collision);
+}
+
+void Collisions(uint i) {
+    float3 collision = GetCollisions(Positions[i]);
+    Velocities[i] = CollideVelocity(Velocities[i], collision);
+
+    Positions[i].x = collision.x == 0 ? Positions[i].x : collision.x * (containerSize.x / 2 - size / 2);
+    Positions[i].y = collision.y == 0 ? Positions[i].y : collision.y * (containerSize.y / 2 - size / 2);
+    Positions[i].z = collision.z == 0 ? Positions[i].z : collision.z * (containerSize.z / 2 - size / 2);
 }
 
 float3 MouseForce(uint idx) {
