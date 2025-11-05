@@ -42,6 +42,7 @@ public class ShaderHelper
 
     public ComputeBuffer Densities => densityBuffer;
     public ComputeBuffer Pressures => pressureBuffer;
+    public ComputeBuffer Accelerations => intermediateAccelerationBuffer;
 
     public ShaderHelper(ComputeShader shader)
     {
