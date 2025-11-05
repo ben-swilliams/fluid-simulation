@@ -61,6 +61,8 @@ public class Simulate : MonoBehaviour
 
     KernelSet kernels;
 
+    float simulationTime = 0;
+
     /*
     Public getters
     */
@@ -93,7 +95,7 @@ public class Simulate : MonoBehaviour
     void UpdateWaveForce()
     {
 
-        float angle = wavePeriod * Time.frameCount;
+        float angle = wavePeriod * simulationTime;
         Vector3 gravityForce = new Vector3(waveStrength * Mathf.Cos(angle), gravity, waveStrength * Mathf.Sin(angle));
         shader.SetValues(new object[] { "gravity", gravityForce });
     }
@@ -132,6 +134,8 @@ public class Simulate : MonoBehaviour
         {
             RunWCSPHStep();
         }
+
+        simulationTime += physicsTimeStep * simulationSpeed;
     }
 
     void RunIISPHStep()
