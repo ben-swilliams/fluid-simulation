@@ -2,17 +2,20 @@ float viscosityKernelGradConstant;
 
 float viscosityMultiplier;
 
+// TODO: Verify this is right
 float3 CalculateViscosityContribution(uint i, uint j) {
     float3 posOffset = Positions[i] - Positions[j];
     float3 velOffset = Velocities[i] - Velocities[j];
+    float velPosDot = dot(velOffset, posOffset);
+
     float r = length(posOffset);
 
-    if (r < 1e-6) return float3(0, 0, 0);
+    if (r < Epsilon || velPosDot >= 0) return float3(0, 0, 0);
 
     float3 gradient = CubicSplineGrad(posOffset);
 
-    float viscosity = viscosityMultiplier;
+    float viscosityCoefficient = 2 * viscosityMultiplier * smoothingRadius / (Densities[i] + Densities[j]);
+    float Pi = viscosityCoefficient * (velPosDot / max(dot(posOffset, posOffset), Epsilon));
 
-    return 2.0 * viscosity * particleMass * velOffset * dot(posOffset, gradient) /
-            (Densities[j] * (dot(posOffset, posOffset) + 0.01 * smoothingRadius * smoothingRadius));
+    return particleMass * Pi * CubicSplineKernel(posOffset);
 }

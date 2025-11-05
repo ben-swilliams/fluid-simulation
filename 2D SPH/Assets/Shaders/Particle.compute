@@ -23,6 +23,7 @@ Global parameters
 */
 
 static const uint NumThreads = 256;
+static const float Epsilon = 1e-7;
 
 // Integer buffers
 RWStructuredBuffer<uint> CellCounts;
@@ -140,8 +141,8 @@ void CalculateDensity(uint3 id : SV_DispatchThreadID) {
 
     float2 densities = CalculateDensities(id.x);
 
-    Densities[id.x] = densities.x;
-    Densities[instanceCount + id.x] = densities.y;
+    Densities[id.x] = max(densities.x, Epsilon);
+    Densities[instanceCount + id.x] = max(densities.y, Epsilon);
 }
 
 [numthreads(NumThreads, 1, 1)]
