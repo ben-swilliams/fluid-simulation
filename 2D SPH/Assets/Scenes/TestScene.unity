@@ -1290,13 +1290,13 @@ MonoBehaviour:
   physicsStepsPerSecond: 300
   simulationSpeed: 1
   smoothingRadius: 0.05
-  velocitySmoothing: 0.1
+  velocitySmoothing: 0.01
   stepSize: 10
   maxVelocity: 5
   initSpeed: 0
   gravity: -9.8
   dampingFactor: 0.95
-  wavePeriod: 0.05
+  wavePeriod: 1
   waveStrength: 0
   pressureSolver: 1
   restDensity: 25
@@ -1305,7 +1305,7 @@ MonoBehaviour:
   solverIterations: 3
   densityError: 0.04
   stiffness: 7
-  viscosityMultiplier: 0.01
+  viscosityMultiplier: 0
   surfaceTensionMultiplier: 0
 --- !u!4 &1274155412
 Transform:
@@ -1374,7 +1374,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MouseForce
   targetMaterial: {fileID: 2100000, guid: 3ce4aced6d13941dca693b1e663fa088, type: 2}
-  power: 10
+  power: 5
   radius: 1
 --- !u!120 &1274155416
 LineRenderer:

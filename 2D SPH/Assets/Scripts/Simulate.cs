@@ -61,6 +61,8 @@ public class Simulate : MonoBehaviour
 
     KernelSet kernels;
 
+    float simulationTime = 0;
+
     /*
     Public getters
     */
@@ -85,26 +87,6 @@ public class Simulate : MonoBehaviour
         if (started)
         {
             AdvanceFrame();
-            float[] pressures = new float[instanceCount];
-            float[] densities = new float[instanceCount * 2];
-            Vector3[] accs = new Vector3[instanceCount];
-            Vector3[] positions = new Vector3[instanceCount];
-            Vector3[] velocities = new Vector3[instanceCount];
-            shader.Pressures.GetData(pressures);
-            shader.Densities.GetData(densities);
-            shader.Accelerations.GetData(accs);
-            shader.PositionBuffer.GetData(positions);
-            shader.VelocityBuffer.GetData(velocities);
-
-            for (int i = 0; i < instanceCount; i++)
-            {
-                if (float.IsNaN(pressures[i])) Debug.Log(i + ": PRESSURE");
-                if (float.IsNaN(densities[i])) Debug.Log(i + ": DENSITY");
-                if (float.IsNaN(densities[instanceCount + i])) Debug.Log(i + ": NEAR DENSITY");
-                if (float.IsNaN(accs[i].x)) Debug.Log(i + ": ACCELERATIONS");
-                if (float.IsNaN(positions[i].x)) Debug.Log(i + ": POSITIONS");
-                if (float.IsNaN(velocities[i].x)) Debug.Log(i + ": VELOCITIES");
-            }
         }
 
         drawer.DrawFrame();
@@ -113,7 +95,7 @@ public class Simulate : MonoBehaviour
     void UpdateWaveForce()
     {
 
-        float angle = wavePeriod * Time.frameCount;
+        float angle = wavePeriod * simulationTime;
         Vector3 gravityForce = new Vector3(waveStrength * Mathf.Cos(angle), gravity, waveStrength * Mathf.Sin(angle));
         shader.SetValues(new object[] { "gravity", gravityForce });
     }
@@ -152,6 +134,8 @@ public class Simulate : MonoBehaviour
         {
             RunWCSPHStep();
         }
+
+        simulationTime += physicsTimeStep * simulationSpeed;
     }
 
     void RunIISPHStep()
