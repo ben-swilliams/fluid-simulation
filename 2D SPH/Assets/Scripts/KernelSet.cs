@@ -62,7 +62,7 @@ public class KernelSet
             { CalculateDensity, new[] { "Positions" } },
             { Scatter, new[] { "Pressures", "IterPressures", "OldVelocities", "NewVelocities", "OldPositions", "NewPositions" } },
             { CalculateNonPressureAccelerationAndD, new[] { "Positions", "Velocities" } },
-            { PredictVelocity, new[] { "Velocities" } },
+            { PredictVelocity, new[] { "Velocities", "Positions" } },
             { PredictDensityAndCalculateA, new[] { "Positions", "Velocities" } },
             { CalculatePressureSums, new[] { "Positions" } },
             { CalculateNextPressure, new[] { "Positions" } },

@@ -23,6 +23,7 @@ Global parameters
 */
 
 static const uint NumThreads = 256;
+static const float Epsilon = 1e-7;
 
 // Integer buffers
 RWStructuredBuffer<uint> CellCounts;
@@ -140,8 +141,8 @@ void CalculateDensity(uint3 id : SV_DispatchThreadID) {
 
     float2 densities = CalculateDensities(id.x);
 
-    Densities[id.x] = densities.x;
-    Densities[instanceCount + id.x] = densities.y;
+    Densities[id.x] = max(densities.x, Epsilon);
+    Densities[instanceCount + id.x] = max(densities.y, Epsilon);
 }
 
 [numthreads(NumThreads, 1, 1)]
@@ -158,6 +159,7 @@ void PredictVelocity(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     Velocities[id.x] += IntermediateAccelerations[id.x] * deltaTime;
+    Velocities[id.x] = CollideVelocity(id.x);
 }
 
 [numthreads(NumThreads, 1, 1)]
@@ -204,7 +206,11 @@ void CalculatePressure(uint3 id : SV_DispatchThreadID) {
 void UpdateIISPHVelocities(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Velocities[id.x] += CalculateXSPHPressureForce(id.x) * deltaTime / particleMass;
+    float3 pressureForce = CalculateXSPHPressureForce(id.x);
+
+    if (any(isnan(pressureForce))) return;
+
+    Velocities[id.x] += pressureForce * deltaTime / particleMass;
     float mag = length(Velocities[id.x]);
     if (mag > maxVelocity) {
         Velocities[id.x] = maxVelocity * Velocities[id.x] / mag;
@@ -215,7 +221,11 @@ void UpdateIISPHVelocities(uint3 id : SV_DispatchThreadID) {
 void UpdateWCSPHVelocities(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Velocities[id.x] += CalculateAcceleration(id.x) * deltaTime;
+    float3 acceleration = CalculateAcceleration(id.x);
+
+    if (any(isnan(acceleration))) return;
+
+    Velocities[id.x] += acceleration * deltaTime;
     float mag = length(Velocities[id.x]);
     if (mag > maxVelocity) {
         Velocities[id.x] = maxVelocity * Velocities[id.x] / mag;
