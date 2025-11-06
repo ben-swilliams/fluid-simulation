@@ -18,6 +18,10 @@
 #pragma kernel UpdateWCSPHVelocities
 #pragma kernel UpdatePositions
 
+#pragma kernel CalculateVelocityColour
+#pragma kernel CalculateDensityColour
+#pragma kernel CalculatePressureColour
+
 /*
 Global parameters
 */
@@ -43,6 +47,8 @@ RWStructuredBuffer<float3> Velocities;
 RWStructuredBuffer<float3> IntermediateAccelerations;
 RWStructuredBuffer<float3> Dii;
 RWStructuredBuffer<float3> DPSum;
+
+RWStructuredBuffer<float3> Colours;
 
 
 // Integers
@@ -90,6 +96,7 @@ uint numBlockSums;
 #include "SurfaceTension.hlsl"
 #include "IISPH.hlsl"
 #include "WCSPH.hlsl"
+#include "Colours.hlsl"
 
 /*
 SPATIAL HASHING
@@ -239,4 +246,26 @@ void UpdatePositions(uint3 id : SV_DispatchThreadID) {
     Positions[id.x] += Velocities[id.x] * deltaTime;
 
     Collisions(id.x);
+}
+
+// TODO: Extract these into their own .compute file
+[numthreads(NumThreads, 1, 1)]
+void CalculateVelocityColour(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Colours[id.x] = ColourFromVelocity(id.x);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void CalculatePressureColour(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Colours[id.x] = ColourFromPressure(id.x);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void CalculateDensityColour(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Colours[id.x] = ColourFromDensity(id.x);
 }

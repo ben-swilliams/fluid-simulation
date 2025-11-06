@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Draw : MonoBehaviour
 {
-    private enum Property { Velocity, Density, Pressure }
+    public enum Property { Velocity, Density, Pressure }
 
     /*
     Inspector properties
@@ -14,7 +14,7 @@ public class Draw : MonoBehaviour
     [SerializeField] Mesh mesh;
     [SerializeField] Color fastColour;
     [SerializeField] Color slowColour;
-    [SerializeField] float maxVelocity = 10f;
+    [SerializeField] float maxSpeed = 10f;
     [SerializeField] float maxDensityFluctuation = 0.1f;
     [SerializeField] float maxPressure = 5000f;
     [SerializeField] Property colourProperty;
@@ -28,8 +28,15 @@ public class Draw : MonoBehaviour
     uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
     ComputeBuffer argsBuffer;
 
+    ShaderHelper computeShader;
+
     float lowHue;
     float highHue;
+
+    /*
+    Public getters
+    */
+    public Property ColourProperty => colourProperty;
 
     void Start()
     {
@@ -39,7 +46,7 @@ public class Draw : MonoBehaviour
 
     void OnValidate()
     {
-        maxVelocity = Mathf.Max(0, maxVelocity);
+        maxSpeed = Mathf.Max(0, maxSpeed);
         maxDensityFluctuation = Mathf.Clamp01(maxDensityFluctuation);
         maxPressure = Mathf.Max(0, maxPressure);
 
@@ -48,18 +55,14 @@ public class Draw : MonoBehaviour
 
         if (!Application.isPlaying || instanceMaterial == null) return;
 
-        instanceMaterial.SetFloat("lowHue", lowHue);
-        instanceMaterial.SetFloat("highHue", highHue);
-        instanceMaterial.SetVector("colourTarget", ColourTargets());
-        instanceMaterial.SetVector("propMaxes", new Vector3(maxVelocity, maxDensityFluctuation, maxPressure));
-        instanceMaterial.SetInteger("useVelocities", colourProperty == Property.Velocity ? 1 : 0);
-
-        if (colourProperty != Property.Velocity)
+        computeShader.SetValues(new object[]
         {
-            ShaderHelper shader = GetComponent<Simulate>().Shader;
-            ComputeBuffer propertyBuffer = colourProperty == Property.Density ? shader.Densities : shader.Pressures;
-            if (propertyBuffer != null) instanceMaterial.SetBuffer("properties", propertyBuffer);
-        }
+            "lowHue", lowHue,
+            "highHue", highHue,
+            "maxSpeed", maxSpeed,
+            "maxDensityFluctuation", maxDensityFluctuation,
+            "maxPressure", maxPressure
+        });
     }
 
     void OnDestroy()
@@ -95,6 +98,11 @@ public class Draw : MonoBehaviour
                            colourProperty == Property.Pressure ? 1 : 0);
     }
 
+    void BindColours(ComputeBuffer colourBuffer)
+    {
+        instanceMaterial.SetBuffer("colours", colourBuffer);
+    }
+
     public void DrawFrame()
     {
         if (argsBuffer == null) return;
@@ -108,25 +116,24 @@ public class Draw : MonoBehaviour
         );
     }
 
-    public void UpdateVariables(float? size = null, float? restDensity = null)
+    public void UpdateSize(float size)
     {
-        if (size.HasValue) instanceMaterial.SetFloat("size", size.Value);
-        if (restDensity.HasValue) instanceMaterial.SetFloat("restDensity", restDensity.Value);
+        instanceMaterial.SetFloat("size", size);
     }
 
-    public void BindBuffers(ComputeBuffer positionBuffer, ComputeBuffer velocityBuffer, ComputeBuffer densityBuffer, ComputeBuffer pressureBuffer)
+    public void BindPositions(ComputeBuffer positionBuffer)
     {
-        InitialiseArgsBuffer(positionBuffer.count);
-        instanceMaterial.SetFloat("lowHue", lowHue);
-        instanceMaterial.SetFloat("highHue", highHue);
-        instanceMaterial.SetVector("colourTarget", ColourTargets());
-        instanceMaterial.SetVector("propMaxes", new Vector3(maxVelocity, maxDensityFluctuation, maxPressure));
-        instanceMaterial.SetInteger("useVelocities", colourProperty == Property.Velocity ? 1 : 0);
-        instanceMaterial.SetBuffer("positions", positionBuffer);
-        instanceMaterial.SetBuffer("velocities", velocityBuffer);
 
-        // Bind the correct property buffer based on colourProperty
-        ComputeBuffer propertyBuffer = colourProperty == Property.Density ? densityBuffer : pressureBuffer;
-        instanceMaterial.SetBuffer("properties", propertyBuffer);
+        InitialiseArgsBuffer(positionBuffer.count);
+        instanceMaterial.SetBuffer("positions", positionBuffer);
+    }
+
+    public void BindBuffers(ComputeBuffer positionBuffer, ComputeBuffer colourBuffer)
+    {
+        if (computeShader == null)
+            computeShader = GetComponent<Simulate>().Shader;
+
+        BindPositions(positionBuffer);
+        BindColours(colourBuffer);
     }
 }

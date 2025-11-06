@@ -134,6 +134,8 @@ public class Simulate : MonoBehaviour
             RunWCSPHStep();
         }
 
+        UpdateColours();
+
         simulationTime += physicsTimeStep * simulationSpeed;
     }
 
@@ -152,6 +154,15 @@ public class Simulate : MonoBehaviour
     void RunWCSPHStep()
     {
         shader.Dispatch(kernels.WCSPHKernels);
+    }
+
+    void UpdateColours()
+    {
+        Draw.Property propChoice = drawer.ColourProperty;
+
+        if (propChoice == Draw.Property.Velocity) shader.Dispatch(kernels.CalculateVelocityColour);
+        if (propChoice == Draw.Property.Density) shader.Dispatch(kernels.CalculateDensityColour);
+        if (propChoice == Draw.Property.Pressure) shader.Dispatch(kernels.CalculatePressureColour);
     }
 
     void ScanAndScatter()
@@ -237,8 +248,8 @@ public class Simulate : MonoBehaviour
 
     void BindExternalBuffers()
     {
-        drawer.BindBuffers(shader.PositionBuffer, shader.VelocityBuffer, shader.Densities, shader.Pressures);
-        drawer.UpdateVariables(spawner.Size, restDensity);
+        drawer.BindBuffers(shader.PositionBuffer, shader.Colours);
+        drawer.UpdateSize(spawner.Size);
     }
 
     Vector3[] GenerateVelocityData()
@@ -309,7 +320,6 @@ public class Simulate : MonoBehaviour
         };
 
         shader.SetValues(keyValues);
-        drawer.UpdateVariables(restDensity: restDensity);
     }
 
     void ValidateInspectorProperties()

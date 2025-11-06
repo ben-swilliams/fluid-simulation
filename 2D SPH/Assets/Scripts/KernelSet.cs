@@ -22,6 +22,10 @@ public class KernelSet
     public int UpdateWCSPHVelocities;
     public int UpdatePositions;
 
+    public int CalculateVelocityColour;
+    public int CalculateDensityColour;
+    public int CalculatePressureColour;
+
     public Dictionary<int, string[]> kernelStaticBufferMap;
     public Dictionary<int, string[]> kernelDynamicBufferMap;
 
@@ -53,7 +57,10 @@ public class KernelSet
             { CalculatePressure, new[] { "Pressures", "Densities" }},
             { UpdateIISPHVelocities, new[] { "Densities", "Offsets", "Pressures" } },
             { UpdateWCSPHVelocities, new[] { "Densities", "Offsets", "Pressures" }},
-            { UpdatePositions, new[] { "Densities", "Offsets" } }
+            { UpdatePositions, new[] { "Densities", "Offsets" } },
+            { CalculateVelocityColour, new[] {"Colours"}},
+            { CalculateDensityColour, new[] {"Colours", "Densities"}},
+            { CalculatePressureColour, new[] {"Colours", "Pressures"}},
         };
 
         kernelDynamicBufferMap = new Dictionary<int, string[]>
@@ -68,7 +75,8 @@ public class KernelSet
             { CalculateNextPressure, new[] { "Positions" } },
             { UpdateIISPHVelocities, new[] { "Velocities", "Positions" } },
             { UpdateWCSPHVelocities, new[] { "Velocities", "Positions" } },
-            { UpdatePositions, new[] { "Velocities", "Positions" } }
+            { UpdatePositions, new[] { "Velocities", "Positions" } },
+            { CalculateVelocityColour, new[] { "Velocities" } }
         };
     }
 
@@ -92,5 +100,8 @@ public class KernelSet
         UpdateIISPHVelocities = shader.FindKernel("UpdateIISPHVelocities");
         UpdateWCSPHVelocities = shader.FindKernel("UpdateWCSPHVelocities");
         UpdatePositions = shader.FindKernel("UpdatePositions");
+        CalculateVelocityColour = shader.FindKernel("CalculateVelocityColour");
+        CalculateDensityColour = shader.FindKernel("CalculateDensityColour");
+        CalculatePressureColour = shader.FindKernel("CalculatePressureColour");
     }
 }
