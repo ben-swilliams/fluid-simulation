@@ -240,3 +240,25 @@ void UpdatePositions(uint3 id : SV_DispatchThreadID) {
 
     Collisions(id.x);
 }
+
+// TODO: Extract these into their own .compute file
+[numthreads(NumThreads, 1, 1)]
+void CalculateVelocityColour(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Colours[id.x] = ColourFromVelocity(id.x);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void CalculatePressureColour(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Colours[id.x] = ColourFromPressure(id.x);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void CalculateDensityColour(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Colours[id.x] = ColourFromDensity(id.x);
+}
