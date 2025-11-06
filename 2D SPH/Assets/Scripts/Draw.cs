@@ -28,6 +28,7 @@ public class Draw : MonoBehaviour
 
     uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
     ComputeBuffer argsBuffer;
+    ComputeBuffer initialColourBuffer;
 
     ShaderHelper computeShader;
 
@@ -74,12 +75,12 @@ public class Draw : MonoBehaviour
 
     void OnDestroy()
     {
-        CleanupArgsBuffer();
+        CleanupBuffers();
     }
 
     void InitialiseArgsBuffer(int instanceCount)
     {
-        CleanupArgsBuffer();
+        if (argsBuffer != null) argsBuffer.Release();
 
         argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
 
@@ -90,12 +91,26 @@ public class Draw : MonoBehaviour
         argsBuffer.SetData(args);
     }
 
-    void CleanupArgsBuffer()
+    void CleanupBuffers()
     {
-        if (argsBuffer == null) return;
+        if (argsBuffer != null)
+            argsBuffer.Release();
+        if (initialColourBuffer != null)
+            initialColourBuffer.Release();
+    }
 
-        argsBuffer.Release();
-        argsBuffer = null;
+    void InitialiseColoursBuffer()
+    {
+        int instanceCount = (int)args[1];
+        Color[] colors = new Color[instanceCount];
+        for (int i = 0; i < instanceCount; i++)
+        {
+            colors[i] = Color.white;
+        }
+
+        initialColourBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 4);
+        initialColourBuffer.SetData(colors);
+        BindColours(initialColourBuffer);
     }
 
     void BindColours(ComputeBuffer colourBuffer)
@@ -126,6 +141,7 @@ public class Draw : MonoBehaviour
     {
 
         InitialiseArgsBuffer(positionBuffer.count);
+        InitialiseColoursBuffer();
         instanceMaterial.SetBuffer("positions", positionBuffer);
     }
 
