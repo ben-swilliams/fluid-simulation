@@ -45,6 +45,8 @@ public class ShaderHelper
     public ComputeBuffer Pressures => pressureBuffer;
     public ComputeBuffer Accelerations => intermediateAccelerationBuffer;
 
+    public ComputeBuffer Colours => colourBuffer;
+
     public ShaderHelper(ComputeShader shader)
     {
         computeShader = shader;

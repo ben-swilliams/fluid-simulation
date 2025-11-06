@@ -237,7 +237,7 @@ public class Simulate : MonoBehaviour
 
     void BindExternalBuffers()
     {
-        drawer.BindPositions();
+        drawer.BindBuffers(shader.PositionBuffer, shader.Colours);
         drawer.UpdateSize(spawner.Size);
     }
 

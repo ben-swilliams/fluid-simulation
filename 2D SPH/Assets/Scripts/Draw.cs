@@ -37,7 +37,6 @@ public class Draw : MonoBehaviour
     {
         instanceMaterial = new Material(shader);
         bounds = new Bounds(Vector3.zero, Vector3.one * 1000f);
-        computeShader = GetComponent<Simulate>().Shader;
     }
 
     void OnValidate()
@@ -51,18 +50,14 @@ public class Draw : MonoBehaviour
 
         if (!Application.isPlaying || instanceMaterial == null) return;
 
-        instanceMaterial.SetFloat("lowHue", lowHue);
-        instanceMaterial.SetFloat("highHue", highHue);
-        instanceMaterial.SetVector("colourTarget", ColourTargets());
-        instanceMaterial.SetVector("propMaxes", new Vector3(maxSpeed, maxDensityFluctuation, maxPressure));
-        instanceMaterial.SetInteger("useVelocities", colourProperty == Property.Velocity ? 1 : 0);
-
-        if (colourProperty != Property.Velocity)
+        computeShader.SetValues(new object[]
         {
-            ShaderHelper shader = GetComponent<Simulate>().Shader;
-            ComputeBuffer propertyBuffer = colourProperty == Property.Density ? shader.Densities : shader.Pressures;
-            if (propertyBuffer != null) instanceMaterial.SetBuffer("properties", propertyBuffer);
-        }
+            "lowHue", lowHue,
+            "highHue", highHue,
+            "maxSpeed", maxSpeed,
+            "maxDensityFluctuation", maxDensityFluctuation,
+            "maxPressure", maxPressure
+        });
     }
 
     void OnDestroy()
@@ -98,6 +93,11 @@ public class Draw : MonoBehaviour
                            colourProperty == Property.Pressure ? 1 : 0);
     }
 
+    void BindColours(ComputeBuffer colourBuffer)
+    {
+        instanceMaterial.SetBuffer("colours", colourBuffer);
+    }
+
     public void DrawFrame()
     {
         if (argsBuffer == null) return;
@@ -116,9 +116,19 @@ public class Draw : MonoBehaviour
         instanceMaterial.SetFloat("size", size);
     }
 
-    public void BindPositions()
+    public void BindPositions(ComputeBuffer positionBuffer)
     {
-        InitialiseArgsBuffer(computeShader.PositionBuffer.count);
-        instanceMaterial.SetBuffer("positions", computeShader.PositionBuffer);
+
+        InitialiseArgsBuffer(positionBuffer.count);
+        instanceMaterial.SetBuffer("positions", positionBuffer);
+    }
+
+    public void BindBuffers(ComputeBuffer positionBuffer, ComputeBuffer colourBuffer)
+    {
+        if (computeShader == null)
+            computeShader = GetComponent<Simulate>().Shader;
+
+        BindPositions(positionBuffer);
+        BindColours(colourBuffer);
     }
 }
