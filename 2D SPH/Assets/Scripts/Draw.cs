@@ -101,6 +101,8 @@ public class Draw : MonoBehaviour
 
     void InitialiseColoursBuffer()
     {
+        if (initialColourBuffer != null) initialColourBuffer.Release();
+        
         int instanceCount = (int)args[1];
         Color[] colors = new Color[instanceCount];
         for (int i = 0; i < instanceCount; i++)
