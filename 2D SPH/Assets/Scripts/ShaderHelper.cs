@@ -29,6 +29,7 @@ public class ShaderHelper
     ComputeBuffer dpSumBuffer;
     ComputeBuffer iterPressureBuffer;
     ComputeBuffer pressureBuffer;
+    ComputeBuffer colourBuffer;
     List<ComputeBuffer> allBuffers;
 
     // Maps
@@ -80,6 +81,8 @@ public class ShaderHelper
         nameBufferMap.Add("NewVelocities", (velocityBuffer == velocityBufferA) ? velocityBufferB : velocityBufferA);
         nameBufferMap.Add("OldPositions", positionBuffer);
         nameBufferMap.Add("NewPositions", (positionBuffer == positionBufferA) ? positionBufferB : positionBufferA);
+
+        nameBufferMap.Add("Colours", colourBuffer);
     }
 
     public void InitialiseCount(int instanceCount)
@@ -167,6 +170,8 @@ public class ShaderHelper
         allBuffers.Add(iterPressureBuffer);
         pressureBuffer = new ComputeBuffer(instanceCount, sizeof(float));
         allBuffers.Add(pressureBuffer);
+
+        colourBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 3);
 
         MapBuffers();
     }

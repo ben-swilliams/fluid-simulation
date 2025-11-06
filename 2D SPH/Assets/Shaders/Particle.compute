@@ -18,6 +18,10 @@
 #pragma kernel UpdateWCSPHVelocities
 #pragma kernel UpdatePositions
 
+#pragma kernel CalculateVelocityColour
+#pragma kernel CalculateDensityColour
+#pragma kernel CalculatePressureColour
+
 /*
 Global parameters
 */
@@ -43,6 +47,8 @@ RWStructuredBuffer<float3> Velocities;
 RWStructuredBuffer<float3> IntermediateAccelerations;
 RWStructuredBuffer<float3> Dii;
 RWStructuredBuffer<float3> DPSum;
+
+RWStructuredBuffer<float3> Colours;
 
 
 // Integers
@@ -90,6 +96,7 @@ uint numBlockSums;
 #include "SurfaceTension.hlsl"
 #include "IISPH.hlsl"
 #include "WCSPH.hlsl"
+#include "Colours.hlsl"
 
 /*
 SPATIAL HASHING

@@ -11,7 +11,7 @@ float3 hsv2rgb(float3 c) {
     return c.z * lerp(K.xxx, saturate(p - K.xxx), c.y);
 }
 
-float3 CalculateColourFromProp(float value, float propMax) {
+float3 CalculateColourFromProp(float prop, float propMax) {
     float propNorm;
     propNorm = saturate(prop / propMax);
 
@@ -31,7 +31,6 @@ float3 ColourFromDensity(uint i) {
     float maxDensity = (1 + maxDensityFluctuation) * restDensity;
     float normalisedDensity = saturate((Densities[i] - minDensity) / (maxDensity - minDensity));
 
-    float remappedDensity = 
     return CalculateColourFromProp(normalisedDensity, 1);
 }
 
