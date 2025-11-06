@@ -11,7 +11,7 @@ public class Draw : MonoBehaviour
     [SerializeField] Shader shader;
 
     [Header("Appearance Settings")]
-    [SerializeField] Mesh mesh;
+    [SerializeField, Range(0, 4)] int sphereResolution = 2;
     [SerializeField] Color fastColour;
     [SerializeField] Color slowColour;
     [SerializeField] float maxSpeed = 10f;
@@ -24,6 +24,7 @@ public class Draw : MonoBehaviour
     */
     Material instanceMaterial;
     Bounds bounds;
+    Mesh mesh;
 
     uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
     ComputeBuffer argsBuffer;
@@ -42,6 +43,7 @@ public class Draw : MonoBehaviour
     {
         instanceMaterial = new Material(shader);
         bounds = new Bounds(Vector3.zero, Vector3.one * 1000f);
+        mesh = SphereGenerator.GenerateSphere(sphereResolution);
     }
 
     void OnValidate()
@@ -55,6 +57,9 @@ public class Draw : MonoBehaviour
 
         if (!Application.isPlaying || instanceMaterial == null) return;
 
+        if (computeShader == null)
+            computeShader = GetComponent<Simulate>().Shader;
+
         computeShader.SetValues(new object[]
         {
             "lowHue", lowHue,
@@ -63,6 +68,8 @@ public class Draw : MonoBehaviour
             "maxDensityFluctuation", maxDensityFluctuation,
             "maxPressure", maxPressure
         });
+
+        mesh = SphereGenerator.GenerateSphere(sphereResolution);
     }
 
     void OnDestroy()
@@ -91,17 +98,11 @@ public class Draw : MonoBehaviour
         argsBuffer = null;
     }
 
-    Vector3 ColourTargets()
-    {
-        return new Vector3(colourProperty == Property.Velocity ? 1 : 0,
-                           colourProperty == Property.Density ? 1 : 0,
-                           colourProperty == Property.Pressure ? 1 : 0);
-    }
-
     void BindColours(ComputeBuffer colourBuffer)
     {
         instanceMaterial.SetBuffer("colours", colourBuffer);
     }
+
 
     public void DrawFrame()
     {
