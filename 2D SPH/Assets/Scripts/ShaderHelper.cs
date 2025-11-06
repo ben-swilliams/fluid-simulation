@@ -174,6 +174,7 @@ public class ShaderHelper
         allBuffers.Add(pressureBuffer);
 
         colourBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 3);
+        allBuffers.Add(colourBuffer);
 
         MapBuffers();
     }

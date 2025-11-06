@@ -134,6 +134,8 @@ public class Simulate : MonoBehaviour
             RunWCSPHStep();
         }
 
+        UpdateColours();
+
         simulationTime += physicsTimeStep * simulationSpeed;
     }
 
@@ -152,6 +154,15 @@ public class Simulate : MonoBehaviour
     void RunWCSPHStep()
     {
         shader.Dispatch(kernels.WCSPHKernels);
+    }
+
+    void UpdateColours()
+    {
+        Draw.Property propChoice = drawer.ColourProperty;
+
+        if (propChoice == Draw.Property.Velocity) shader.Dispatch(kernels.CalculateVelocityColour);
+        if (propChoice == Draw.Property.Density) shader.Dispatch(kernels.CalculateDensityColour);
+        if (propChoice == Draw.Property.Pressure) shader.Dispatch(kernels.CalculatePressureColour);
     }
 
     void ScanAndScatter()

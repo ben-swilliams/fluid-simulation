@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Draw : MonoBehaviour
 {
-    private enum Property { Velocity, Density, Pressure }
+    public enum Property { Velocity, Density, Pressure }
 
     /*
     Inspector properties
@@ -32,6 +32,11 @@ public class Draw : MonoBehaviour
 
     float lowHue;
     float highHue;
+
+    /*
+    Public getters
+    */
+    public Property ColourProperty => colourProperty;
 
     void Start()
     {
