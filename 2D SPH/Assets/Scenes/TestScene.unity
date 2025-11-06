@@ -1354,10 +1354,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Draw
   shader: {fileID: 4800000, guid: 86f6b5b4233e64ce79e43b45f3e9e726, type: 3}
-  mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  sphereResolution: 0
   fastColour: {r: 1, g: 0.14044955, b: 0, a: 1}
   slowColour: {r: 0, g: 0.69803923, b: 1, a: 1}
-  maxVelocity: 10
+  maxSpeed: 10
   maxDensityFluctuation: 0.1
   maxPressure: 300
   colourProperty: 0
