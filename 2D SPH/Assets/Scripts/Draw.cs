@@ -14,7 +14,7 @@ public class Draw : MonoBehaviour
     [SerializeField] Mesh mesh;
     [SerializeField] Color fastColour;
     [SerializeField] Color slowColour;
-    [SerializeField] float maxVelocity = 10f;
+    [SerializeField] float maxSpeed = 10f;
     [SerializeField] float maxDensityFluctuation = 0.1f;
     [SerializeField] float maxPressure = 5000f;
     [SerializeField] Property colourProperty;
@@ -28,6 +28,8 @@ public class Draw : MonoBehaviour
     uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
     ComputeBuffer argsBuffer;
 
+    ShaderHelper computeShader;
+
     float lowHue;
     float highHue;
 
@@ -35,11 +37,12 @@ public class Draw : MonoBehaviour
     {
         instanceMaterial = new Material(shader);
         bounds = new Bounds(Vector3.zero, Vector3.one * 1000f);
+        computeShader = GetComponent<Simulate>().Shader;
     }
 
     void OnValidate()
     {
-        maxVelocity = Mathf.Max(0, maxVelocity);
+        maxSpeed = Mathf.Max(0, maxSpeed);
         maxDensityFluctuation = Mathf.Clamp01(maxDensityFluctuation);
         maxPressure = Mathf.Max(0, maxPressure);
 
@@ -51,7 +54,7 @@ public class Draw : MonoBehaviour
         instanceMaterial.SetFloat("lowHue", lowHue);
         instanceMaterial.SetFloat("highHue", highHue);
         instanceMaterial.SetVector("colourTarget", ColourTargets());
-        instanceMaterial.SetVector("propMaxes", new Vector3(maxVelocity, maxDensityFluctuation, maxPressure));
+        instanceMaterial.SetVector("propMaxes", new Vector3(maxSpeed, maxDensityFluctuation, maxPressure));
         instanceMaterial.SetInteger("useVelocities", colourProperty == Property.Velocity ? 1 : 0);
 
         if (colourProperty != Property.Velocity)
@@ -108,25 +111,14 @@ public class Draw : MonoBehaviour
         );
     }
 
-    public void UpdateVariables(float? size = null, float? restDensity = null)
+    public void UpdateSize(float size)
     {
-        if (size.HasValue) instanceMaterial.SetFloat("size", size.Value);
-        if (restDensity.HasValue) instanceMaterial.SetFloat("restDensity", restDensity.Value);
+        instanceMaterial.SetFloat("size", size);
     }
 
-    public void BindBuffers(ComputeBuffer positionBuffer, ComputeBuffer velocityBuffer, ComputeBuffer densityBuffer, ComputeBuffer pressureBuffer)
+    public void BindPositions()
     {
-        InitialiseArgsBuffer(positionBuffer.count);
-        instanceMaterial.SetFloat("lowHue", lowHue);
-        instanceMaterial.SetFloat("highHue", highHue);
-        instanceMaterial.SetVector("colourTarget", ColourTargets());
-        instanceMaterial.SetVector("propMaxes", new Vector3(maxVelocity, maxDensityFluctuation, maxPressure));
-        instanceMaterial.SetInteger("useVelocities", colourProperty == Property.Velocity ? 1 : 0);
-        instanceMaterial.SetBuffer("positions", positionBuffer);
-        instanceMaterial.SetBuffer("velocities", velocityBuffer);
-
-        // Bind the correct property buffer based on colourProperty
-        ComputeBuffer propertyBuffer = colourProperty == Property.Density ? densityBuffer : pressureBuffer;
-        instanceMaterial.SetBuffer("properties", propertyBuffer);
+        InitialiseArgsBuffer(computeShader.PositionBuffer.count);
+        instanceMaterial.SetBuffer("positions", computeShader.PositionBuffer);
     }
 }
