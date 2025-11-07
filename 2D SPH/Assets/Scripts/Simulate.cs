@@ -54,7 +54,7 @@ public class Simulate : MonoBehaviour
     bool started;
     float physicsTimeStep;
     float accumulator = 0f;
-    int maxStepsPerFrame = 5;
+    int maxStepsPerFrame = 1;
 
     int instanceCount;
 
@@ -75,6 +75,7 @@ public class Simulate : MonoBehaviour
         drawer = GetComponent<Draw>();
         
         shader = new ShaderHelper(computeShader);
+        drawer.SetComputeShader(shader);
 
         physicsTimeStep = 1f / physicsStepsPerSecond;
     }
