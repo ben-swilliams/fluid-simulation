@@ -1302,7 +1302,7 @@ MonoBehaviour:
   restDensity: 25
   nearPressureMultiplier: 1
   relaxationFactor: 0.5
-  solverIterations: 3
+  solverIterations: 1
   densityError: 0.04
   stiffness: 7
   viscosityMultiplier: 0
@@ -1357,7 +1357,7 @@ MonoBehaviour:
   sphereResolution: 0
   fastColour: {r: 1, g: 0.14044955, b: 0, a: 1}
   slowColour: {r: 0, g: 0.69803923, b: 1, a: 1}
-  maxSpeed: 10
+  maxSpeed: 5
   maxDensityFluctuation: 0.1
   maxPressure: 300
   colourProperty: 0
@@ -1374,7 +1374,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MouseForce
   targetMaterial: {fileID: 2100000, guid: 3ce4aced6d13941dca693b1e663fa088, type: 2}
-  power: 5
+  power: 1
   radius: 1
 --- !u!120 &1274155416
 LineRenderer:

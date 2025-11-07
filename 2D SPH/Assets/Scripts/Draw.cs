@@ -58,17 +58,7 @@ public class Draw : MonoBehaviour
 
         if (!Application.isPlaying || instanceMaterial == null) return;
 
-        if (computeShader == null)
-            computeShader = GetComponent<Simulate>().Shader;
-
-        computeShader.SetValues(new object[]
-        {
-            "lowHue", lowHue,
-            "highHue", highHue,
-            "maxSpeed", maxSpeed,
-            "maxDensityFluctuation", maxDensityFluctuation,
-            "maxPressure", maxPressure
-        });
+        SetColourValues();
 
         mesh = SphereGenerator.GenerateSphere(sphereResolution);
     }
@@ -113,11 +103,29 @@ public class Draw : MonoBehaviour
         initialColourBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 4);
         initialColourBuffer.SetData(colors);
         BindColours(initialColourBuffer);
+        SetColourValues();
     }
 
     void BindColours(ComputeBuffer colourBuffer)
     {
         instanceMaterial.SetBuffer("colours", colourBuffer);
+    }
+
+    void SetColourValues()
+    {
+        computeShader.SetValues(new object[]
+        {
+            "lowHue", lowHue,
+            "highHue", highHue,
+            "maxSpeed", maxSpeed,
+            "maxDensityFluctuation", maxDensityFluctuation,
+            "maxPressure", maxPressure
+        });
+    }
+
+    public void SetComputeShader(ShaderHelper shader)
+    {
+        computeShader = shader;
     }
 
 
@@ -149,9 +157,6 @@ public class Draw : MonoBehaviour
 
     public void BindBuffers(ComputeBuffer positionBuffer, ComputeBuffer colourBuffer)
     {
-        if (computeShader == null)
-            computeShader = GetComponent<Simulate>().Shader;
-
         BindPositions(positionBuffer);
         BindColours(colourBuffer);
     }
