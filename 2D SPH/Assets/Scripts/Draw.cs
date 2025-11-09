@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 
 public class Draw : MonoBehaviour
@@ -94,14 +95,14 @@ public class Draw : MonoBehaviour
         if (initialColourBuffer != null) initialColourBuffer.Release();
         
         int instanceCount = (int)args[1];
-        Color[] colors = new Color[instanceCount];
+        Vector3[] colours = new Vector3[instanceCount];
         for (int i = 0; i < instanceCount; i++)
         {
-            colors[i] = Color.white;
+            colours[i] = new Vector3(Color.white.r, Color.white.g, Color.white.b);
         }
 
-        initialColourBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 4);
-        initialColourBuffer.SetData(colors);
+        initialColourBuffer = new ComputeBuffer(instanceCount, sizeof(float) * 3);
+        initialColourBuffer.SetData(colours);
         BindColours(initialColourBuffer);
         SetColourValues();
     }
