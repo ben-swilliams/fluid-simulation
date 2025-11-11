@@ -11,9 +11,9 @@ float2 CalculateDeltaDensityAndA(uint i) {
 
     float densitySq = max(Densities[i] * Densities[i], Epsilon);
 
-    int3 gridPosI = GetGridPos(Positions[i]);
-
     float3 posI = Positions[i];
+    int3 gridPosI = GetGridPos(posI);
+
     float3 velI = Velocities[i];
     float3 d_ii = Dii[i];
 
@@ -138,7 +138,7 @@ void CalculateIISPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
     float3 velI = Velocities[i];
     int3 gridPosI = GetGridPos(posI);
 
-    float densitySq = Densities[i] * Densities[i];
+    float densitySq = max(Densities[i] * Densities[i], Epsilon);
 
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
