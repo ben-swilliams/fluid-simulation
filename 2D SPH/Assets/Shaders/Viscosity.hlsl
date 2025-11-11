@@ -3,12 +3,8 @@ float viscosityKernelGradConstant;
 float viscosityMultiplier;
 
 // TODO: Verify this is right
-float3 CalculateViscosityContribution(uint i, uint j) {
-    float3 posOffset = Positions[i] - Positions[j];
-    float3 velOffset = Velocities[i] - Velocities[j];
+float3 CalculateViscosityContribution(float3 posOffset, float3 velOffset, float r, uint i, uint j) {
     float velPosDot = dot(velOffset, posOffset);
-
-    float r = length(posOffset);
 
     if (r < Epsilon || velPosDot >= 0) return float3(0, 0, 0);
 

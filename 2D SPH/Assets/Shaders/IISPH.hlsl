@@ -1,9 +1,6 @@
 float relaxationFactor;
 
-float3 CalculateDContribution(uint i, uint j) {
-    float3 offset = Positions[i] - Positions[j];
-    float densitySq = max(Densities[i] * Densities[i], Epsilon);
-
+float3 CalculateDContribution(float3 offset, float densitySq) {
     float3 d = (particleMass / densitySq) * CubicSplineGrad(offset);
     return -deltaTime * deltaTime * d;
 }
@@ -57,7 +54,9 @@ float2 CalculateDeltaDensityAndA(uint i) {
 float3 CalculatePressureSum(uint i) {
     float3 pressureSum = float3(0, 0, 0);
 
-    int3 gridPosI = GetGridPos(Positions[i]);
+    float3 posI = Positions[i];
+
+    int3 gridPosI = GetGridPos(posI);
 
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
@@ -72,7 +71,7 @@ float3 CalculatePressureSum(uint i) {
 
                 for (uint j = startIndex; j < endIndex; j++) {
                     if (i == j) continue;
-                    float3 offset = Positions[i] - Positions[j];
+                    float3 offset = posI - Positions[j];
 
                     float densitySq = max(Densities[j] * Densities[j], Epsilon);
 
@@ -86,12 +85,16 @@ float3 CalculatePressureSum(uint i) {
 }
 
 float CalculateNextPressureValue(uint i) {
-    if (abs(Aii[i]) < Epsilon) return 0;
+    float aii = Aii[i];
+    if (abs(aii) < Epsilon) return 0;
     float pressureSum = 0;
 
     float densitySq = max(Densities[i] * Densities[i], Epsilon);
     
-    int3 gridPosI = GetGridPos(Positions[i]);
+    float3 posI = Positions[i];
+    float3 dpSumI = DPSum[i];
+    float pressureI = IterPressures[i];
+    int3 gridPosI = GetGridPos(posI);
 
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
@@ -106,12 +109,12 @@ float CalculateNextPressureValue(uint i) {
 
                 for (uint j = startIndex; j < endIndex; j++) {
                     if (i == j) continue;
-                    float3 offset = Positions[i] - Positions[j];
+                    float3 offset = posI - Positions[j];
                     float3 grad = CubicSplineGrad(offset);
 
                     float3 d_ji = deltaTime * deltaTime * particleMass * grad / densitySq;
 
-                    float3 inner = DPSum[i] - Dii[j] * IterPressures[j] - (DPSum[j] - d_ji * IterPressures[i]);
+                    float3 inner = dpSumI - Dii[j] * IterPressures[j] - (DPSum[j] - d_ji * pressureI);
 
                     pressureSum += dot(inner, grad);
                 }
@@ -119,8 +122,8 @@ float CalculateNextPressureValue(uint i) {
         }
     }
 
-    float nextPressure = (1 - relaxationFactor) * IterPressures[i] + 
-                        (relaxationFactor / Aii[i]) * (restDensity - Densities[2 * instanceCount + i] - particleMass * pressureSum);
+    float nextPressure = (1 - relaxationFactor) * pressureI + 
+                        (relaxationFactor / aii) * (restDensity - Densities[2 * instanceCount + i] - particleMass * pressureSum);
 
     // return nextPressure;
     return max(0, nextPressure);
@@ -131,7 +134,11 @@ void CalculateIISPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
     surfaceTension = float3(0, 0, 0);
     D = float3(0, 0, 0);
 
-    int3 gridPosI = GetGridPos(Positions[i]);
+    float3 posI = Positions[i];
+    float3 velI = Velocities[i];
+    int3 gridPosI = GetGridPos(posI);
+
+    float densitySq = Densities[i] * Densities[i];
 
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
@@ -147,12 +154,13 @@ void CalculateIISPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
                 for (uint j = startIndex; j < endIndex; j++) {
                     if (i == j) continue;
 
-                    float massOverDensity = particleMass / Densities[j];
-                    float3 offset = Positions[i] - Positions[j];
+                    float3 posOffset = posI - Positions[j];
+                    float r = length(posOffset);
+                    float3 velOffset = velI - Velocities[j];
 
-                    viscosity += CalculateViscosityContribution(i, j);
-                    surfaceTension += CalculateSurfaceTensionContribution(i, j);
-                    D += CalculateDContribution(i, j);
+                    viscosity += CalculateViscosityContribution(posOffset, velOffset, r, i, j);
+                    surfaceTension += CalculateSurfaceTensionContribution(posOffset, r);
+                    D += CalculateDContribution(posOffset, densitySq);
                 }
             }
         }
