@@ -48,15 +48,12 @@ float3 CollideVelocity(uint i) {
 float3 GetCollisionOffset(float3 pos, float3 collision) {
     float3 container = containerSize / 2 - size / 2;
     float3 collisionPoint = collision * container;
-    float3 reflectionPoint = float3(
-        collision.x == 0 ? pos.x : collisionPoint.x,
-        collision.y == 0 ? pos.y : collisionPoint.y,
-        collision.z == 0 ? pos.z : collisionPoint.z
-    );
 
-    float3 diff = reflectionPoint - pos;
-    
-    return diff * dampingFactor;
+    float3 reflected = 2 * collisionPoint - pos;
+
+    float3 offset = reflected - pos;
+
+    return offset * abs(collision);
 }
 
 void Collisions(uint i) {
