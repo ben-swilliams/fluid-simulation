@@ -398,9 +398,17 @@ public class Simulate : MonoBehaviour
     {
         if (shader == null) return;
 
+        float cellSize = 2f * smoothingRadius;
+
+        Container container = GetComponentInChildren<Container>();
+        int maxX = Mathf.FloorToInt(container.Boundary.x / cellSize);
+        int maxY = Mathf.FloorToInt(container.Boundary.y / cellSize);
+        int maxZ = Mathf.FloorToInt(container.Boundary.z / cellSize);
+
         shader.SetValues(new object[]
         {
-            "containerSize", GetComponentInChildren<Container>().Boundary
+            "containerSize", container.Boundary,
+            "maxCorner", new Vector3(maxX, maxY, maxZ)
         });
     }
 }

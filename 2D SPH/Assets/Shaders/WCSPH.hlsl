@@ -36,7 +36,7 @@ void CalculateWCSPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
 
                     viscosity += CalculateViscosityContribution(posOffset, velOffset, r, i, j);
                     surfaceTension += CalculateSurfaceTensionContribution(posOffset, r);
-                    pressure += CalculatePressureContribution(i, j);
+                    pressure += CalculatePressureContribution(posOffset, i, j);
                     xsph += CalculateXSPHContribution(Densities[j], posOffset, velOffset);
                 }
             }

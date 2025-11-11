@@ -1,8 +1,6 @@
 float nearPressureMultiplier;
 
-float3 CalculatePressureContribution(uint i, uint j) {
-    float3 offset = Positions[i] - Positions[j];
-
+float3 CalculatePressureContribution(float3 offset, uint i, uint j) {
     float densityISq = max(Densities[i] * Densities[i], Epsilon);
     float densityJSq = max(Densities[j] * Densities[j], Epsilon);
 

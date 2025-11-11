@@ -211,7 +211,7 @@ float3 CalculateXSPHPressureForce(uint i) {
                     float3 posOffset = posI - Positions[j];
                     float3 velOffset = velI - Velocities[j];
 
-                    pressureForce += CalculatePressureContribution(i, j);
+                    pressureForce += CalculatePressureContribution(posOffset, i, j);
                     xsphCorrection += CalculateXSPHContribution(Densities[j], posOffset, velOffset);
                 }
             }
