@@ -16,6 +16,10 @@ float2 CalculateDeltaDensityAndA(uint i) {
 
     int3 gridPosI = GetGridPos(Positions[i]);
 
+    float3 posI = Positions[i];
+    float3 velI = Velocities[i];
+    float d_ii = Dii[i];
+
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
             for (int z = -1; z < 2; z++) {
@@ -29,10 +33,9 @@ float2 CalculateDeltaDensityAndA(uint i) {
 
                 for (uint j = startIndex; j < endIndex; j++) {
                     if (i == j) continue;
-                    float3 posOffset = Positions[i] - Positions[j];
-                    float r = length(posOffset);
+                    float3 posOffset = posI - Positions[j];
 
-                    float3 velOffset = Velocities[i] - Velocities[j];
+                    float3 velOffset = velI - Velocities[j];
 
                     float3 grad = CubicSplineGrad(posOffset);
 
@@ -40,7 +43,7 @@ float2 CalculateDeltaDensityAndA(uint i) {
 
                     float3 d_ji = deltaTime * deltaTime * particleMass * grad / densitySq;
             
-                    a += dot(Dii[i] - d_ji, grad);
+                    a += dot(d_ii - d_ji, grad);
                 }
             }
         }
