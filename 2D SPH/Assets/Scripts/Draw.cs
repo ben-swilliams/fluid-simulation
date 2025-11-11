@@ -44,7 +44,7 @@ public class Draw : MonoBehaviour
     {
         instanceMaterial = new Material(shader);
         instanceMaterial.enableInstancing = true;
-        Debug.Log($"Graphics API: {SystemInfo.graphicsDeviceType}");
+
         bounds = new Bounds(Vector3.zero, Vector3.one * 1000f);
         mesh = SphereGenerator.GenerateSphere(sphereResolution);
     }
