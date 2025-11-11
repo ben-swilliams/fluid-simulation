@@ -45,13 +45,22 @@ float3 CollideVelocity(uint i) {
     return CollideVelocity(Velocities[i], collision);
 }
 
+float3 GetCollisionOffset(float3 pos, float3 collision) {
+    float3 container = containerSize / 2 - size / 2;
+    float3 collisionPoint = collision * container;
+
+    float3 reflected = 2 * collisionPoint - pos;
+
+    float3 offset = reflected - pos;
+
+    return offset * abs(collision);
+}
+
 void Collisions(uint i) {
     float3 collision = GetCollisions(Positions[i]);
     Velocities[i] = CollideVelocity(Velocities[i], collision);
 
-    Positions[i].x = collision.x == 0 ? Positions[i].x : collision.x * (containerSize.x / 2 - size / 2);
-    Positions[i].y = collision.y == 0 ? Positions[i].y : collision.y * (containerSize.y / 2 - size / 2);
-    Positions[i].z = collision.z == 0 ? Positions[i].z : collision.z * (containerSize.z / 2 - size / 2);
+    Positions[i] += GetCollisionOffset(Positions[i], collision);
 }
 
 float3 MouseForce(uint idx) {

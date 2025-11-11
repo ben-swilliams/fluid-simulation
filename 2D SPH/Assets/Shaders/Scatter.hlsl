@@ -18,5 +18,5 @@ void SortParticle(uint i)
 
     NewPositions[destIndex]  = OldPositions[i];
     NewVelocities[destIndex] = OldVelocities[i];
-    IterPressures[destIndex] = Pressures[i] * 0.5;
+    IterPressures[destIndex] = 0;
 }
