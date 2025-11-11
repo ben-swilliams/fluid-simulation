@@ -45,25 +45,13 @@ float3 CollideVelocity(uint i) {
     return CollideVelocity(Velocities[i], collision);
 }
 
-float3 GetCollisionOffset(float3 pos, float3 collision) {
-    float3 container = containerSize / 2 - size / 2;
-    float3 collisionPoint = collision * container;
-    float3 reflectionPoint = float3(
-        collision.x == 0 ? pos.x : collisionPoint.x,
-        collision.y == 0 ? pos.y : collisionPoint.y,
-        collision.z == 0 ? pos.z : collisionPoint.z
-    );
-
-    float3 diff = reflectionPoint - pos;
-    
-    return diff * dampingFactor;
-}
-
 void Collisions(uint i) {
     float3 collision = GetCollisions(Positions[i]);
     Velocities[i] = CollideVelocity(Velocities[i], collision);
 
-    Positions[i] += GetCollisionOffset(Positions[i], collision);
+    Positions[i].x = collision.x == 0 ? Positions[i].x : collision.x * (containerSize.x / 2 - size / 2);
+    Positions[i].y = collision.y == 0 ? Positions[i].y : collision.y * (containerSize.y / 2 - size / 2);
+    Positions[i].z = collision.z == 0 ? Positions[i].z : collision.z * (containerSize.z / 2 - size / 2);
 }
 
 float3 MouseForce(uint idx) {
