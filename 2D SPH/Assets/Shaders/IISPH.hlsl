@@ -190,7 +190,9 @@ float3 CalculateXSPHPressureForce(uint i) {
     float3 pressureForce = float3(0, 0, 0);
     float3 xsphCorrection = float3(0, 0, 0);
 
-    int3 gridPosI = GetGridPos(Positions[i]);
+    float3 posI = Positions[i];
+    int3 gridPosI = GetGridPos(posI);
+    float3 velI = Velocities[i];
 
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
@@ -205,8 +207,12 @@ float3 CalculateXSPHPressureForce(uint i) {
 
                 for (uint j = startIndex; j < endIndex; j++) {
                     if (i == j) continue;
+
+                    float3 posOffset = posI - Positions[j];
+                    float3 velOffset = velI - Velocities[j];
+
                     pressureForce += CalculatePressureContribution(i, j);
-                    xsphCorrection += CalculateXSPHContribution(i, j);
+                    xsphCorrection += CalculateXSPHContribution(Densities[j], posOffset, velOffset);
                 }
             }
         }

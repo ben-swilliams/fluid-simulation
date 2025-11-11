@@ -11,7 +11,10 @@ void CalculateWCSPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
     pressure = 0;
     xsph = 0;
 
-    int3 gridPosI = GetGridPos(Positions[i]);
+    float3 posI = Positions[i];
+    int3 gridPosI = GetGridPos(posI);
+
+    float3 velI = Velocities[i];
 
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
@@ -27,13 +30,14 @@ void CalculateWCSPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
                 for (uint j = startIndex; j < endIndex; j++) {
                     if (i == j) continue;
 
-                    float massOverDensity = particleMass / Densities[j];
-                    float3 offset = Positions[i] - Positions[j];
+                    float3 posOffset = posI - Positions[j];
+                    float r = length(posOffset);
+                    float3 velOffset = velI - Velocities[j];
 
-                    viscosity += CalculateViscosityContribution(i, j);
-                    surfaceTension += CalculateSurfaceTensionContribution(i, j);
+                    viscosity += CalculateViscosityContribution(posOffset, velOffset, r, i, j);
+                    surfaceTension += CalculateSurfaceTensionContribution(posOffset, r);
                     pressure += CalculatePressureContribution(i, j);
-                    xsph += CalculateXSPHContribution(i, j);
+                    xsph += CalculateXSPHContribution(Densities[j], posOffset, velOffset);
                 }
             }
         }
