@@ -398,9 +398,24 @@ public class Simulate : MonoBehaviour
     {
         if (shader == null) return;
 
+        float cellSize = 2f * smoothingRadius;
+
+        Container container = GetComponentInChildren<Container>();
+
+        // Calculate based on the actual boundary particles can reach
+        float particleSize = spawner.Size;
+        Vector3 effectiveBoundary = container.Boundary - Vector3.one * particleSize;
+
+        int maxX = Mathf.FloorToInt(effectiveBoundary.x / cellSize);
+        int maxY = Mathf.FloorToInt(effectiveBoundary.y / cellSize);
+        int maxZ = Mathf.FloorToInt(effectiveBoundary.z / cellSize);
+
         shader.SetValues(new object[]
         {
-            "containerSize", GetComponentInChildren<Container>().Boundary
+            "containerSize", container.Boundary,
+            "maxCornerX", maxX,
+            "maxCornerY", maxY,
+            "maxCornerZ", maxZ
         });
     }
 }
