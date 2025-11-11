@@ -1,10 +1,8 @@
 float velocitySmoothing;
 
-float3 CalculateXSPHContribution(uint i, uint j) {
-    float massOverDensity = particleMass / Densities[j];
-    float3 velDiff = Velocities[j] - Velocities[i];
-    float3 offset = Positions[i] - Positions[j];
-    float kernel = CubicSplineKernel(offset);
+float3 CalculateXSPHContribution(float densityJ, float3 posOffset, float3 velOffset) {
+    float massOverDensity = particleMass / densityJ;
+    float kernel = CubicSplineKernel(posOffset);
 
-    return velocitySmoothing * massOverDensity * kernel * velDiff;
+    return velocitySmoothing * massOverDensity * kernel * -velOffset;
 }

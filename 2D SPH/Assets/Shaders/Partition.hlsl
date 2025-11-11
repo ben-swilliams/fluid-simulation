@@ -2,6 +2,10 @@ static const uint primeX = 73856093;
 static const uint primeY = 19349663;
 static const uint primeZ = 83492791;
 
+int maxCornerX;
+int maxCornerY;
+int maxCornerZ;
+
 int3 GetGridPos(float3 pos) {
     float3 offsetPos = pos + containerSize / 2;
     int3 gridPos = int3(floor(offsetPos.x / (2 * smoothingRadius)),
@@ -24,9 +28,7 @@ uint CalculateHash(float3 pos) {
 bool IsInBounds(int3 gridPos) {
     if (gridPos.x < 0 || gridPos.y < 0 || gridPos.z < 0) return false;
 
-    int3 maxCorner = GetGridPos(containerSize / 2);
-
-    if (gridPos.x > maxCorner.x || gridPos.y > maxCorner.y || gridPos.z > maxCorner.z) return false;
+    if (gridPos.x > maxCornerX || gridPos.y > maxCornerY || gridPos.z > maxCornerZ) return false;
 
     return true;
 }
