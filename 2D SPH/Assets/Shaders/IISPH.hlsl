@@ -86,7 +86,7 @@ float3 CalculatePressureSum(uint i) {
 
 float CalculateNextPressureValue(uint i) {
     float aii = Aii[i];
-    if (abs(aii) < Epsilon) return 0;
+    if (abs(aii) < Epsilon) return IterPressures[i];
     float pressureSum = 0;
 
     float densitySq = max(Densities[i] * Densities[i], Epsilon);
