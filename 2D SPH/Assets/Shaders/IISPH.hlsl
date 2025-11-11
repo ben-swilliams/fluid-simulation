@@ -18,7 +18,7 @@ float2 CalculateDeltaDensityAndA(uint i) {
 
     float3 posI = Positions[i];
     float3 velI = Velocities[i];
-    float d_ii = Dii[i];
+    float3 d_ii = Dii[i];
 
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {
