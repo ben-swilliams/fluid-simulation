@@ -1297,7 +1297,7 @@ MonoBehaviour:
   gravity: -9.8
   dampingFactor: 0.95
   wavePeriod: 1
-  waveStrength: 0
+  waveStrength: 3
   pressureSolver: 1
   restDensity: 25
   nearPressureMultiplier: 0
