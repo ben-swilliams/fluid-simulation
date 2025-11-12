@@ -33,6 +33,7 @@ public class Spawn : MonoBehaviour
 
     void Start()
     {
+        ValidateInspectorProperties();
         prevGridMode = asGrid;
         CreateBuffers();
         UpdateBuffers();
