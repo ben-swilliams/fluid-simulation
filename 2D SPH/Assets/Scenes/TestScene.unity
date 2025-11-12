@@ -1335,8 +1335,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90a21f46cb45640b88337bf5d5a09f85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawn
-  instanceCount: 21952
-  size: 0.07
+  instanceCount: 15625
+  size: 0.08
   spacing: 0
   spawnArea: {x: 2, y: 2, z: 2}
   spawnPosition: {x: 0, y: 0, z: 0}
