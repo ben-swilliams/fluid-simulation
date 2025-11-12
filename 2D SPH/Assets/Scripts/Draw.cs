@@ -48,6 +48,9 @@ public class Draw : MonoBehaviour
 
         bounds = new Bounds(Vector3.zero, Vector3.one * 1000f);
         mesh = SphereGenerator.GenerateSphere(sphereResolution);
+
+        Color.RGBToHSV(slowColour, out lowHue, out _, out _);
+        Color.RGBToHSV(fastColour, out highHue, out _, out _);
     }
 
     void OnValidate()
