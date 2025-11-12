@@ -6,7 +6,6 @@ public class Cam : MonoBehaviour
     [SerializeField] float angle = 15;
     [SerializeField] float orbitSpeed = 1f;
 
-    float radius;
     float currentOrbitAngle = 0f;
 
     void Start()
@@ -24,15 +23,14 @@ public class Cam : MonoBehaviour
 
     void OnValidate()
     {
-        float angleRad = -angle * Mathf.Deg2Rad;
-        radius = Mathf.Cos(angleRad) * distance;
+        if (!Application.isPlaying) currentOrbitAngle = 0f;
         SetCameraSettings();
     }
 
     void SetCameraSettings()
     {
-        Camera.main.transform.LookAt(Vector3.zero);
         Camera.main.transform.position = CalculateCameraPosition();
+        Camera.main.transform.LookAt(Vector3.zero);
     }
 
     Vector3 CalculateCameraPosition()
