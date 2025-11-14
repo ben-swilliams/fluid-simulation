@@ -138,6 +138,16 @@ public class Simulate : MonoBehaviour
         }
     }
 
+    public float SolverIterations
+    {
+        get => solverIterations;
+        set
+        {
+            solverIterations = Mathf.FloorToInt(value);
+            UpdateVariables();
+        }
+    }
+
     public void SetSolver(int index)
     {
         pressureSolver = (Solver)index;
