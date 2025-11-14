@@ -1,5 +1,4 @@
 using System;
-using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -13,7 +12,6 @@ public class Simulate : MonoBehaviour
     [SerializeField] ComputeShader computeShader;
 
     [Header("Simulation Settings")]
-    [SerializeField] int physicsStepsPerSecond = 300;
     [SerializeField] float simulationSpeed = 1f;
     [SerializeField] float smoothingRadius = 1f;
     [SerializeField] float velocitySmoothing = 0f;
@@ -120,6 +118,12 @@ public class Simulate : MonoBehaviour
         }
     }
 
+    public void SetSolver(int index)
+    {
+        pressureSolver = (Solver)index;
+        UpdateVariables();
+    }
+
     void Start()
     {
         spawner = GetComponent<Spawn>();
@@ -128,7 +132,7 @@ public class Simulate : MonoBehaviour
         shader = new ShaderHelper(computeShader);
         drawer.SetComputeShader(shader);
 
-        physicsTimeStep = 1f / physicsStepsPerSecond;
+        physicsTimeStep = 1f / SolverSteps(pressureSolver);
     }
 
     void Update()
@@ -349,7 +353,7 @@ public class Simulate : MonoBehaviour
         float gradConstant = 6 * kernelConstant / smoothingRadius;
         float speedOfSound = maxVelocity / Mathf.Sqrt(densityError);
         float B = restDensity * speedOfSound * speedOfSound / stiffness;
-        physicsTimeStep = 1f / physicsStepsPerSecond;
+        physicsTimeStep = 1f / SolverSteps(pressureSolver);
 
         object[] keyValues =
         {
@@ -374,10 +378,17 @@ public class Simulate : MonoBehaviour
         shader.SetValues(keyValues);
     }
 
+    int SolverSteps(Solver solver)
+    {
+        if (solver == Solver.WCSPH) return Constants.stableWCSPHStep;
+        if (solver == Solver.IISPH) return Constants.stableIISPHStep;
+
+        return Constants.stableWCSPHStep;
+    }
+
     void ValidateInspectorProperties()
     {
         simulationSpeed = Mathf.Clamp(simulationSpeed, 0, 1);
-        physicsStepsPerSecond = Mathf.Max(1, physicsStepsPerSecond);
         initSpeed = Mathf.Max(0, initSpeed);
         dampingFactor = Mathf.Max(0, dampingFactor);
         smoothingRadius = Mathf.Max(0.01f, smoothingRadius);
