@@ -128,6 +128,16 @@ public class Simulate : MonoBehaviour
         }
     }
 
+    public float Stiffness
+    {
+        get => stiffness;
+        set
+        {
+            stiffness = value;
+            UpdateVariables();
+        }
+    }
+
     public void SetSolver(int index)
     {
         pressureSolver = (Solver)index;
