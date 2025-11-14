@@ -12,6 +12,7 @@ public class UIHandler : MonoBehaviour
     void Start()
     {
         EventSystem.current.SetSelectedGameObject(tabButtons[0].gameObject);
+        SelectTab(0);
         RegisterListeners();
     }
 
