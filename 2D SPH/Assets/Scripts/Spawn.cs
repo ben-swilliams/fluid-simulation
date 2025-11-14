@@ -33,7 +33,7 @@ public class Spawn : MonoBehaviour
             size = value;    
             sizeWithSpacing = size + spacing;
             if (asGrid)
-                instanceCount = calculateMaxInGrid();
+                instanceCount = CalculateMaxInGrid();
             RecreatePositions();
         }
     }
@@ -44,6 +44,8 @@ public class Spawn : MonoBehaviour
         set
         {
             asGrid = value;
+            if (asGrid)
+                instanceCount = CalculateMaxInGrid();
             RecreatePositions();
         }
     }
@@ -99,7 +101,7 @@ public class Spawn : MonoBehaviour
         sizeWithSpacing = size + spacing;
 
         if (asGrid)
-            instanceCount = calculateMaxInGrid();
+            instanceCount = CalculateMaxInGrid();
     }
 
     void CreateBuffers()
@@ -160,7 +162,7 @@ public class Spawn : MonoBehaviour
         ReleaseBuffers();
     }
 
-    int calculateMaxInGrid()
+    int CalculateMaxInGrid()
     {
         int sizeX = (int)(spawnArea.x / sizeWithSpacing);
         int sizeY = (int)(spawnArea.y / sizeWithSpacing);
@@ -229,6 +231,13 @@ public class Spawn : MonoBehaviour
         }
 
         return positions;
+    }
+
+    public void SetInstanceCount(float count)
+    {
+        if (asGrid) return;
+        instanceCount = Mathf.FloorToInt(count);
+        RecreatePositions();
     }
 
 
