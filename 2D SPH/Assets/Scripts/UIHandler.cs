@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.U2D.IK;
 using UnityEngine.UI;
 
 public class UIHandler : MonoBehaviour
@@ -9,6 +10,9 @@ public class UIHandler : MonoBehaviour
     [SerializeField] GameObject[] settings;
     [SerializeField] GameObject WCSPHSettings;
     [SerializeField] GameObject IISPHSettings;
+
+    [SerializeField] GameObject VelocitySettings;
+    [SerializeField] GameObject DensitySettings;
 
     int selectedIndex = 0;
 
@@ -50,7 +54,7 @@ public class UIHandler : MonoBehaviour
         tabButtons[selectedIndex].GetComponent<Image>().color = Color.white;
     }
 
-    public void SelectSettings(int solver)
+    public void SelectSolverSettings(int solver)
     {
         if (selectedIndex != 2) return;
 
@@ -63,6 +67,22 @@ public class UIHandler : MonoBehaviour
         {
             IISPHSettings.SetActive(true);
             WCSPHSettings.SetActive(false);
+        }
+    }
+
+    public void SelectPropertySettings(int property)
+    {
+        if (selectedIndex != 3) return;
+
+        if (property == 0)
+        {
+            VelocitySettings.SetActive(true);
+            DensitySettings.SetActive(false);
+        }
+        if (property == 1)
+        {
+            VelocitySettings.SetActive(false);
+            DensitySettings.SetActive(true);
         }
     }
 }
