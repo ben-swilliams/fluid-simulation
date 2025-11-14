@@ -90,6 +90,16 @@ public class Simulate : MonoBehaviour
         }
     }
 
+    public float DampingFactor
+    {
+        get => dampingFactor;
+        set
+        {
+            dampingFactor = value;
+            UpdateVariables();
+        }
+    }
+
     void Start()
     {
         spawner = GetComponent<Spawn>();
