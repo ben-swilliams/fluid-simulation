@@ -14,7 +14,7 @@ public class UIHandler : MonoBehaviour
 
     void Start()
     {
-        EventSystem.current.SetSelectedGameObject(tabButtons[0].gameObject);
+        tabButtons[0].GetComponent<Image>().color = selectedColour;
         SelectTab(0);
         RegisterListeners();
     }
@@ -34,10 +34,17 @@ public class UIHandler : MonoBehaviour
     void SelectTab(int index)
     {
         if (selectedIndex == index) return;
+        ColourButton(index);
 
         settings[selectedIndex].SetActive(false);
         selectedIndex = index;
         settings[selectedIndex].SetActive(true);
+    }
+
+    void ColourButton(int index)
+    {
+        tabButtons[index].GetComponent<Image>().color = selectedColour;
+        tabButtons[selectedIndex].GetComponent<Image>().color = Color.white;
     }
 
     public void SelectSettings(int solver)
