@@ -110,6 +110,16 @@ public class Simulate : MonoBehaviour
         }
     }
 
+    public float WavePeriod
+    {
+        get => wavePeriod;
+        set
+        {
+            wavePeriod = value;
+            UpdateVariables();
+        }
+    }
+
     void Start()
     {
         spawner = GetComponent<Spawn>();
