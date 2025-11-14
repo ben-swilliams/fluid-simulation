@@ -70,7 +70,7 @@ public class Spawn : MonoBehaviour
     {
         instanceCount = Mathf.Max(1, instanceCount);
         spacing = Mathf.Max(0, spacing);
-        size = Mathf.Max(0, size);
+        size = Mathf.Max(0.01f, size);
         sizeWithSpacing = size + spacing;
 
         if (asGrid)
