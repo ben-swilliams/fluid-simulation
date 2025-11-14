@@ -47,6 +47,17 @@ public class Draw : MonoBehaviour
         set
         {
             maxSpeed = value;
+            SetColourValues();
+        }
+    }
+
+    public float MaxDensityFluctuation
+    {
+        get => maxDensityFluctuation;
+        set
+        {
+            maxDensityFluctuation = value;
+            SetColourValues();
         }
     }
 
