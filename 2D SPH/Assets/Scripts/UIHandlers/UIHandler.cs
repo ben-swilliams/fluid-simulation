@@ -4,10 +4,8 @@ using UnityEngine.UI;
 
 public class UIHandler : MonoBehaviour
 {
-    [SerializeField] Simulate sim;
-    [SerializeField] GameObject settings;
     [SerializeField] Button[] tabButtons;
-    [SerializeField] Slider simSpeedSlider;
+    [SerializeField] GameObject[] settings;
 
     int selectedIndex = 0;
 
@@ -21,22 +19,20 @@ public class UIHandler : MonoBehaviour
     {
         for (int i = 0; i < tabButtons.Length; i++)
         {
+            int index = i;
             tabButtons[i].onClick.AddListener(() =>
             {
-                SelectTab(i);
+                SelectTab(index);
             });
         }
-
-        simSpeedSlider.onValueChanged.AddListener((float value) =>
-        {
-            sim.SimulationSpeed = value;
-        });
     }
 
     void SelectTab(int index)
     {
         if (selectedIndex == index) return;
 
+        settings[selectedIndex].SetActive(false);
         selectedIndex = index;
+        settings[selectedIndex].SetActive(true);
     }
 }
