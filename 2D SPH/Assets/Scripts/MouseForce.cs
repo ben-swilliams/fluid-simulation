@@ -32,6 +32,16 @@ class MouseForce : MonoBehaviour
         set => power = value;
     }
 
+    public float Radius
+    {
+        get => radius;
+        set
+        {
+            radius = value;
+            sphere.transform.localScale = Vector3.one * radius;
+        }
+    }
+
     void Start()
     {
         sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -52,7 +62,8 @@ class MouseForce : MonoBehaviour
 
         if (!Application.isPlaying || sphere == null) return;
 
-        sphere.transform.localScale = Vector3.one * radius;
+        // triggers sphere re-size
+        Radius = radius;
     }
 
     void HandleScroll()
