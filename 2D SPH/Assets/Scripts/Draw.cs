@@ -41,6 +41,15 @@ public class Draw : MonoBehaviour
     */
     public Property ColourProperty => colourProperty;
 
+    public float MaxSpeed
+    {
+        get => maxSpeed;
+        set
+        {
+            maxSpeed = value;
+        }
+    }
+
     public void SetProperty(int index)
     {
         colourProperty = (Property)index;
