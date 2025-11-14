@@ -25,7 +25,29 @@ public class Spawn : MonoBehaviour
     Public getters
     */
     public int InstanceCount => instanceCount;
-    public float Size => size;
+    public float Size
+    {
+        get => size;
+        set
+        {
+            size = value;    
+            sizeWithSpacing = size + spacing;
+            if (asGrid)
+                instanceCount = calculateMaxInGrid();
+            RecreatePositions();
+        }
+    }
+
+    public bool AsGrid
+    {
+        get => asGrid;
+        set
+        {
+            asGrid = value;
+            RecreatePositions();
+        }
+    }
+
     public float Spacing => spacing;
     public ComputeBuffer positionBuffer { get; private set; }
     public float Area => spawnArea.x * spawnArea.y * spawnArea.z;
@@ -45,16 +67,7 @@ public class Spawn : MonoBehaviour
         ValidateInspectorProperties();
 
         if (!Application.isPlaying) return;
-
-        if (!GetComponent<Simulate>().Started)
-        {
-            if (positionBuffer != null && (instanceCount != positionBuffer.count || prevGridMode != asGrid))
-            {
-                UpdateBuffers();
-            }
-
-            if (positionBuffer != null) BindExternalBuffers();
-        }
+        RecreatePositions();
 
         prevGridMode = asGrid;
     }
@@ -64,6 +77,18 @@ public class Spawn : MonoBehaviour
         Gizmos.color = Color.white;
 
         Gizmos.DrawWireCube(transform.position + new Vector3(spawnPosition.x, spawnPosition.y, spawnPosition.z), new Vector3(spawnArea.x, spawnArea.y, spawnArea.z));
+    }
+
+    public void RecreatePositions()
+    {
+        if (GetComponent<Simulate>().Started) return;
+
+        if (positionBuffer != null && (instanceCount != positionBuffer.count || prevGridMode != asGrid))
+        {
+            UpdateBuffers();
+        }
+
+        if (positionBuffer != null) BindExternalBuffers();
     }
 
     void ValidateInspectorProperties()

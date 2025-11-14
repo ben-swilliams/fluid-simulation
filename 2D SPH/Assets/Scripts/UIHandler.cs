@@ -1,6 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.U2D.IK;
 using UnityEngine.UI;
 
 public class UIHandler : MonoBehaviour
