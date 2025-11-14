@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 class MouseForce : MonoBehaviour
 {
@@ -21,6 +22,15 @@ class MouseForce : MonoBehaviour
     float scrollSpeed = 10f;
 
     bool repulse = false;
+
+    /*
+    Public getters/setters
+    */
+    public float Power
+    {
+        get => power;
+        set => power = value;
+    }
 
     void Start()
     {
