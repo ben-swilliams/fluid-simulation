@@ -148,6 +148,16 @@ public class Simulate : MonoBehaviour
         }
     }
 
+    public float RestDensity
+    {
+        get => restDensity;
+        set
+        {
+            restDensity = value;
+            UpdateVariables();
+        }
+    }
+
     public void SetSolver(int index)
     {
         pressureSolver = (Solver)index;

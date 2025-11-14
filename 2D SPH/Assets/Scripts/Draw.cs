@@ -41,6 +41,12 @@ public class Draw : MonoBehaviour
     */
     public Property ColourProperty => colourProperty;
 
+    public void SetProperty(int index)
+    {
+        colourProperty = (Property)index;
+        SetColourValues();
+    }
+
     void Start()
     {
         instanceMaterial = new Material(shader);

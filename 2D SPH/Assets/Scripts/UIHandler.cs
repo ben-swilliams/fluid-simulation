@@ -17,6 +17,9 @@ public class UIHandler : MonoBehaviour
         tabButtons[0].GetComponent<Image>().color = selectedColour;
         SelectTab(0);
         RegisterListeners();
+
+        WCSPHSettings.SetActive(true);
+        IISPHSettings.SetActive(false);
     }
 
     void RegisterListeners()
