@@ -13,6 +13,7 @@ public class UIHandler : MonoBehaviour
 
     [SerializeField] GameObject VelocitySettings;
     [SerializeField] GameObject DensitySettings;
+    [SerializeField] GameObject PressureSettings;
 
     int selectedIndex = 0;
 
@@ -78,11 +79,19 @@ public class UIHandler : MonoBehaviour
         {
             VelocitySettings.SetActive(true);
             DensitySettings.SetActive(false);
+            PressureSettings.SetActive(false);
         }
         if (property == 1)
         {
             VelocitySettings.SetActive(false);
             DensitySettings.SetActive(true);
+            PressureSettings.SetActive(false);
+        }
+        if (property == 2)
+        {
+            VelocitySettings.SetActive(false);
+            DensitySettings.SetActive(false);
+            PressureSettings.SetActive(true);
         }
     }
 }

@@ -61,6 +61,16 @@ public class Draw : MonoBehaviour
         }
     }
 
+    public float MaxPressure
+    {
+        get => maxPressure;
+        set
+        {
+            maxPressure = value;
+            SetColourValues();
+        }
+    }
+
     public void SetProperty(int index)
     {
         colourProperty = (Property)index;
