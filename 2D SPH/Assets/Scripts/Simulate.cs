@@ -100,6 +100,16 @@ public class Simulate : MonoBehaviour
         }
     }
 
+    public float WaveStrength
+    {
+        get => waveStrength;
+        set
+        {
+            waveStrength = value;
+            UpdateVariables();
+        }
+    }
+
     void Start()
     {
         spawner = GetComponent<Spawn>();
