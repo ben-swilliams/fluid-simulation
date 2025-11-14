@@ -69,6 +69,15 @@ public class Simulate : MonoBehaviour
     public float SmoothingRadius => smoothingRadius;
     public ShaderHelper Shader => shader;
 
+    public float SimulationSpeed
+    {
+        get => simulationSpeed;
+        set {
+            simulationSpeed = value;
+            UpdateVariables();
+        }
+    }
+
     void Start()
     {
         spawner = GetComponent<Spawn>();

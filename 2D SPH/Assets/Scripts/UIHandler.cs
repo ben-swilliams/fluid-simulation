@@ -3,17 +3,15 @@ using UnityEngine.UI;
 
 public class UIHandler : MonoBehaviour
 {
+    [SerializeField] Simulate sim;
     [SerializeField] Button[] tabButtons;
+    [SerializeField] Slider simSpeedSlider;
 
-    private int selectedIndex = 0;
+    int selectedIndex = 0;
 
     void Start()
     {
         RegisterListeners();
-    }
-
-    void Update()
-    {
     }
 
     void RegisterListeners()
@@ -25,6 +23,11 @@ public class UIHandler : MonoBehaviour
                 SelectTab(i);
             });
         }
+
+        simSpeedSlider.onValueChanged.AddListener((float value) =>
+        {
+            sim.SimulationSpeed = value;
+        });
     }
 
     void SelectTab(int index)
