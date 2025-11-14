@@ -118,6 +118,16 @@ public class Simulate : MonoBehaviour
         }
     }
 
+    public float DensityFluctuation
+    {
+        get => densityError;
+        set
+        {
+            densityError = value;
+            UpdateVariables();
+        }
+    }
+
     public void SetSolver(int index)
     {
         pressureSolver = (Solver)index;
