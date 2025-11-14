@@ -25,7 +25,31 @@ public class Spawn : MonoBehaviour
     Public getters
     */
     public int InstanceCount => instanceCount;
-    public float Size => size;
+    public float Size
+    {
+        get => size;
+        set
+        {
+            size = value;    
+            sizeWithSpacing = size + spacing;
+            if (asGrid)
+                instanceCount = CalculateMaxInGrid();
+            RecreatePositions();
+        }
+    }
+
+    public bool AsGrid
+    {
+        get => asGrid;
+        set
+        {
+            asGrid = value;
+            if (asGrid)
+                instanceCount = CalculateMaxInGrid();
+            RecreatePositions();
+        }
+    }
+
     public float Spacing => spacing;
     public ComputeBuffer positionBuffer { get; private set; }
     public float Area => spawnArea.x * spawnArea.y * spawnArea.z;
@@ -45,16 +69,7 @@ public class Spawn : MonoBehaviour
         ValidateInspectorProperties();
 
         if (!Application.isPlaying) return;
-
-        if (!GetComponent<Simulate>().Started)
-        {
-            if (positionBuffer != null && (instanceCount != positionBuffer.count || prevGridMode != asGrid))
-            {
-                UpdateBuffers();
-            }
-
-            if (positionBuffer != null) BindExternalBuffers();
-        }
+        RecreatePositions();
 
         prevGridMode = asGrid;
     }
@@ -66,15 +81,27 @@ public class Spawn : MonoBehaviour
         Gizmos.DrawWireCube(transform.position + new Vector3(spawnPosition.x, spawnPosition.y, spawnPosition.z), new Vector3(spawnArea.x, spawnArea.y, spawnArea.z));
     }
 
+    public void RecreatePositions()
+    {
+        if (GetComponent<Simulate>().Started) return;
+
+        if (positionBuffer != null && (instanceCount != positionBuffer.count || prevGridMode != asGrid))
+        {
+            UpdateBuffers();
+        }
+
+        if (positionBuffer != null) BindExternalBuffers();
+    }
+
     void ValidateInspectorProperties()
     {
         instanceCount = Mathf.Max(1, instanceCount);
         spacing = Mathf.Max(0, spacing);
-        size = Mathf.Max(0, size);
+        size = Mathf.Max(0.01f, size);
         sizeWithSpacing = size + spacing;
 
         if (asGrid)
-            instanceCount = calculateMaxInGrid();
+            instanceCount = CalculateMaxInGrid();
     }
 
     void CreateBuffers()
@@ -135,7 +162,7 @@ public class Spawn : MonoBehaviour
         ReleaseBuffers();
     }
 
-    int calculateMaxInGrid()
+    int CalculateMaxInGrid()
     {
         int sizeX = (int)(spawnArea.x / sizeWithSpacing);
         int sizeY = (int)(spawnArea.y / sizeWithSpacing);
@@ -204,6 +231,13 @@ public class Spawn : MonoBehaviour
         }
 
         return positions;
+    }
+
+    public void SetInstanceCount(float count)
+    {
+        if (asGrid) return;
+        instanceCount = Mathf.FloorToInt(count);
+        RecreatePositions();
     }
 
 
