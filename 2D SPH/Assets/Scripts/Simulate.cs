@@ -1,4 +1,5 @@
 using System;
+using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -72,8 +73,19 @@ public class Simulate : MonoBehaviour
     public float SimulationSpeed
     {
         get => simulationSpeed;
-        set {
+        set
+        {
             simulationSpeed = value;
+            UpdateVariables();
+        }
+    }
+
+    public float Gravity
+    {
+        get => gravity;
+        set
+        {
+            gravity = value;
             UpdateVariables();
         }
     }
