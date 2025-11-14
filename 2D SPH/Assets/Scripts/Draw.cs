@@ -41,6 +41,42 @@ public class Draw : MonoBehaviour
     */
     public Property ColourProperty => colourProperty;
 
+    public float MaxSpeed
+    {
+        get => maxSpeed;
+        set
+        {
+            maxSpeed = value;
+            SetColourValues();
+        }
+    }
+
+    public float MaxDensityFluctuation
+    {
+        get => maxDensityFluctuation;
+        set
+        {
+            maxDensityFluctuation = value;
+            SetColourValues();
+        }
+    }
+
+    public float MaxPressure
+    {
+        get => maxPressure;
+        set
+        {
+            maxPressure = value;
+            SetColourValues();
+        }
+    }
+
+    public void SetProperty(int index)
+    {
+        colourProperty = (Property)index;
+        SetColourValues();
+    }
+
     void Start()
     {
         instanceMaterial = new Material(shader);

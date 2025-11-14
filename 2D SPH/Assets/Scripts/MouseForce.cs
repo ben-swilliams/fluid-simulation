@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 class MouseForce : MonoBehaviour
 {
@@ -22,6 +23,25 @@ class MouseForce : MonoBehaviour
 
     bool repulse = false;
 
+    /*
+    Public getters/setters
+    */
+    public float Power
+    {
+        get => power;
+        set => power = value;
+    }
+
+    public float Radius
+    {
+        get => radius;
+        set
+        {
+            radius = value;
+            sphere.transform.localScale = Vector3.one * radius;
+        }
+    }
+
     void Start()
     {
         sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -42,7 +62,8 @@ class MouseForce : MonoBehaviour
 
         if (!Application.isPlaying || sphere == null) return;
 
-        sphere.transform.localScale = Vector3.one * radius;
+        // triggers sphere re-size
+        Radius = radius;
     }
 
     void HandleScroll()
