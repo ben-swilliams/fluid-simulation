@@ -409,6 +409,7 @@ public class Simulate : MonoBehaviour
         float speedOfSound = maxVelocity / Mathf.Sqrt(densityError);
         float B = restDensity * speedOfSound * speedOfSound / stiffness;
         float beta = deltaTime * deltaTime * particleMass * particleMass * 2 / (restDensity * restDensity);
+        float delta = ComputeDelta(particleSpacing, particleMass, beta, gradConstant);
         physicsTimeStep = 1f / SolverSteps(pressureSolver);
 
         object[] keyValues =
@@ -429,10 +430,72 @@ public class Simulate : MonoBehaviour
             "stiffness", stiffness,
             "B", B,
             "nearPressureMultiplier", nearPressureMultiplier,
-            "beta", beta
+            "beta", beta,
+            "delta", delta
         };
 
         shader.SetValues(keyValues);
+    }
+
+    float ComputeDelta(float particleSpacing, float particleMass, float beta, float gradConstant)
+    {
+        Vector3 gradSum = Vector3.zero;
+        float dotGradSum = 0f;
+
+        Vector3 prototypePos = Vector3.zero;
+
+        int range = Mathf.CeilToInt(smoothingRadius / particleSpacing);
+
+        for (int x = -range; x <= range; x++)
+        {
+            for (int y = -range; y <= range; y++)
+            {
+                for (int z = -range; z <= range; z++)
+                {
+                    if (x == 0 && y == 0 && z == 0) continue;
+
+                    Vector3 neighborPos = new Vector3(x, y, z) * particleSpacing;
+                    Vector3 offset = prototypePos - neighborPos;
+                    float r = offset.magnitude;
+
+                    if (r >= smoothingRadius) continue;
+
+                    Vector3 grad = CubicSplineGrad(offset, r, gradConstant);
+
+                    gradSum += grad;
+                    dotGradSum += Vector3.Dot(grad, grad);
+                }
+            }
+        }
+
+        float denominator = beta * (-Vector3.Dot(gradSum, gradSum) - dotGradSum);
+
+        if (Mathf.Abs(denominator) < 1e-12)
+        {
+            return 0f;
+        }
+
+        return -1f / denominator;
+    }
+
+    Vector3 CubicSplineGrad(Vector3 offset, float r, float gradConstant)
+    {
+        if (r < 1e-12) return Vector3.zero;
+
+        float q = r / smoothingRadius;
+        float gradFactor = 0f;
+
+        if (q < 1f)
+        {
+            gradFactor = gradConstant * (-3f * q + 2.25f * q * q);
+        }
+        else if (q < 2f)
+        {
+            float term = 2f - q;
+            gradFactor = gradConstant * (-0.75f * term * term);
+        }
+
+        return offset * gradFactor / r;
     }
 
     int SolverSteps(Solver solver)
