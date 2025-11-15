@@ -17,6 +17,7 @@ public class ShaderHelper
     ComputeBuffer blockSumsBuffer;
     ComputeBuffer localOffsetBuffer;
     ComputeBuffer positionBuffer;
+    ComputeBuffer predictedPositions;
     ComputeBuffer positionBufferA;
     ComputeBuffer positionBufferB;
     ComputeBuffer velocityBuffer;
@@ -77,6 +78,7 @@ public class ShaderHelper
         nameBufferMap.Add("IterPressures", iterPressureBuffer);
         nameBufferMap.Add("Pressures", pressureBuffer);
         nameBufferMap.Add("Velocities", velocityBuffer);
+        nameBufferMap.Add("PredictedPositions", predictedPositions);
         nameBufferMap.Add("Positions", positionBuffer);
 
         nameBufferMap.Add("OldVelocities", velocityBuffer);
@@ -144,6 +146,9 @@ public class ShaderHelper
         allBuffers.Add(positionBufferB);
 
         positionBuffer = positionBufferA;
+
+        predictedPositions = new ComputeBuffer(positions.Length, sizeof(float) * 3);
+        allBuffers.Add(predictedPositions);
 
         velocityBufferA = new ComputeBuffer(velocities.Length, sizeof(float) * 3);
         velocityBufferA.SetData(velocities);
