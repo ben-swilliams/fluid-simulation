@@ -54,8 +54,6 @@ float3 CalculatePCISPHAcceleration(int i) {
 
 float CalculatePressureChange(int i) {
     float predictedDensity = 0;
-    float dotGradSum = 0;
-    float3 gradSum = 0;
 
     float3 posI = PredictedPositions[i];
     int3 gridPosI = GetGridPos(posI);
@@ -77,8 +75,6 @@ float CalculatePressureChange(int i) {
                     float3 grad = CubicSplineGrad(offset);
                     
                     predictedDensity += particleMass * CubicSplineKernel(offset);
-                    dotGradSum += dot(grad, grad);
-                    gradSum += grad;
                 }
             }
         }
@@ -87,4 +83,35 @@ float CalculatePressureChange(int i) {
     float densityError = predictedDensity - restDensity;
 
     return delta * densityError;
+}
+
+float3 CalculatePCISPHPressureForce(int i) {
+    float3 pressureForce = 0;
+
+    float3 posI = Positions[i];
+    int3 gridPosI = GetGridPos(posI);
+
+    for (int x = -1; x < 2; x++) {
+        for (int y = -1; y < 2; y++) {
+            for (int z = -1; z < 2; z++) {
+                int3 gridPosJ = gridPosI + int3(x, y, z);
+                if (!IsInBounds(gridPosJ)) continue;
+
+                uint hash = CalculateHashFromGrid(gridPosJ);
+
+                uint startIndex = Offsets[hash];
+                uint endIndex = Offsets[hash + 1];
+
+                for (uint j = startIndex; j < endIndex; j++) {
+                    float3 offset = posI - Positions[j];
+
+                    float3 grad = CubicSplineGrad(offset);
+                    
+                    pressureForce += CalculatePressureContribution(offset, i, j);
+                }
+            }
+        }
+    } 
+
+    return pressureForce;
 }
