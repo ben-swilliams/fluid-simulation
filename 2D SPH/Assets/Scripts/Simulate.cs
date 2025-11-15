@@ -401,17 +401,19 @@ public class Simulate : MonoBehaviour
 
     void UpdateVariables()
     {
+        float deltaTime = physicsTimeStep * simulationSpeed;
         float particleSpacing = spawner.Size + spawner.Spacing;
         float particleMass = particleSpacing * particleSpacing * particleSpacing;
         float kernelConstant = 8f / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
         float gradConstant = 6 * kernelConstant / smoothingRadius;
         float speedOfSound = maxVelocity / Mathf.Sqrt(densityError);
         float B = restDensity * speedOfSound * speedOfSound / stiffness;
+        float beta = deltaTime * deltaTime * particleMass * particleMass * 2 / (restDensity * restDensity);
         physicsTimeStep = 1f / SolverSteps(pressureSolver);
 
         object[] keyValues =
         {
-            "deltaTime", physicsTimeStep * simulationSpeed,
+            "deltaTime", deltaTime,
             "smoothingRadius", smoothingRadius,
             "dampingFactor", dampingFactor,
             "gravity", gravity,
@@ -426,7 +428,8 @@ public class Simulate : MonoBehaviour
             "maxVelocity", maxVelocity,
             "stiffness", stiffness,
             "B", B,
-            "nearPressureMultiplier", nearPressureMultiplier
+            "nearPressureMultiplier", nearPressureMultiplier,
+            "beta", beta
         };
 
         shader.SetValues(keyValues);
