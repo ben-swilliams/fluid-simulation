@@ -13,9 +13,9 @@
 #pragma kernel PredictPosition
 #pragma kernel PredictDensityAndCalculateA
 #pragma kernel CalculatePressureSums
-#pragma kernel CalculateNextPressure
+#pragma kernel CalculateNextIISPHPressure
 #pragma kernel FinalisePressureIteration
-#pragma kernel CalculatePressure
+#pragma kernel CalculateWCSPHPressure
 
 #pragma kernel UpdateIISPHVelocities
 #pragma kernel UpdateWCSPHVelocities
@@ -45,6 +45,7 @@ RWStructuredBuffer<float> Pressures;
 RWStructuredBuffer<float> Densities;
 
 // Vector buffers
+RWStructuredBuffer<float3> PredictedPositions;
 RWStructuredBuffer<float3> Positions;
 RWStructuredBuffer<float3> Velocities;
 
@@ -194,7 +195,7 @@ void PredictPosition(uint3 id : SV_DispatchThreadID) {
 
     float3 predictedVelocity = Velocities[id.x] + IntermediateAccelerations[id.x] * deltaTime;
 
-    Positions[id.x] += predictedVelocity * deltaTime;
+    PredictedPositions[id.x] = Positions[id.x] + predictedVelocity * deltaTime;
 }
 
 [numthreads(NumThreads, 1, 1)]
@@ -217,10 +218,10 @@ void CalculatePressureSums(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void CalculateNextPressure(uint3 id : SV_DispatchThreadID) {
+void CalculateNextIISPHPressure(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Pressures[id.x] = CalculateNextPressureValue(id.x);
+    Pressures[id.x] = CalculateNextIISPHPressureValue(id.x);
 }
 
 [numthreads(NumThreads, 1, 1)]
@@ -231,7 +232,7 @@ void FinalisePressureIteration(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void CalculatePressure(uint3 id : SV_DispatchThreadID) {
+void CalculateWCSPHPressure(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     Pressures[id.x] = CalculateTaitPressure(id.x);
