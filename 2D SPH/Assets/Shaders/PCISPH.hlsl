@@ -56,7 +56,7 @@ float CalculatePressureChange(int i) {
     float predictedDensity = 0;
 
     float3 posI = PredictedPositions[i];
-    int3 gridPosI = GetGridPos(posI);
+    int3 gridPosI = GetGridPos(Positions[i]);
 
     for (int x = -1; x < 2; x++) {
         for (int y = -1; y < 2; y++) {

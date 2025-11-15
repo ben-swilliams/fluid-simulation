@@ -88,6 +88,7 @@ public class KernelSet
             { PredictDensityAndCalculateA, new[] { "Positions", "Velocities" } },
             { CalculatePressureSums, new[] { "Positions" } },
             { CalculateNextIISPHPressure, new[] { "Positions" } },
+            { CalculateNextPCISPHPressure, new[] { "Positions" } },
             { UpdateIISPHVelocities, new[] { "Velocities", "Positions" } },
             { UpdateWCSPHVelocities, new[] { "Velocities", "Positions" } },
             { UpdatePCISPHVelocities, new[] { "Velocities", "Positions" } },
