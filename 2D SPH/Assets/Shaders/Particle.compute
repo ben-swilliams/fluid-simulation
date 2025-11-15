@@ -98,6 +98,7 @@ uint numBlockSums;
 #include "SurfaceTension.hlsl"
 #include "IISPH.hlsl"
 #include "WCSPH.hlsl"
+#include "PCISPH.hlsl"
 #include "Colours.hlsl"
 
 /*
@@ -165,7 +166,7 @@ void CalculateDensity(uint3 id : SV_DispatchThreadID) {
 void CalculateNonPressureAcceleration(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    IntermediateAccelerations[id.x] = CalculateWCSPHAcceleration(id.x);
+    IntermediateAccelerations[id.x] = CalculatePCISPHAcceleration(id.x);
 }
 
 [numthreads(NumThreads, 1, 1)]

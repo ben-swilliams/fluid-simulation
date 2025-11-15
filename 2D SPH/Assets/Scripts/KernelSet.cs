@@ -73,6 +73,7 @@ public class KernelSet
             { Partition, new[] { "Positions" } },
             { CalculateDensity, new[] { "Positions" } },
             { Scatter, new[] { "Pressures", "IterPressures", "OldVelocities", "NewVelocities", "OldPositions", "NewPositions" } },
+            { CalculateNonPressureAcceleration, new[] { "Positions", "Velocities" } },
             { CalculateNonPressureAccelerationAndD, new[] { "Positions", "Velocities" } },
             { PredictVelocity, new[] { "Velocities", "Positions" } },
             { PredictDensityAndCalculateA, new[] { "Positions", "Velocities" } },
