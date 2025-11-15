@@ -10,6 +10,7 @@
 #pragma kernel CalculateNonPressureAcceleration
 #pragma kernel CalculateNonPressureAccelerationAndD
 #pragma kernel PredictVelocity
+#pragma kernel PredictPosition
 #pragma kernel PredictDensityAndCalculateA
 #pragma kernel CalculatePressureSums
 #pragma kernel CalculateNextPressure
@@ -185,6 +186,15 @@ void PredictVelocity(uint3 id : SV_DispatchThreadID) {
 
     Velocities[id.x] += IntermediateAccelerations[id.x] * deltaTime;
     Velocities[id.x] = CollideVelocity(id.x);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void PredictPosition(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    float3 predictedVelocity = Velocities[id.x] + IntermediateAccelerations[id.x] * deltaTime;
+
+    Positions[id.x] += predictedVelocity * deltaTime;
 }
 
 [numthreads(NumThreads, 1, 1)]

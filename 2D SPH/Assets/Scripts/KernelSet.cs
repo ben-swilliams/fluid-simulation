@@ -15,6 +15,7 @@ public class KernelSet
     public int CalculateNonPressureAcceleration;
     public int CalculateNonPressureAccelerationAndD;
     public int PredictVelocity;
+    public int PredictPosition;
     public int PredictDensityAndCalculateA;
     public int CalculatePressureSums;
     public int CalculateNextPressure;
@@ -34,7 +35,7 @@ public class KernelSet
 
     public int[] WCSPHKernels => new int[] { CalculateDensity, CalculatePressure, UpdateWCSPHVelocities, UpdatePositions };
     public int[] PCISPHPrePressureKernels => new int[] { InitialisePressures, CalculateDensity, CalculateNonPressureAcceleration };
-    public int[] PCISPHPressureKernels => new int[] { };
+    public int[] PCISPHPressureKernels => new int[] { PredictPosition };
     public int[] PCISPHPostPressureKernels => new int[] { UpdatePCISPHVelocities, UpdatePositions };
     public int[] IISPHPrePressureKernels => new int[] { CalculateDensity, CalculateNonPressureAccelerationAndD, PredictVelocity, PredictDensityAndCalculateA };
     public int[] IISPHPressureKernels => new int[] { CalculatePressureSums, CalculateNextPressure, FinalisePressureIteration };
@@ -58,6 +59,7 @@ public class KernelSet
             { CalculateNonPressureAcceleration, new[] { "Offsets", "IntermediateAccelerations", "Densities", "Pressures" } },
             { CalculateNonPressureAccelerationAndD, new[] { "Offsets", "IntermediateAccelerations", "Densities", "Dii" } },
             { PredictVelocity, new[] { "IntermediateAccelerations" } },
+            { PredictPosition, new[] { "IntermediateAccelerations" } },
             { PredictDensityAndCalculateA, new[] { "Densities", "Offsets", "Dii", "Aii" } },
             { CalculatePressureSums, new[] { "Offsets", "Densities", "Dii", "Aii", "DPSum", "IterPressures" } },
             { CalculateNextPressure, new[] { "Offsets", "Densities", "Dii", "Aii", "DPSum", "IterPressures", "Pressures" } },
@@ -80,6 +82,7 @@ public class KernelSet
             { CalculateNonPressureAcceleration, new[] { "Positions", "Velocities" } },
             { CalculateNonPressureAccelerationAndD, new[] { "Positions", "Velocities" } },
             { PredictVelocity, new[] { "Velocities", "Positions" } },
+            { PredictPosition, new[] { "Velocities", "Positions" } },
             { PredictDensityAndCalculateA, new[] { "Positions", "Velocities" } },
             { CalculatePressureSums, new[] { "Positions" } },
             { CalculateNextPressure, new[] { "Positions" } },
@@ -105,6 +108,7 @@ public class KernelSet
         CalculateNonPressureAcceleration = shader.FindKernel("CalculateNonPressureAcceleration");
         CalculateNonPressureAccelerationAndD = shader.FindKernel("CalculateNonPressureAccelerationAndD");
         PredictVelocity = shader.FindKernel("PredictVelocity");
+        PredictPosition = shader.FindKernel("PredictPosition");
         PredictDensityAndCalculateA = shader.FindKernel("PredictDensityAndCalculateA");
         CalculatePressureSums = shader.FindKernel("CalculatePressureSums");
         CalculateNextPressure = shader.FindKernel("CalculateNextPressure");
