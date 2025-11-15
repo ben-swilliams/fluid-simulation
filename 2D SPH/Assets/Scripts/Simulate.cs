@@ -239,14 +239,14 @@ public class Simulate : MonoBehaviour
 
     void RunIISPHStep()
     {
-        shader.Dispatch(kernels.PrePressureKernels);
+        shader.Dispatch(kernels.IISPHPrePressureKernels);
 
         for (int l = 0; l < solverIterations; l++)
         {
-            shader.Dispatch(kernels.PressureKernels);
+            shader.Dispatch(kernels.IISPHPressureKernels);
         }
 
-        shader.Dispatch(kernels.PostPressureKernels);
+        shader.Dispatch(kernels.IISPHPostPressureKernels);
     }
 
     void RunWCSPHStep()
@@ -256,7 +256,14 @@ public class Simulate : MonoBehaviour
 
     void RunPCISPHStep()
     {
-        shader.Dispatch(kernels.PCISPHKernels);
+        shader.Dispatch(kernels.PCISPHPrePressureKernels);
+        
+        // TODO: De-hardocde this
+        for (int i = 0; i < 3; i++)
+        {
+            shader.Dispatch(kernels.PCISPHPressureKernels);
+        }
+        shader.Dispatch(kernels.PCISPHPostPressureKernels);
     }
 
     void UpdateColours()

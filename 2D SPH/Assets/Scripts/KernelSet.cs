@@ -21,7 +21,8 @@ public class KernelSet
     public int FinalisePressureIteration;
     public int CalculatePressure;
     public int UpdateIISPHVelocities;
-    public int UpdateVelocities;
+    public int UpdateWCSPHVelocities;
+    public int UpdatePCISPHVelocities;
     public int UpdatePositions;
 
     public int CalculateVelocityColour;
@@ -31,11 +32,13 @@ public class KernelSet
     public Dictionary<int, string[]> kernelStaticBufferMap;
     public Dictionary<int, string[]> kernelDynamicBufferMap;
 
-    public int[] WCSPHKernels => new int[] { CalculateDensity, CalculatePressure, UpdateVelocities, UpdatePositions };
-    public int[] PCISPHKernels => new int[] { InitialisePressures, CalculateDensity, CalculateNonPressureAcceleration, UpdateVelocities, UpdatePositions };
-    public int[] PrePressureKernels => new int[] { CalculateDensity, CalculateNonPressureAccelerationAndD, PredictVelocity, PredictDensityAndCalculateA };
-    public int[] PressureKernels => new int[] { CalculatePressureSums, CalculateNextPressure, FinalisePressureIteration };
-    public int[] PostPressureKernels => new int[] { UpdateIISPHVelocities, UpdatePositions };
+    public int[] WCSPHKernels => new int[] { CalculateDensity, CalculatePressure, UpdateWCSPHVelocities, UpdatePositions };
+    public int[] PCISPHPrePressureKernels => new int[] { InitialisePressures, CalculateDensity, CalculateNonPressureAcceleration };
+    public int[] PCISPHPressureKernels => new int[] { };
+    public int[] PCISPHPostPressureKernels => new int[] { UpdatePCISPHVelocities, UpdatePositions };
+    public int[] IISPHPrePressureKernels => new int[] { CalculateDensity, CalculateNonPressureAccelerationAndD, PredictVelocity, PredictDensityAndCalculateA };
+    public int[] IISPHPressureKernels => new int[] { CalculatePressureSums, CalculateNextPressure, FinalisePressureIteration };
+    public int[] IISPHPostPressureKernels => new int[] { UpdateIISPHVelocities, UpdatePositions };
 
     public KernelSet(ComputeShader shader)
     {
@@ -61,7 +64,8 @@ public class KernelSet
             { FinalisePressureIteration, new[] { "Pressures", "IterPressures" } },
             { CalculatePressure, new[] { "Pressures", "Densities" }},
             { UpdateIISPHVelocities, new[] { "Densities", "Offsets", "Pressures" } },
-            { UpdateVelocities, new[] { "Densities", "Offsets", "Pressures" }},
+            { UpdateWCSPHVelocities, new[] { "Densities", "Offsets", "Pressures" }},
+            { UpdatePCISPHVelocities, new[] { "IntermediateAccelerations" }},
             { UpdatePositions, new[] { "Densities", "Offsets" } },
             { CalculateVelocityColour, new[] {"Colours"}},
             { CalculateDensityColour, new[] {"Colours", "Densities"}},
@@ -80,7 +84,8 @@ public class KernelSet
             { CalculatePressureSums, new[] { "Positions" } },
             { CalculateNextPressure, new[] { "Positions" } },
             { UpdateIISPHVelocities, new[] { "Velocities", "Positions" } },
-            { UpdateVelocities, new[] { "Velocities", "Positions" } },
+            { UpdateWCSPHVelocities, new[] { "Velocities", "Positions" } },
+            { UpdatePCISPHVelocities, new[] { "Velocities" } },
             { UpdatePositions, new[] { "Velocities", "Positions" } },
             { CalculateVelocityColour, new[] { "Velocities" } }
         };
@@ -106,7 +111,8 @@ public class KernelSet
         FinalisePressureIteration = shader.FindKernel("FinalisePressureIteration");
         CalculatePressure = shader.FindKernel("CalculatePressure");
         UpdateIISPHVelocities = shader.FindKernel("UpdateIISPHVelocities");
-        UpdateVelocities = shader.FindKernel("UpdateVelocities");
+        UpdateWCSPHVelocities = shader.FindKernel("UpdateWCSPHVelocities");
+        UpdatePCISPHVelocities = shader.FindKernel("UpdatePCISPHVelocities");
         UpdatePositions = shader.FindKernel("UpdatePositions");
         CalculateVelocityColour = shader.FindKernel("CalculateVelocityColour");
         CalculateDensityColour = shader.FindKernel("CalculateDensityColour");

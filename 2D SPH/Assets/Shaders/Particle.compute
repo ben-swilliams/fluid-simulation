@@ -17,7 +17,8 @@
 #pragma kernel CalculatePressure
 
 #pragma kernel UpdateIISPHVelocities
-#pragma kernel UpdateVelocities
+#pragma kernel UpdateWCSPHVelocities
+#pragma kernel UpdatePCISPHVelocities
 #pragma kernel UpdatePositions
 
 #pragma kernel CalculateVelocityColour
@@ -242,7 +243,23 @@ void UpdateIISPHVelocities(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void UpdateVelocities(uint3 id : SV_DispatchThreadID) {
+void UpdatePCISPHVelocities(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    float3 pressureForce = 0;
+
+    if (any(isnan(pressureForce))) return;
+
+    Velocities[id.x] += pressureForce * deltaTime / particleMass;
+    Velocities[id.x] += IntermediateAccelerations[id.x] * deltaTime;
+    float mag = length(Velocities[id.x]);
+    if (mag > maxVelocity) {
+        Velocities[id.x] = maxVelocity * Velocities[id.x] / mag;
+    }
+}
+
+[numthreads(NumThreads, 1, 1)]
+void UpdateWCSPHVelocities(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     float3 acceleration = CalculateWCSPHAcceleration(id.x);
