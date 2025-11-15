@@ -409,7 +409,7 @@ public class Simulate : MonoBehaviour
         float speedOfSound = maxVelocity / Mathf.Sqrt(densityError);
         float B = restDensity * speedOfSound * speedOfSound / stiffness;
         float beta = deltaTime * deltaTime * particleMass * particleMass * 2 / (restDensity * restDensity);
-        float delta = ComputeDelta(particleSpacing, beta, gradConstant);
+        float delta = ComputeDelta(particleSpacing, beta, gradConstant) * 0.005f;
         physicsTimeStep = 1f / SolverSteps(pressureSolver);
 
         object[] keyValues =
@@ -444,7 +444,7 @@ public class Simulate : MonoBehaviour
 
         Vector3 prototypePos = Vector3.zero;
 
-        int range = Mathf.CeilToInt(smoothingRadius / particleSpacing);
+        int range = Mathf.CeilToInt(2 * smoothingRadius / particleSpacing);
 
         for (int x = -range; x <= range; x++)
         {
@@ -458,7 +458,7 @@ public class Simulate : MonoBehaviour
                     Vector3 offset = prototypePos - neighborPos;
                     float r = offset.magnitude;
 
-                    if (r >= smoothingRadius) continue;
+                    if (r >= 2 * smoothingRadius) continue;
 
                     Vector3 grad = CubicSplineGrad(offset, r, gradConstant);
 
