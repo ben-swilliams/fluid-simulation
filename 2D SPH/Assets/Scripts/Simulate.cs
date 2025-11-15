@@ -409,7 +409,7 @@ public class Simulate : MonoBehaviour
         float speedOfSound = maxVelocity / Mathf.Sqrt(densityError);
         float B = restDensity * speedOfSound * speedOfSound / stiffness;
         float beta = deltaTime * deltaTime * particleMass * particleMass * 2 / (restDensity * restDensity);
-        float delta = ComputeDelta(particleSpacing, particleMass, beta, gradConstant);
+        float delta = ComputeDelta(particleSpacing, beta, gradConstant);
         physicsTimeStep = 1f / SolverSteps(pressureSolver);
 
         object[] keyValues =
@@ -437,7 +437,7 @@ public class Simulate : MonoBehaviour
         shader.SetValues(keyValues);
     }
 
-    float ComputeDelta(float particleSpacing, float particleMass, float beta, float gradConstant)
+    float ComputeDelta(float particleSpacing, float beta, float gradConstant)
     {
         Vector3 gradSum = Vector3.zero;
         float dotGradSum = 0f;
