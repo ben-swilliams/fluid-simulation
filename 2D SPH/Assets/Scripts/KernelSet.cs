@@ -55,7 +55,7 @@ public class KernelSet
             { Scatter, new[] { "LocalOffsets", "Offsets" } },
             { InitialisePressures, new[] { "Pressures" }},
             { CalculateDensity, new[] { "Densities", "Offsets" } },
-            { CalculateNonPressureAcceleration, new[] { "Offsets", "IntermediateAccelerations", "Densities" } },
+            { CalculateNonPressureAcceleration, new[] { "Offsets", "IntermediateAccelerations", "Densities", "Pressures" } },
             { CalculateNonPressureAccelerationAndD, new[] { "Offsets", "IntermediateAccelerations", "Densities", "Dii" } },
             { PredictVelocity, new[] { "IntermediateAccelerations" } },
             { PredictDensityAndCalculateA, new[] { "Densities", "Offsets", "Dii", "Aii" } },

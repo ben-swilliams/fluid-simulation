@@ -1,4 +1,4 @@
-void CalculatePCISPHComponents(uint i, out float3 viscosity, out float3 surfaceTension, out float3 xsph) {
+void CalculatePCISPHComponents(uint i, out float3 viscosity, out float3 surfaceTension, out float3 pressure, out float3 xsph) {
     viscosity = 0;
     surfaceTension = 0;
     xsph = 0;
@@ -28,6 +28,7 @@ void CalculatePCISPHComponents(uint i, out float3 viscosity, out float3 surfaceT
 
                     viscosity += CalculateViscosityContribution(posOffset, velOffset, r, i, j);
                     surfaceTension += CalculateSurfaceTensionContribution(posOffset, r);
+                    pressure += CalculatePressureContribution(posOffset, i, j);
                     xsph += CalculateXSPHContribution(Densities[j], posOffset, velOffset);
                 }
             }
@@ -39,10 +40,11 @@ float3 CalculatePCISPHAcceleration(int i) {
     if (deltaTime == 0) return 0;
     float3 viscosity;
     float3 surfaceTension;
+    float3 pressure;
     float3 xsph;
 
-    CalculatePCISPHComponents(i, viscosity, surfaceTension, xsph);
+    CalculatePCISPHComponents(i, viscosity, surfaceTension, pressure, xsph);
 
     // Divide XSPH by deltaTime to make it a direct velocity update
-    return MouseForce(i) + viscosity + surfaceTension + gravity + xsph / deltaTime;
+    return MouseForce(i) + viscosity + surfaceTension + gravity + pressure + xsph / deltaTime;
 }
