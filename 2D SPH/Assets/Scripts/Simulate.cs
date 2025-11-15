@@ -229,6 +229,8 @@ public class Simulate : MonoBehaviour
         {
             RunWCSPHStep();
         }
+        if (pressureSolver == Solver.PCISPH)
+            RunPCISPHStep();
 
         UpdateColours();
 
@@ -250,6 +252,11 @@ public class Simulate : MonoBehaviour
     void RunWCSPHStep()
     {
         shader.Dispatch(kernels.WCSPHKernels);
+    }
+
+    void RunPCISPHStep()
+    {
+        shader.Dispatch(kernels.PCISPHKernels);
     }
 
     void UpdateColours()

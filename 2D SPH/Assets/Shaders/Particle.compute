@@ -5,7 +5,9 @@
 #pragma kernel AddBlockSums
 #pragma kernel FinalizeScan
 #pragma kernel Scatter
+#pragma kernel InitialisePressures
 #pragma kernel CalculateDensity
+#pragma kernel CalculateNonPressureAcceleration
 #pragma kernel CalculateNonPressureAccelerationAndD
 #pragma kernel PredictVelocity
 #pragma kernel PredictDensityAndCalculateA
@@ -160,6 +162,13 @@ void CalculateDensity(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
+void CalculateNonPressureAcceleration(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    IntermediateAccelerations[id.x] = CalculateWCSPHAcceleration(id.x);
+}
+
+[numthreads(NumThreads, 1, 1)]
 void CalculateNonPressureAccelerationAndD(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
@@ -235,7 +244,7 @@ void UpdateIISPHVelocities(uint3 id : SV_DispatchThreadID) {
 void UpdateVelocities(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    float3 acceleration = CalculateAcceleration(id.x);
+    float3 acceleration = CalculateWCSPHAcceleration(id.x);
 
     if (any(isnan(acceleration))) return;
 

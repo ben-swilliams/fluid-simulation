@@ -12,6 +12,7 @@ public class KernelSet
     public int Scatter;
     public int InitialisePressures;
     public int CalculateDensity;
+    public int CalculateNonPressureAcceleration;
     public int CalculateNonPressureAccelerationAndD;
     public int PredictVelocity;
     public int PredictDensityAndCalculateA;
@@ -31,7 +32,7 @@ public class KernelSet
     public Dictionary<int, string[]> kernelDynamicBufferMap;
 
     public int[] WCSPHKernels => new int[] { CalculateDensity, CalculatePressure, UpdateVelocities, UpdatePositions };
-    public int[] PCISPHKernels => new int[] { InitialisePressures, CalculateDensity, UpdateVelocities, UpdatePositions };
+    public int[] PCISPHKernels => new int[] { InitialisePressures, CalculateDensity, CalculateNonPressureAcceleration, UpdateVelocities, UpdatePositions };
     public int[] PrePressureKernels => new int[] { CalculateDensity, CalculateNonPressureAccelerationAndD, PredictVelocity, PredictDensityAndCalculateA };
     public int[] PressureKernels => new int[] { CalculatePressureSums, CalculateNextPressure, FinalisePressureIteration };
     public int[] PostPressureKernels => new int[] { UpdateIISPHVelocities, UpdatePositions };
@@ -51,6 +52,7 @@ public class KernelSet
             { Scatter, new[] { "LocalOffsets", "Offsets" } },
             { InitialisePressures, new[] { "Pressures" }},
             { CalculateDensity, new[] { "Densities", "Offsets" } },
+            { CalculateNonPressureAcceleration, new[] { "Offsets", "IntermediateAccelerations", "Densities" } },
             { CalculateNonPressureAccelerationAndD, new[] { "Offsets", "IntermediateAccelerations", "Densities", "Dii" } },
             { PredictVelocity, new[] { "IntermediateAccelerations" } },
             { PredictDensityAndCalculateA, new[] { "Densities", "Offsets", "Dii", "Aii" } },
@@ -94,6 +96,7 @@ public class KernelSet
         Scatter = shader.FindKernel("Scatter");
         InitialisePressures = shader.FindKernel("InitialisePressures");
         CalculateDensity = shader.FindKernel("CalculateDensity");
+        CalculateNonPressureAcceleration = shader.FindKernel("CalculateNonPressureAcceleration");
         CalculateNonPressureAccelerationAndD = shader.FindKernel("CalculateNonPressureAccelerationAndD");
         PredictVelocity = shader.FindKernel("PredictVelocity");
         PredictDensityAndCalculateA = shader.FindKernel("PredictDensityAndCalculateA");
