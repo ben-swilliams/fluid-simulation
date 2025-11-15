@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 
 public class Simulate : MonoBehaviour
 {
-    private enum Solver { WCSPH, IISPH };
+    private enum Solver { WCSPH, IISPH, PCISPH };
     /*
     Inspector properties
     */
