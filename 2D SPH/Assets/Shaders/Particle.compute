@@ -15,7 +15,7 @@
 #pragma kernel CalculatePressure
 
 #pragma kernel UpdateIISPHVelocities
-#pragma kernel UpdateWCSPHVelocities
+#pragma kernel UpdateVelocities
 #pragma kernel UpdatePositions
 
 #pragma kernel CalculateVelocityColour
@@ -143,6 +143,13 @@ void Scatter(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
+void InitialisePressures(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Pressures[id.x] = 0;
+}
+
+[numthreads(NumThreads, 1, 1)]
 void CalculateDensity(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
@@ -225,7 +232,7 @@ void UpdateIISPHVelocities(uint3 id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void UpdateWCSPHVelocities(uint3 id : SV_DispatchThreadID) {
+void UpdateVelocities(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     float3 acceleration = CalculateAcceleration(id.x);

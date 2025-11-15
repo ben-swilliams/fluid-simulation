@@ -10,6 +10,7 @@ public class KernelSet
     public int AddBlockSums;
     public int FinalizeScan;
     public int Scatter;
+    public int InitialisePressures;
     public int CalculateDensity;
     public int CalculateNonPressureAccelerationAndD;
     public int PredictVelocity;
@@ -19,7 +20,7 @@ public class KernelSet
     public int FinalisePressureIteration;
     public int CalculatePressure;
     public int UpdateIISPHVelocities;
-    public int UpdateWCSPHVelocities;
+    public int UpdateVelocities;
     public int UpdatePositions;
 
     public int CalculateVelocityColour;
@@ -29,7 +30,8 @@ public class KernelSet
     public Dictionary<int, string[]> kernelStaticBufferMap;
     public Dictionary<int, string[]> kernelDynamicBufferMap;
 
-    public int[] WCSPHKernels => new int[] { CalculateDensity, CalculatePressure, UpdateWCSPHVelocities, UpdatePositions };
+    public int[] WCSPHKernels => new int[] { CalculateDensity, CalculatePressure, UpdateVelocities, UpdatePositions };
+    public int[] PCISPHKernels => new int[] { InitialisePressures, CalculateDensity, UpdateVelocities, UpdatePositions };
     public int[] PrePressureKernels => new int[] { CalculateDensity, CalculateNonPressureAccelerationAndD, PredictVelocity, PredictDensityAndCalculateA };
     public int[] PressureKernels => new int[] { CalculatePressureSums, CalculateNextPressure, FinalisePressureIteration };
     public int[] PostPressureKernels => new int[] { UpdateIISPHVelocities, UpdatePositions };
@@ -47,6 +49,7 @@ public class KernelSet
             { AddBlockSums, new[] { "Offsets", "CellCounts", "BlockSums" } },
             { FinalizeScan, new[] { "Offsets" } },
             { Scatter, new[] { "LocalOffsets", "Offsets" } },
+            { InitialisePressures, new[] { "Pressures" }},
             { CalculateDensity, new[] { "Densities", "Offsets" } },
             { CalculateNonPressureAccelerationAndD, new[] { "Offsets", "IntermediateAccelerations", "Densities", "Dii" } },
             { PredictVelocity, new[] { "IntermediateAccelerations" } },
@@ -56,7 +59,7 @@ public class KernelSet
             { FinalisePressureIteration, new[] { "Pressures", "IterPressures" } },
             { CalculatePressure, new[] { "Pressures", "Densities" }},
             { UpdateIISPHVelocities, new[] { "Densities", "Offsets", "Pressures" } },
-            { UpdateWCSPHVelocities, new[] { "Densities", "Offsets", "Pressures" }},
+            { UpdateVelocities, new[] { "Densities", "Offsets", "Pressures" }},
             { UpdatePositions, new[] { "Densities", "Offsets" } },
             { CalculateVelocityColour, new[] {"Colours"}},
             { CalculateDensityColour, new[] {"Colours", "Densities"}},
@@ -74,7 +77,7 @@ public class KernelSet
             { CalculatePressureSums, new[] { "Positions" } },
             { CalculateNextPressure, new[] { "Positions" } },
             { UpdateIISPHVelocities, new[] { "Velocities", "Positions" } },
-            { UpdateWCSPHVelocities, new[] { "Velocities", "Positions" } },
+            { UpdateVelocities, new[] { "Velocities", "Positions" } },
             { UpdatePositions, new[] { "Velocities", "Positions" } },
             { CalculateVelocityColour, new[] { "Velocities" } }
         };
@@ -89,6 +92,7 @@ public class KernelSet
         AddBlockSums = shader.FindKernel("AddBlockSums");
         FinalizeScan = shader.FindKernel("FinalizeScan");
         Scatter = shader.FindKernel("Scatter");
+        InitialisePressures = shader.FindKernel("InitialisePressures");
         CalculateDensity = shader.FindKernel("CalculateDensity");
         CalculateNonPressureAccelerationAndD = shader.FindKernel("CalculateNonPressureAccelerationAndD");
         PredictVelocity = shader.FindKernel("PredictVelocity");
@@ -98,7 +102,7 @@ public class KernelSet
         FinalisePressureIteration = shader.FindKernel("FinalisePressureIteration");
         CalculatePressure = shader.FindKernel("CalculatePressure");
         UpdateIISPHVelocities = shader.FindKernel("UpdateIISPHVelocities");
-        UpdateWCSPHVelocities = shader.FindKernel("UpdateWCSPHVelocities");
+        UpdateVelocities = shader.FindKernel("UpdateVelocities");
         UpdatePositions = shader.FindKernel("UpdatePositions");
         CalculateVelocityColour = shader.FindKernel("CalculateVelocityColour");
         CalculateDensityColour = shader.FindKernel("CalculateDensityColour");
