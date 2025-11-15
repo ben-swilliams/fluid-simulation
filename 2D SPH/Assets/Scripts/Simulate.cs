@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 
 public class Simulate : MonoBehaviour
 {
-    private enum Solver { WCSPH, IISPH };
+    private enum Solver { WCSPH, IISPH, PCISPH };
     /*
     Inspector properties
     */
@@ -32,11 +32,15 @@ public class Simulate : MonoBehaviour
     
     [Header("IISPH Pressure")]
     [SerializeField] float relaxationFactor = 0.5f;
-    [SerializeField] int solverIterations = 4;
+    [SerializeField] int iisphSolverIterations = 4;
 
     [Header("WCSPH Pressure")]
     [SerializeField, Range(0.001f, 0.1f)] float densityError = 0.01f;
     [SerializeField] float stiffness = 7f;
+
+    [Header("PCISPH Pressure")]
+    [SerializeField] float deltaScale = 0.01f;
+    [SerializeField] int pcisphSolverIterations = 3;
 
     [Header("Viscosity")]
     [SerializeField] float viscosityMultiplier = 1f;
@@ -138,12 +142,12 @@ public class Simulate : MonoBehaviour
         }
     }
 
-    public float SolverIterations
+    public float IISPHSolverIterations
     {
-        get => solverIterations;
+        get => iisphSolverIterations;
         set
         {
-            solverIterations = Mathf.FloorToInt(value);
+            iisphSolverIterations = Mathf.FloorToInt(value);
             UpdateVariables();
         }
     }
@@ -229,6 +233,8 @@ public class Simulate : MonoBehaviour
         {
             RunWCSPHStep();
         }
+        if (pressureSolver == Solver.PCISPH)
+            RunPCISPHStep();
 
         UpdateColours();
 
@@ -237,19 +243,30 @@ public class Simulate : MonoBehaviour
 
     void RunIISPHStep()
     {
-        shader.Dispatch(kernels.PrePressureKernels);
+        shader.Dispatch(kernels.IISPHPrePressureKernels);
 
-        for (int l = 0; l < solverIterations; l++)
+        for (int l = 0; l < iisphSolverIterations; l++)
         {
-            shader.Dispatch(kernels.PressureKernels);
+            shader.Dispatch(kernels.IISPHPressureKernels);
         }
 
-        shader.Dispatch(kernels.PostPressureKernels);
+        shader.Dispatch(kernels.IISPHPostPressureKernels);
     }
 
     void RunWCSPHStep()
     {
         shader.Dispatch(kernels.WCSPHKernels);
+    }
+
+    void RunPCISPHStep()
+    {
+        shader.Dispatch(kernels.PCISPHPrePressureKernels);
+        
+        for (int i = 0; i < pcisphSolverIterations; i++)
+        {
+            shader.Dispatch(kernels.PCISPHPressureKernels);
+        }
+        shader.Dispatch(kernels.PCISPHPostPressureKernels);
     }
 
     void UpdateColours()
@@ -387,17 +404,20 @@ public class Simulate : MonoBehaviour
 
     void UpdateVariables()
     {
+        float deltaTime = physicsTimeStep * simulationSpeed;
         float particleSpacing = spawner.Size + spawner.Spacing;
         float particleMass = particleSpacing * particleSpacing * particleSpacing;
         float kernelConstant = 8f / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
         float gradConstant = 6 * kernelConstant / smoothingRadius;
         float speedOfSound = maxVelocity / Mathf.Sqrt(densityError);
         float B = restDensity * speedOfSound * speedOfSound / stiffness;
+        float beta = deltaTime * deltaTime * particleMass * particleMass * 2 / (restDensity * restDensity);
+        float delta = ComputeDelta(particleSpacing, beta, gradConstant) * deltaScale;
         physicsTimeStep = 1f / SolverSteps(pressureSolver);
 
         object[] keyValues =
         {
-            "deltaTime", physicsTimeStep * simulationSpeed,
+            "deltaTime", deltaTime,
             "smoothingRadius", smoothingRadius,
             "dampingFactor", dampingFactor,
             "gravity", gravity,
@@ -412,16 +432,80 @@ public class Simulate : MonoBehaviour
             "maxVelocity", maxVelocity,
             "stiffness", stiffness,
             "B", B,
-            "nearPressureMultiplier", nearPressureMultiplier
+            "nearPressureMultiplier", nearPressureMultiplier,
+            "beta", beta,
+            "delta", delta
         };
 
         shader.SetValues(keyValues);
+    }
+
+    float ComputeDelta(float particleSpacing, float beta, float gradConstant)
+    {
+        Vector3 gradSum = Vector3.zero;
+        float dotGradSum = 0f;
+
+        Vector3 prototypePos = Vector3.zero;
+
+        int range = Mathf.CeilToInt(2 * smoothingRadius / particleSpacing);
+
+        for (int x = -range; x <= range; x++)
+        {
+            for (int y = -range; y <= range; y++)
+            {
+                for (int z = -range; z <= range; z++)
+                {
+                    if (x == 0 && y == 0 && z == 0) continue;
+
+                    Vector3 neighborPos = new Vector3(x, y, z) * particleSpacing;
+                    Vector3 offset = prototypePos - neighborPos;
+                    float r = offset.magnitude;
+
+                    if (r >= 2 * smoothingRadius) continue;
+
+                    Vector3 grad = CubicSplineGrad(offset, r, gradConstant);
+
+                    gradSum += grad;
+                    dotGradSum += Vector3.Dot(grad, grad);
+                }
+            }
+        }
+
+        float denominator = beta * (-Vector3.Dot(gradSum, gradSum) - dotGradSum);
+
+        if (Mathf.Abs(denominator) < 1e-12)
+        {
+            return 0f;
+        }
+
+        return -1f / denominator;
+    }
+
+    Vector3 CubicSplineGrad(Vector3 offset, float r, float gradConstant)
+    {
+        if (r < 1e-12) return Vector3.zero;
+
+        float q = r / smoothingRadius;
+        float gradFactor = 0f;
+
+        if (q < 1f)
+        {
+            gradFactor = gradConstant * (-3f * q + 2.25f * q * q);
+        }
+        else if (q < 2f)
+        {
+            float term = 2f - q;
+            gradFactor = gradConstant * (-0.75f * term * term);
+        }
+
+        return offset * gradFactor / r;
     }
 
     int SolverSteps(Solver solver)
     {
         if (solver == Solver.WCSPH) return Constants.stableWCSPHStep;
         if (solver == Solver.IISPH) return Constants.stableIISPHStep;
+        if (solver == Solver.PCISPH) return Constants.stablePCISPHStep;
 
         return Constants.stableWCSPHStep;
     }
@@ -437,7 +521,7 @@ public class Simulate : MonoBehaviour
         viscosityMultiplier = Mathf.Max(0, viscosityMultiplier);
         stepSize = Mathf.Max(0, stepSize);
         maxVelocity = Mathf.Max(0.01f, maxVelocity);
-        solverIterations = Mathf.Max(0, solverIterations);
+        iisphSolverIterations = Mathf.Max(0, iisphSolverIterations);
     }
 
     void HandleKeyPresses()

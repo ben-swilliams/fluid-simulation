@@ -84,7 +84,7 @@ float3 CalculatePressureSum(uint i) {
     return deltaTime * deltaTime * pressureSum;
 }
 
-float CalculateNextPressureValue(uint i) {
+float CalculateNextIISPHPressureValue(uint i) {
     float aii = Aii[i];
     if (abs(aii) < Epsilon) return IterPressures[i];
     float pressureSum = 0;
