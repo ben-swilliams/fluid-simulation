@@ -16,6 +16,7 @@
 #pragma kernel CalculateNextIISPHPressure
 #pragma kernel FinalisePressureIteration
 #pragma kernel CalculateWCSPHPressure
+#pragma kernel CalculateNextPCISPHPressure
 
 #pragma kernel UpdateIISPHVelocities
 #pragma kernel UpdateWCSPHVelocities
@@ -236,6 +237,13 @@ void CalculateWCSPHPressure(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     Pressures[id.x] = CalculateTaitPressure(id.x);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void CalculateNextPCISPHPressure(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Pressures[id.x] = 0;
 }
 
 [numthreads(NumThreads, 1, 1)]
