@@ -152,6 +152,16 @@ public class Simulate : MonoBehaviour
         }
     }
 
+    public float PCISPHSolverIterations
+    {
+        get => pcisphSolverIterations;
+        set
+        {
+            pcisphSolverIterations = Mathf.FloorToInt(value);
+            UpdateVariables();
+        }
+    }
+
     public float RestDensity
     {
         get => restDensity;

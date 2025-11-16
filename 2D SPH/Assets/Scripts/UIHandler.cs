@@ -8,6 +8,7 @@ public class UIHandler : MonoBehaviour
     [SerializeField] GameObject[] settings;
     [SerializeField] GameObject WCSPHSettings;
     [SerializeField] GameObject IISPHSettings;
+    [SerializeField] GameObject PCISPHSettings;
 
     [SerializeField] GameObject VelocitySettings;
     [SerializeField] GameObject DensitySettings;
@@ -23,6 +24,7 @@ public class UIHandler : MonoBehaviour
 
         WCSPHSettings.SetActive(true);
         IISPHSettings.SetActive(false);
+        PCISPHSettings.SetActive(false);
     }
 
     void RegisterListeners()
@@ -61,11 +63,19 @@ public class UIHandler : MonoBehaviour
         {
             WCSPHSettings.SetActive(true);
             IISPHSettings.SetActive(false);
+            PCISPHSettings.SetActive(false);
         }
         if (solver == 1)
         {
             IISPHSettings.SetActive(true);
             WCSPHSettings.SetActive(false);
+            PCISPHSettings.SetActive(false);
+        }
+        if (solver == 2)
+        {
+            IISPHSettings.SetActive(false);
+            WCSPHSettings.SetActive(false);
+            PCISPHSettings.SetActive(true);
         }
     }
 
