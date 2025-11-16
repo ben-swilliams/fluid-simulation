@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public static class SphereGenerator
+public static class MeshGenerator
 {
     public static Mesh GenerateSphere(int resolution)
 	{
@@ -92,4 +92,28 @@ public static class SphereGenerator
         return index;
     }
 
+    public static Mesh GenerateQuad()
+    {
+        Mesh m = new Mesh();
+
+        m.vertices = new Vector3[]
+        {
+            new Vector3(-1f, -1f, 0),
+            new Vector3( 1f, -1f, 0),
+            new Vector3(-1f,  1f, 0),
+            new Vector3( 1f,  1f, 0)
+        };
+
+        m.uv = new Vector2[]
+        {
+            new Vector2(0,0),
+            new Vector2(1,0),
+            new Vector2(0,1),
+            new Vector2(1,1)
+        };
+
+        m.triangles = new int[] { 0, 2, 1, 2, 3, 1 };
+        m.RecalculateNormals();
+        return m;
+    }
 }
