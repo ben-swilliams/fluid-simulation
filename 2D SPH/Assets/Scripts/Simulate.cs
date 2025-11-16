@@ -424,6 +424,7 @@ public class Simulate : MonoBehaviour
 
     void UpdateVariables()
     {
+        physicsTimeStep = 1f / SolverSteps(pressureSolver);
         float deltaTime = physicsTimeStep * simulationSpeed;
         float particleSpacing = spawner.Size + spawner.Spacing;
         float particleMass = particleSpacing * particleSpacing * particleSpacing;
@@ -433,7 +434,6 @@ public class Simulate : MonoBehaviour
         float B = restDensity * speedOfSound * speedOfSound / stiffness;
         float beta = deltaTime * deltaTime * particleMass * particleMass * 2 / (restDensity * restDensity);
         float delta = ComputeDelta(particleSpacing, beta, gradConstant) * deltaScale;
-        physicsTimeStep = 1f / SolverSteps(pressureSolver);
 
         object[] keyValues =
         {
