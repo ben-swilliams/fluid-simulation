@@ -19,6 +19,7 @@ public class Draw : MonoBehaviour
     [SerializeField] float maxDensityFluctuation = 0.1f;
     [SerializeField] float maxPressure = 5000f;
     [SerializeField] Property colourProperty;
+    [SerializeField, InspectorName("Billboard?")] bool billboard = false;
 
     /*
     Private properties
@@ -81,9 +82,12 @@ public class Draw : MonoBehaviour
     {
         instanceMaterial = new Material(shader);
         instanceMaterial.enableInstancing = true;
+        instanceMaterial.SetInt("billboard", billboard ? 1 : 0);
 
         bounds = new Bounds(Vector3.zero, Vector3.one * 1000f);
-        mesh = SphereGenerator.GenerateSphere(sphereResolution);
+
+        if (!billboard) mesh = MeshGenerator.GenerateSphere(sphereResolution);
+        else mesh = MeshGenerator.GenerateQuad();
 
         Color.RGBToHSV(slowColour, out lowHue, out _, out _);
         Color.RGBToHSV(fastColour, out highHue, out _, out _);
@@ -100,9 +104,12 @@ public class Draw : MonoBehaviour
 
         if (!Application.isPlaying || instanceMaterial == null) return;
 
+        instanceMaterial.SetInt("billboard", billboard ? 1 : 0);
+
         SetColourValues();
 
-        mesh = SphereGenerator.GenerateSphere(sphereResolution);
+        if (!billboard) mesh = MeshGenerator.GenerateSphere(sphereResolution);
+        else mesh = MeshGenerator.GenerateQuad();
     }
 
     void OnDestroy()
