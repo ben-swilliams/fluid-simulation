@@ -172,6 +172,16 @@ public class Simulate : MonoBehaviour
         }
     }
 
+    public float DeltaScale
+    {
+        get => deltaScale;
+        set
+        {
+            deltaScale = value;
+            UpdateVariables();
+        }
+    }
+
     public void SetSolver(int index)
     {
         pressureSolver = (Solver)index;
