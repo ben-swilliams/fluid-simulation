@@ -154,14 +154,17 @@ void CalculateIISPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
                 for (uint j = startIndex; j < endIndex; j++) {
                     if (i == j) continue;
 
+
+                    float rSq = dot(posOffset, posOffset);
+                    if (rSq < Epsilon * Epsilon || r > 4 * smoothingRadius * smoothingRadius) continue;
+
                     float3 posOffset = posI - Positions[j];
                     float r = length(posOffset);
-                    if (r < Epsilon || r > 2 * smoothingRadius) continue;
 
                     float3 velOffset = velI - Velocities[j];
 
                     float kernel = CubicSplineKernel(posOffset);
-                    float grad = CubicSplineGrad(posOffset);
+                    float3 grad = CubicSplineGrad(posOffset);
 
                     viscosity += CalculateViscosityContribution(posOffset, velOffset, grad, i, j);
                     surfaceTension += CalculateSurfaceTensionContribution(posOffset, kernel, r);

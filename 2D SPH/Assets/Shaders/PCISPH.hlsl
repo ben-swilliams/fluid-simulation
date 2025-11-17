@@ -26,10 +26,11 @@ void CalculatePCISPHComponents(uint i, out float3 viscosity, out float3 surfaceT
                     if (i == j) continue;
 
                     float3 posOffset = posI - Positions[j];
+                    float rSq = dot(posOffset, posOffset);
+
+                    if (rSq < Epsilon * Epsilon || r > 4 * smoothingRadius * smoothingRadius) continue;
+
                     float r = length(posOffset);
-
-                    if (r < Epsilon || r > 2 * smoothingRadius) continue;
-
                     float3 velOffset = velI - Velocities[j];
                     
                     float kernel = CubicSplineKernel(posOffset);
@@ -78,8 +79,6 @@ float CalculatePressureChange(int i) {
                 for (uint j = startIndex; j < endIndex; j++) {
                     float3 offset = posI - PredictedPositions[j];
 
-                    float3 grad = CubicSplineGrad(offset);
-                    
                     predictedDensity += particleMass * CubicSplineKernel(offset);
                 }
             }
