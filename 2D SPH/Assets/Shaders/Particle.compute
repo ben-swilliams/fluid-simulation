@@ -99,7 +99,6 @@ uint numBlockSums;
 #include "XSPH.hlsl"
 #include "Pressure.hlsl"
 #include "Viscosity.hlsl"
-#include "SurfaceTension.hlsl"
 #include "IISPH.hlsl"
 #include "WCSPH.hlsl"
 #include "PCISPH.hlsl"
