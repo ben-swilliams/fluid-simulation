@@ -26,13 +26,22 @@ void CalculatePCISPHComponents(uint i, out float3 viscosity, out float3 surfaceT
                     if (i == j) continue;
 
                     float3 posOffset = posI - Positions[j];
+                    float rSq = dot(posOffset, posOffset);
+
+                    if (rSq < Epsilon * Epsilon || rSq > 4 * smoothingRadius * smoothingRadius) continue;
+
                     float r = length(posOffset);
                     float3 velOffset = velI - Velocities[j];
+                    
+                    float kernel = CubicSplineKernel(posOffset);
+                    float3 grad = CubicSplineGrad(posOffset);
 
-                    viscosity += CalculateViscosityContribution(posOffset, velOffset, r, i, j);
-                    surfaceTension += CalculateSurfaceTensionContribution(posOffset, r);
-                    pressure += CalculatePressureContribution(posOffset, i, j);
-                    xsph += CalculateXSPHContribution(Densities[j], posOffset, velOffset);
+                    viscosity += CalculateViscosityContribution(posOffset, velOffset, grad, i, j);
+                    surfaceTension += -surfaceTensionMultiplier * kernel * (posOffset / r);
+                    pressure += CalculatePressureContribution(posOffset, grad, i, j);
+
+                    float massOverDensity = particleMass / Densities[j];
+                    xsph += velocitySmoothing * massOverDensity * kernel * -velOffset;
                 }
             }
         }
@@ -72,8 +81,6 @@ float CalculatePressureChange(int i) {
                 for (uint j = startIndex; j < endIndex; j++) {
                     float3 offset = posI - PredictedPositions[j];
 
-                    float3 grad = CubicSplineGrad(offset);
-                    
                     predictedDensity += particleMass * CubicSplineKernel(offset);
                 }
             }
@@ -107,7 +114,7 @@ float3 CalculatePCISPHPressureForce(int i) {
 
                     float3 grad = CubicSplineGrad(offset);
                     
-                    pressureForce += CalculatePressureContribution(offset, i, j);
+                    pressureForce += CalculatePressureContribution(offset, grad, i, j);
                 }
             }
         }

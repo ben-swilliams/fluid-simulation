@@ -1,7 +1,7 @@
 float relaxationFactor;
 
-float3 CalculateDContribution(float3 offset, float densitySq) {
-    float3 d = (particleMass / densitySq) * CubicSplineGrad(offset);
+float3 CalculateDContribution(float3 grad, float densitySq) {
+    float3 d = (particleMass / densitySq) * grad;
     return -deltaTime * deltaTime * d;
 }
 
@@ -154,13 +154,22 @@ void CalculateIISPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
                 for (uint j = startIndex; j < endIndex; j++) {
                     if (i == j) continue;
 
+
                     float3 posOffset = posI - Positions[j];
+                    float rSq = dot(posOffset, posOffset);
+
+                    if (rSq < Epsilon * Epsilon || rSq > 4 * smoothingRadius * smoothingRadius) continue;
+
                     float r = length(posOffset);
+
                     float3 velOffset = velI - Velocities[j];
 
-                    viscosity += CalculateViscosityContribution(posOffset, velOffset, r, i, j);
-                    surfaceTension += CalculateSurfaceTensionContribution(posOffset, r);
-                    D += CalculateDContribution(posOffset, densitySq);
+                    float kernel = CubicSplineKernel(posOffset);
+                    float3 grad = CubicSplineGrad(posOffset);
+
+                    viscosity += CalculateViscosityContribution(posOffset, velOffset, grad, i, j);
+                    surfaceTension += -surfaceTensionMultiplier * kernel * (posOffset / r);
+                    D += CalculateDContribution(grad, densitySq);
                 }
             }
         }
@@ -211,8 +220,13 @@ float3 CalculateXSPHPressureForce(uint i) {
                     float3 posOffset = posI - Positions[j];
                     float3 velOffset = velI - Velocities[j];
 
-                    pressureForce += CalculatePressureContribution(posOffset, i, j);
-                    xsphCorrection += CalculateXSPHContribution(Densities[j], posOffset, velOffset);
+                    float kernel = CubicSplineKernel(posOffset);
+                    float3 grad = CubicSplineGrad(posOffset);
+
+                    pressureForce += CalculatePressureContribution(posOffset, grad, i, j);
+
+                    float massOverDensity = particleMass / Densities[j];
+                    xsphCorrection += velocitySmoothing * massOverDensity * kernel * -velOffset;
                 }
             }
         }
