@@ -1,8 +1,7 @@
 float kernelConstant;
 float gradConstant;
 
-float CubicSplineKernel(float3 offset) {
-    float r = length(offset);
+float CubicSplineKernel(float r) {
     float q = r / smoothingRadius;
 
     if (isnan(q) || q >= 2 || r < Epsilon) return 0;
@@ -17,8 +16,7 @@ float CubicSplineKernel(float3 offset) {
     return kernelConstant * result;
 }
 
-float3 CubicSplineGrad(float3 offset) {
-    float r = length(offset);
+float3 CubicSplineGrad(float3 offset, float r) {
     float q = r / smoothingRadius;
     if (q >= 2 || isnan(q) || r < Epsilon) return float3(0, 0, 0);
     
@@ -34,8 +32,7 @@ float3 CubicSplineGrad(float3 offset) {
     return gradConstant * coeff * dir;
 }
 
-float SpikyKernel(float3 offset) {
-    float r = length(offset);
+float SpikyKernel(float r) {
     float q = r / smoothingRadius;
 
     if (isnan(q) || q > 1) return 0;
@@ -43,8 +40,7 @@ float SpikyKernel(float3 offset) {
     return pow(1 - q, 3);
 }
 
-float3 SpikyKernelGrad(float3 offset) {
-    float r = length(offset);
+float3 SpikyKernelGrad(float3 offset, float r) {
     float q = r / smoothingRadius;
 
     if (isnan(q) || q > 1 || r < Epsilon) return float3(0, 0, 0);
