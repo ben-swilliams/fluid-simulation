@@ -28,7 +28,7 @@ void CalculatePCISPHComponents(uint i, out float3 viscosity, out float3 surfaceT
                     float3 posOffset = posI - Positions[j];
                     float rSq = dot(posOffset, posOffset);
 
-                    if (rSq < Epsilon * Epsilon || r > 4 * smoothingRadius * smoothingRadius) continue;
+                    if (rSq < Epsilon * Epsilon || rSq > 4 * smoothingRadius * smoothingRadius) continue;
 
                     float r = length(posOffset);
                     float3 velOffset = velI - Velocities[j];

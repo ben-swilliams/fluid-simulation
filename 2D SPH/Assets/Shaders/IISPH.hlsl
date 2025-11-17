@@ -155,10 +155,11 @@ void CalculateIISPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
                     if (i == j) continue;
 
 
-                    float rSq = dot(posOffset, posOffset);
-                    if (rSq < Epsilon * Epsilon || r > 4 * smoothingRadius * smoothingRadius) continue;
-
                     float3 posOffset = posI - Positions[j];
+                    float rSq = dot(posOffset, posOffset);
+
+                    if (rSq < Epsilon * Epsilon || rSq > 4 * smoothingRadius * smoothingRadius) continue;
+
                     float r = length(posOffset);
 
                     float3 velOffset = velI - Velocities[j];
