@@ -30,14 +30,19 @@ void CalculateWCSPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
                 for (uint j = startIndex; j < endIndex; j++) {
                     if (i == j) continue;
 
-                    float3 posOffset = posI - Positions[j];
                     float r = length(posOffset);
+                    if (r < Epsilon || r > 2 * smoothingRadius) continue;
+
+                    float3 posOffset = posI - Positions[j];
                     float3 velOffset = velI - Velocities[j];
 
-                    viscosity += CalculateViscosityContribution(posOffset, velOffset, r, i, j);
-                    surfaceTension += CalculateSurfaceTensionContribution(posOffset, r);
-                    pressure += CalculatePressureContribution(posOffset, i, j);
-                    xsph += CalculateXSPHContribution(Densities[j], posOffset, velOffset);
+                    float kernel = CubicSplineKernel(posOffset);
+                    float3 grad = CubicSplineGrad(posOffset);
+
+                    viscosity += CalculateViscosityContribution(posOffset, velOffset, grad, i, j);
+                    surfaceTension += CalculateSurfaceTensionContribution(posOffset, kernel, r);
+                    pressure += CalculatePressureContribution(posOffset, grad, i, j);
+                    xsph += CalculateXSPHContribution(Densities[j], posOffset, velOffset, kernel);
                 }
             }
         }
