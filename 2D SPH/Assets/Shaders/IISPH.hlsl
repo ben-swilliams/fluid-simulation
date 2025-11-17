@@ -31,10 +31,13 @@ float2 CalculateDeltaDensityAndA(uint i) {
                 for (uint j = startIndex; j < endIndex; j++) {
                     if (i == j) continue;
                     float3 posOffset = posI - Positions[j];
+                    float rSq = dot(posOffset, posOffset);
+
+                    if (rSq < Epsilon * Epsilon || rSq > 4 * smoothingRadius * smoothingRadius) continue;
 
                     float3 velOffset = velI - Velocities[j];
 
-                    float3 grad = CubicSplineGrad(posOffset);
+                    float3 grad = CubicSplineGrad(posOffset, length(posOffset));
 
                     deltaDensity += particleMass * dot(velOffset, grad);
 
@@ -73,9 +76,15 @@ float3 CalculatePressureSum(uint i) {
                     if (i == j) continue;
                     float3 offset = posI - Positions[j];
 
+                    float rSq = dot(offset, offset);
+
+                    if (rSq < Epsilon * Epsilon || rSq > 4 * smoothingRadius * smoothingRadius) continue;
+
+                    float r = length(offset);
+
                     float densitySq = max(Densities[j] * Densities[j], Epsilon);
 
-                    pressureSum += -particleMass * IterPressures[j] * CubicSplineGrad(offset) / densitySq;
+                    pressureSum += -particleMass * IterPressures[j] * CubicSplineGrad(offset, r) / densitySq;
                 }
             }
         }
@@ -110,7 +119,13 @@ float CalculateNextIISPHPressureValue(uint i) {
                 for (uint j = startIndex; j < endIndex; j++) {
                     if (i == j) continue;
                     float3 offset = posI - Positions[j];
-                    float3 grad = CubicSplineGrad(offset);
+                    float rSq = dot(offset, offset);
+                    
+                    if (rSq < Epsilon * Epsilon || rSq > 4 * smoothingRadius * smoothingRadius) continue;
+
+                    float r = length(offset);
+
+                    float3 grad = CubicSplineGrad(offset, r);
 
                     float3 d_ji = deltaTime * deltaTime * particleMass * grad / densitySq;
 
@@ -164,8 +179,8 @@ void CalculateIISPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
 
                     float3 velOffset = velI - Velocities[j];
 
-                    float kernel = CubicSplineKernel(posOffset);
-                    float3 grad = CubicSplineGrad(posOffset);
+                    float kernel = CubicSplineKernel(r);
+                    float3 grad = CubicSplineGrad(posOffset, r);
 
                     viscosity += CalculateViscosityContribution(posOffset, velOffset, grad, i, j);
                     surfaceTension += -surfaceTensionMultiplier * kernel * (posOffset / r);
@@ -218,10 +233,16 @@ float3 CalculateXSPHPressureForce(uint i) {
                     if (i == j) continue;
 
                     float3 posOffset = posI - Positions[j];
+                    float rSq = dot(posOffset, posOffset);
+
+                    if (rSq < Epsilon * Epsilon || rSq > 4 * smoothingRadius * smoothingRadius) continue;
+
                     float3 velOffset = velI - Velocities[j];
 
-                    float kernel = CubicSplineKernel(posOffset);
-                    float3 grad = CubicSplineGrad(posOffset);
+                    float r = length(posOffset);
+
+                    float kernel = CubicSplineKernel(r);
+                    float3 grad = CubicSplineGrad(posOffset, r);
 
                     pressureForce += CalculatePressureContribution(posOffset, grad, i, j);
 

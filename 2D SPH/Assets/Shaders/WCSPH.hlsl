@@ -38,8 +38,8 @@ void CalculateWCSPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
                     float r = length(posOffset);
                     float3 velOffset = velI - Velocities[j];
 
-                    float kernel = CubicSplineKernel(posOffset);
-                    float3 grad = CubicSplineGrad(posOffset);
+                    float kernel = CubicSplineKernel(r);
+                    float3 grad = CubicSplineGrad(posOffset, r);
 
                     viscosity += CalculateViscosityContribution(posOffset, velOffset, grad, i, j);
                     surfaceTension += -surfaceTensionMultiplier * kernel * (posOffset / r);

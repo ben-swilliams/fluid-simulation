@@ -18,8 +18,9 @@ float2 CalculateDensities(uint i) {
 
                 for (uint j = startIndex; j < endIndex; j++) {
                     float3 offset = posI - Positions[j];
-                    density += particleMass * CubicSplineKernel(offset);
-                    nearDensity += particleMass * SpikyKernel(offset);
+                    float r = length(offset);
+                    density += particleMass * CubicSplineKernel(r);
+                    nearDensity += particleMass * SpikyKernel(r);
                 }
             }
         }

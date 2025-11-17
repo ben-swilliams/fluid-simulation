@@ -12,7 +12,7 @@ float3 CalculatePressureContribution(float3 offset, float3 grad, uint i, uint j)
     float nearPressureJ = nearPressureMultiplier * Densities[instanceCount + j];
 
     float3 pressureForce = (pressureI + pressureJ) * grad;
-    float3 nearPressureForce = (nearPressureI + nearPressureJ) * SpikyKernelGrad(offset);
+    float3 nearPressureForce = (nearPressureI + nearPressureJ) * SpikyKernelGrad(offset, length(offset));
 
     // Don't multiply by nearPressureMultiplier again!
     return -particleMass * pressureForce - particleMass * nearPressureForce;
