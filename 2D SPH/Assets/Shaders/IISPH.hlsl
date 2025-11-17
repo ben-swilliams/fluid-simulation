@@ -1,7 +1,7 @@
 float relaxationFactor;
 
-float3 CalculateDContribution(float3 offset, float densitySq) {
-    float3 d = (particleMass / densitySq) * CubicSplineGrad(offset);
+float3 CalculateDContribution(float3 grad, float densitySq) {
+    float3 d = (particleMass / densitySq) * grad;
     return -deltaTime * deltaTime * d;
 }
 
@@ -154,13 +154,18 @@ void CalculateIISPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
                 for (uint j = startIndex; j < endIndex; j++) {
                     if (i == j) continue;
 
-                    float3 posOffset = posI - Positions[j];
                     float r = length(posOffset);
+                    if (r < Epsilon || r > 2 * smoothingRadius) continue;
+
+                    float3 posOffset = posI - Positions[j];
                     float3 velOffset = velI - Velocities[j];
 
-                    viscosity += CalculateViscosityContribution(posOffset, velOffset, r, i, j);
-                    surfaceTension += CalculateSurfaceTensionContribution(posOffset, r);
-                    D += CalculateDContribution(posOffset, densitySq);
+                    float kernel = CubicSplineKernel(posOffset);
+                    float grad = CubicSplineGrad(posOffset);
+
+                    viscosity += CalculateViscosityContribution(posOffset, velOffset, grad, i, j);
+                    surfaceTension += CalculateSurfaceTensionContribution(posOffset, kernel, r);
+                    D += CalculateDContribution(grad, densitySq);
                 }
             }
         }
