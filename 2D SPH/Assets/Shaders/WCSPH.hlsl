@@ -42,9 +42,11 @@ void CalculateWCSPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
                     float3 grad = CubicSplineGrad(posOffset);
 
                     viscosity += CalculateViscosityContribution(posOffset, velOffset, grad, i, j);
-                    surfaceTension += -surfaceTensionMultiplier * kernel * (offset / r);
+                    surfaceTension += -surfaceTensionMultiplier * kernel * (posOffset / r);
                     pressure += CalculatePressureContribution(posOffset, grad, i, j);
-                    xsph += CalculateXSPHContribution(Densities[j], posOffset, velOffset, kernel);
+
+                    float massOverDensity = particleMass / Densities[j];
+                    xsph += velocitySmoothing * massOverDensity * kernel * -velOffset;
                 }
             }
         }

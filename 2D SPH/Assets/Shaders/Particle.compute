@@ -78,6 +78,8 @@ float size;
 float dampingFactor;
 float power;
 float mouseRadius;
+float surfaceTensionMultiplier;
+float velocitySmoothing;
 
 // Vectors
 float3 mousePos;
@@ -96,7 +98,6 @@ uint numBlockSums;
 #include "Scatter.hlsl"
 #include "External.hlsl"
 #include "Density.hlsl"
-#include "XSPH.hlsl"
 #include "Pressure.hlsl"
 #include "Viscosity.hlsl"
 #include "IISPH.hlsl"

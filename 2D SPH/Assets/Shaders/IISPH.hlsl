@@ -168,7 +168,7 @@ void CalculateIISPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
                     float3 grad = CubicSplineGrad(posOffset);
 
                     viscosity += CalculateViscosityContribution(posOffset, velOffset, grad, i, j);
-                    surfaceTension += CalculateSurfaceTensionContribution(posOffset, kernel, r);
+                    surfaceTension += -surfaceTensionMultiplier * kernel * (posOffset / r);
                     D += CalculateDContribution(grad, densitySq);
                 }
             }
@@ -224,7 +224,9 @@ float3 CalculateXSPHPressureForce(uint i) {
                     float3 grad = CubicSplineGrad(posOffset);
 
                     pressureForce += CalculatePressureContribution(posOffset, grad, i, j);
-                    xsphCorrection += CalculateXSPHContribution(Densities[j], posOffset, velOffset, kernel);
+
+                    float massOverDensity = particleMass / Densities[j];
+                    xsphCorrection += velocitySmoothing * massOverDensity * kernel * -velOffset;
                 }
             }
         }
