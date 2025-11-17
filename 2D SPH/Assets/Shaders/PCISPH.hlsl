@@ -32,8 +32,8 @@ void CalculatePCISPHComponents(uint i, out float3 viscosity, out float3 surfaceT
 
                     float3 velOffset = velI - Velocities[j];
                     
-                    float kernel = CubicSplineKernel(offset);
-                    float3 grad = CubicSplineGrad(offset);
+                    float kernel = CubicSplineKernel(posOffset);
+                    float3 grad = CubicSplineGrad(posOffset);
 
                     viscosity += CalculateViscosityContribution(posOffset, velOffset, grad, i, j);
                     surfaceTension += CalculateSurfaceTensionContribution(posOffset, kernel, r);
@@ -113,7 +113,7 @@ float3 CalculatePCISPHPressureForce(int i) {
 
                     float3 grad = CubicSplineGrad(offset);
                     
-                    pressureForce += CalculatePressureContribution(offset, i, j);
+                    pressureForce += CalculatePressureContribution(offset, grad, i, j);
                 }
             }
         }

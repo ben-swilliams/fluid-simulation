@@ -154,10 +154,10 @@ void CalculateIISPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
                 for (uint j = startIndex; j < endIndex; j++) {
                     if (i == j) continue;
 
+                    float3 posOffset = posI - Positions[j];
                     float r = length(posOffset);
                     if (r < Epsilon || r > 2 * smoothingRadius) continue;
 
-                    float3 posOffset = posI - Positions[j];
                     float3 velOffset = velI - Velocities[j];
 
                     float kernel = CubicSplineKernel(posOffset);
@@ -216,8 +216,11 @@ float3 CalculateXSPHPressureForce(uint i) {
                     float3 posOffset = posI - Positions[j];
                     float3 velOffset = velI - Velocities[j];
 
-                    pressureForce += CalculatePressureContribution(posOffset, i, j);
-                    xsphCorrection += CalculateXSPHContribution(Densities[j], posOffset, velOffset);
+                    float kernel = CubicSplineKernel(posOffset);
+                    float3 grad = CubicSplineGrad(posOffset);
+
+                    pressureForce += CalculatePressureContribution(posOffset, grad, i, j);
+                    xsphCorrection += CalculateXSPHContribution(Densities[j], posOffset, velOffset, kernel);
                 }
             }
         }
