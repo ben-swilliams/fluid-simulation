@@ -16,39 +16,36 @@ void CalculateWCSPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
 
     float3 velI = Velocities[i];
 
-    for (int x = -1; x < 2; x++) {
-        for (int y = -1; y < 2; y++) {
-            for (int z = -1; z < 2; z++) {
-                int3 gridPosJ = gridPosI + int3(x, y, z);
-                if (!IsInBounds(gridPosJ)) continue;
+    for (int o = 0; o < 27; o++) {
+        int3 gridPosJ = gridPosI + offsets[o];
 
-                uint hash = CalculateHashFromGrid(gridPosJ);
+        if (!IsInBounds(gridPosJ)) continue;
 
-                uint startIndex = Offsets[hash];
-                uint endIndex = Offsets[hash + 1];
+        uint hash = CalculateHashFromGrid(gridPosJ);
 
-                for (uint j = startIndex; j < endIndex; j++) {
-                    if (i == j) continue;
+        uint startIndex = Offsets[hash];
+        uint endIndex = Offsets[hash + 1];
 
-                    float3 posOffset = posI - Positions[j];
+        for (uint j = startIndex; j < endIndex; j++) {
+            if (i == j) continue;
 
-                    float rSq = dot(posOffset, posOffset);
-                    if (rSq < Epsilon * Epsilon || rSq > 4 * smoothingRadius * smoothingRadius) continue;
+            float3 posOffset = posI - Positions[j];
 
-                    float r = length(posOffset);
-                    float3 velOffset = velI - Velocities[j];
+            float rSq = dot(posOffset, posOffset);
+            if (rSq < Epsilon * Epsilon || rSq > 4 * smoothingRadius * smoothingRadius) continue;
 
-                    float kernel = CubicSplineKernel(r);
-                    float3 grad = CubicSplineGrad(posOffset, r);
+            float r = length(posOffset);
+            float3 velOffset = velI - Velocities[j];
 
-                    viscosity += CalculateViscosityContribution(posOffset, velOffset, grad, i, j);
-                    surfaceTension += -surfaceTensionMultiplier * kernel * (posOffset / r);
-                    pressure += CalculatePressureContribution(posOffset, grad, i, j);
+            float kernel = CubicSplineKernel(r);
+            float3 grad = CubicSplineGrad(posOffset, r);
 
-                    float massOverDensity = particleMass / Densities[j];
-                    xsph += velocitySmoothing * massOverDensity * kernel * -velOffset;
-                }
-            }
+            viscosity += CalculateViscosityContribution(posOffset, velOffset, grad, i, j);
+            surfaceTension += -surfaceTensionMultiplier * kernel * (posOffset / r);
+            pressure += CalculatePressureContribution(posOffset, grad, i, j);
+
+            float massOverDensity = particleMass / Densities[j];
+            xsph += velocitySmoothing * massOverDensity * kernel * -velOffset;
         }
     }
 }

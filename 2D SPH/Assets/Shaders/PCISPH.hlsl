@@ -11,39 +11,35 @@ void CalculatePCISPHComponents(uint i, out float3 viscosity, out float3 surfaceT
 
     float3 velI = Velocities[i];
 
-    for (int x = -1; x < 2; x++) {
-        for (int y = -1; y < 2; y++) {
-            for (int z = -1; z < 2; z++) {
-                int3 gridPosJ = gridPosI + int3(x, y, z);
-                if (!IsInBounds(gridPosJ)) continue;
+    for (int o = 0; o < 27; o++) {
+        int3 gridPosJ = gridPosI + offsets[o];
+        if (!IsInBounds(gridPosJ)) continue;
 
-                uint hash = CalculateHashFromGrid(gridPosJ);
+        uint hash = CalculateHashFromGrid(gridPosJ);
 
-                uint startIndex = Offsets[hash];
-                uint endIndex = Offsets[hash + 1];
+        uint startIndex = Offsets[hash];
+        uint endIndex = Offsets[hash + 1];
 
-                for (uint j = startIndex; j < endIndex; j++) {
-                    if (i == j) continue;
+        for (uint j = startIndex; j < endIndex; j++) {
+            if (i == j) continue;
 
-                    float3 posOffset = posI - Positions[j];
-                    float rSq = dot(posOffset, posOffset);
+            float3 posOffset = posI - Positions[j];
+            float rSq = dot(posOffset, posOffset);
 
-                    if (rSq < Epsilon * Epsilon || rSq > 4 * smoothingRadius * smoothingRadius) continue;
+            if (rSq < Epsilon * Epsilon || rSq > 4 * smoothingRadius * smoothingRadius) continue;
 
-                    float r = length(posOffset);
-                    float3 velOffset = velI - Velocities[j];
-                    
-                    float kernel = CubicSplineKernel(r);
-                    float3 grad = CubicSplineGrad(posOffset, r);
+            float r = length(posOffset);
+            float3 velOffset = velI - Velocities[j];
+            
+            float kernel = CubicSplineKernel(r);
+            float3 grad = CubicSplineGrad(posOffset, r);
 
-                    viscosity += CalculateViscosityContribution(posOffset, velOffset, grad, i, j);
-                    surfaceTension += -surfaceTensionMultiplier * kernel * (posOffset / r);
-                    pressure += CalculatePressureContribution(posOffset, grad, i, j);
+            viscosity += CalculateViscosityContribution(posOffset, velOffset, grad, i, j);
+            surfaceTension += -surfaceTensionMultiplier * kernel * (posOffset / r);
+            pressure += CalculatePressureContribution(posOffset, grad, i, j);
 
-                    float massOverDensity = particleMass / Densities[j];
-                    xsph += velocitySmoothing * massOverDensity * kernel * -velOffset;
-                }
-            }
+            float massOverDensity = particleMass / Densities[j];
+            xsph += velocitySmoothing * massOverDensity * kernel * -velOffset;
         }
     }
 }
@@ -67,24 +63,20 @@ float CalculatePressureChange(int i) {
     float3 posI = PredictedPositions[i];
     int3 gridPosI = GetGridPos(Positions[i]);
 
-    for (int x = -1; x < 2; x++) {
-        for (int y = -1; y < 2; y++) {
-            for (int z = -1; z < 2; z++) {
-                int3 gridPosJ = gridPosI + int3(x, y, z);
-                if (!IsInBounds(gridPosJ)) continue;
+    for (int o = 0; o < 27; o++) {
+        int3 gridPosJ = gridPosI + offsets[o];
+        if (!IsInBounds(gridPosJ)) continue;
 
-                uint hash = CalculateHashFromGrid(gridPosJ);
+        uint hash = CalculateHashFromGrid(gridPosJ);
 
-                uint startIndex = Offsets[hash];
-                uint endIndex = Offsets[hash + 1];
+        uint startIndex = Offsets[hash];
+        uint endIndex = Offsets[hash + 1];
 
-                for (uint j = startIndex; j < endIndex; j++) {
-                    float3 offset = posI - PredictedPositions[j];
-                    float r = length(offset);
+        for (uint j = startIndex; j < endIndex; j++) {
+            float3 offset = posI - PredictedPositions[j];
+            float r = length(offset);
 
-                    predictedDensity += particleMass * CubicSplineKernel(r);
-                }
-            }
+            predictedDensity += particleMass * CubicSplineKernel(r);
         }
     } 
 
@@ -99,32 +91,28 @@ float3 CalculatePCISPHPressureForce(int i) {
     float3 posI = Positions[i];
     int3 gridPosI = GetGridPos(posI);
 
-    for (int x = -1; x < 2; x++) {
-        for (int y = -1; y < 2; y++) {
-            for (int z = -1; z < 2; z++) {
-                int3 gridPosJ = gridPosI + int3(x, y, z);
-                if (!IsInBounds(gridPosJ)) continue;
+    for (int o = 0; o < 27; o++) {
+        int3 gridPosJ = gridPosI + offsets[o];
+        if (!IsInBounds(gridPosJ)) continue;
 
-                uint hash = CalculateHashFromGrid(gridPosJ);
+        uint hash = CalculateHashFromGrid(gridPosJ);
 
-                uint startIndex = Offsets[hash];
-                uint endIndex = Offsets[hash + 1];
+        uint startIndex = Offsets[hash];
+        uint endIndex = Offsets[hash + 1];
 
-                for (uint j = startIndex; j < endIndex; j++) {
-                    if (i == j) continue;
+        for (uint j = startIndex; j < endIndex; j++) {
+            if (i == j) continue;
 
-                    float3 offset = posI - Positions[j];
-                    float rSq = dot(offset, offset);
+            float3 offset = posI - Positions[j];
+            float rSq = dot(offset, offset);
 
-                    if (rSq < Epsilon * Epsilon || rSq > 4 * smoothingRadius * smoothingRadius) continue;
+            if (rSq < Epsilon * Epsilon || rSq > 4 * smoothingRadius * smoothingRadius) continue;
 
-                    float r = length(offset);
+            float r = length(offset);
 
-                    float3 grad = CubicSplineGrad(offset, r);
-                    
-                    pressureForce += CalculatePressureContribution(offset, grad, i, j);
-                }
-            }
+            float3 grad = CubicSplineGrad(offset, r);
+            
+            pressureForce += CalculatePressureContribution(offset, grad, i, j);
         }
     } 
 
