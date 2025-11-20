@@ -57,7 +57,7 @@ public class Simulate : MonoBehaviour
     bool started;
     float physicsTimeStep;
     float accumulator = 0f;
-    int maxStepsPerFrame = 10;
+    int maxStepsPerFrame = 1;
 
     int instanceCount;
 
