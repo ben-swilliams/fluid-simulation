@@ -100,11 +100,6 @@ public class ShaderHelper
         BindBuffers(kernels.kernelStaticBufferMap);
     }
 
-    public void BindDynamicBuffers(KernelSet kernels)
-    {
-        BindBuffers(kernels.kernelDynamicBufferMap);
-    }
-
     public void SetValues(object[] pairs)
     {
         for (int i = 0; i < pairs.Length; i += 2)
