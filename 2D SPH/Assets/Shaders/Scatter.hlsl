@@ -1,9 +1,3 @@
-RWStructuredBuffer<float3> OldPositions;
-RWStructuredBuffer<float3> NewPositions;
-
-RWStructuredBuffer<float3> OldVelocities;
-RWStructuredBuffer<float3> NewVelocities;
-
 void SortParticle(uint i)
 {
     uint hash = CalculateHash(OldPositions[i]);
@@ -16,7 +10,7 @@ void SortParticle(uint i)
 
     if (destIndex >= instanceCount) return;
 
-    NewPositions[destIndex]  = OldPositions[i];
-    NewVelocities[destIndex] = OldVelocities[i];
+    SortedPositions[destIndex]  = Positions[i];
+    SortedVelocities[destIndex] = Velocities[i];
     IterPressures[destIndex] = 0;
 }

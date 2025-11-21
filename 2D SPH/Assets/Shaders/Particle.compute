@@ -5,6 +5,7 @@
 #pragma kernel AddBlockSums
 #pragma kernel FinalizeScan
 #pragma kernel Scatter
+#pragma kernel CopyBack
 #pragma kernel InitialisePressures
 #pragma kernel CalculateDensity
 #pragma kernel CalculateNonPressureAcceleration
@@ -86,7 +87,9 @@ RWStructuredBuffer<float> Densities;
 // Vector buffers
 RWStructuredBuffer<float3> PredictedPositions;
 RWStructuredBuffer<float3> Positions;
+RWStructuredBuffer<float3> SortedPositions;
 RWStructuredBuffer<float3> Velocities;
+RWStructuredBuffer<float3> SortedVelocities;
 
 RWStructuredBuffer<float3> IntermediateAccelerations;
 RWStructuredBuffer<float3> Dii;
@@ -185,6 +188,14 @@ void Scatter(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
     SortParticle(id.x);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void CopyBack(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Velocities[id.x] = SortedVelocities[id.x];
+    Positions[id.x] = SortedPositions[id.x];
 }
 
 [numthreads(NumThreads, 1, 1)]
