@@ -55,6 +55,7 @@ public class KernelSet
             { AddBlockSums, new[] { "Offsets", "CellCounts", "BlockSums" } },
             { FinalizeScan, new[] { "Offsets" } },
             { Scatter, new[] { "LocalOffsets", "Offsets", "IterPressures", "Velocities", "SortedVelocities", "Positions", "SortedPositions" } },
+            { CopyBack, new[] { "SortedVelocities", "SortedPositions", "Velocities", "Positions" }},
             { InitialisePressures, new[] { "Pressures" }},
             { CalculateDensity, new[] { "Densities", "Offsets", "Positions" } },
             { CalculateNonPressureAcceleration, new[] { "Offsets", "IntermediateAccelerations", "Densities", "Pressures", "Velocities", "Positions" } },
@@ -86,6 +87,7 @@ public class KernelSet
         AddBlockSums = shader.FindKernel("AddBlockSums");
         FinalizeScan = shader.FindKernel("FinalizeScan");
         Scatter = shader.FindKernel("Scatter");
+        CopyBack = shader.FindKernel("CopyBack");
         InitialisePressures = shader.FindKernel("InitialisePressures");
         CalculateDensity = shader.FindKernel("CalculateDensity");
         CalculateNonPressureAcceleration = shader.FindKernel("CalculateNonPressureAcceleration");

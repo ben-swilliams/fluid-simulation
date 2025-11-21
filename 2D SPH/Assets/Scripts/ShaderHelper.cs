@@ -131,6 +131,7 @@ public class ShaderHelper
         allBuffers.Add(sortedPositionBuffer);
 
         positionBuffer = new ComputeBuffer(positions.Length, sizeof(float) * 3);
+        positionBuffer.SetData(positions);
         allBuffers.Add(positionBuffer);
 
         predictedPositions = new ComputeBuffer(positions.Length, sizeof(float) * 3);
@@ -140,6 +141,7 @@ public class ShaderHelper
         allBuffers.Add(sortedVelocityBuffer);
 
         velocityBuffer = new ComputeBuffer(velocities.Length, sizeof(float) * 3);
+        velocityBuffer.SetData(velocities);
         allBuffers.Add(velocityBuffer);
 
         // Stores densities first, then near-density, then advanced density

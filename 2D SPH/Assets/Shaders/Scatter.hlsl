@@ -1,6 +1,6 @@
 void SortParticle(uint i)
 {
-    uint hash = CalculateHash(OldPositions[i]);
+    uint hash = CalculateHash(Positions[i]);
 
     uint oldOffset;
     InterlockedAdd(LocalOffsets[hash], 1, oldOffset);
@@ -10,7 +10,7 @@ void SortParticle(uint i)
 
     if (destIndex >= instanceCount) return;
 
-    SortedPositions[destIndex]  = Positions[i];
     SortedVelocities[destIndex] = Velocities[i];
+    SortedPositions[destIndex]  = Positions[i];
     IterPressures[destIndex] = 0;
 }
