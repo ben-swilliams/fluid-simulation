@@ -10,6 +10,7 @@ public class KernelSet
     public int AddBlockSums;
     public int FinalizeScan;
     public int Scatter;
+    public int CopyBack;
     public int InitialisePressures;
     public int CalculateDensity;
     public int CalculateNonPressureAcceleration;

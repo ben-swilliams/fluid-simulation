@@ -305,9 +305,7 @@ public class Simulate : MonoBehaviour
 
         HierarchicalScan();
 
-        shader.Dispatch(kernels.Scatter);
-
-        shader.SwapBuffers();
+        shader.Dispatch(kernels.Scatter, kernels.CopyBack);
     }
 
     void HierarchicalScan()
