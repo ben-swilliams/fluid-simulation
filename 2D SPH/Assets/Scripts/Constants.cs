@@ -4,6 +4,6 @@ static class Constants
     public static int scanBlockSize = threadGroupSize * 2;
     public static int binNumber = 32768;
     public static int stableWCSPHStep = 1000;
-    public static int stableIISPHStep = 300;
+    public static int stableIISPHStep = 150;
     public static int stablePCISPHStep = 150;
 }
