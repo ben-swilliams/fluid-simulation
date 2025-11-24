@@ -17,12 +17,10 @@ public class ShaderHelper
     ComputeBuffer blockSumsBuffer;
     ComputeBuffer localOffsetBuffer;
     ComputeBuffer positionBuffer;
+    ComputeBuffer sortedPositionBuffer;
     ComputeBuffer predictedPositions;
-    ComputeBuffer positionBufferA;
-    ComputeBuffer positionBufferB;
     ComputeBuffer velocityBuffer;
-    ComputeBuffer velocityBufferA;
-    ComputeBuffer velocityBufferB;
+    ComputeBuffer sortedVelocityBuffer;
     ComputeBuffer densityBuffer;
     ComputeBuffer intermediateAccelerationBuffer;
     ComputeBuffer diiBuffer;
@@ -77,15 +75,11 @@ public class ShaderHelper
         nameBufferMap.Add("DPSum", dpSumBuffer);
         nameBufferMap.Add("IterPressures", iterPressureBuffer);
         nameBufferMap.Add("Pressures", pressureBuffer);
+        nameBufferMap.Add("SortedVelocities", sortedVelocityBuffer);
         nameBufferMap.Add("Velocities", velocityBuffer);
         nameBufferMap.Add("PredictedPositions", predictedPositions);
+        nameBufferMap.Add("SortedPositions", sortedPositionBuffer);
         nameBufferMap.Add("Positions", positionBuffer);
-
-        nameBufferMap.Add("OldVelocities", velocityBuffer);
-        nameBufferMap.Add("NewVelocities", (velocityBuffer == velocityBufferA) ? velocityBufferB : velocityBufferA);
-        nameBufferMap.Add("OldPositions", positionBuffer);
-        nameBufferMap.Add("NewPositions", (positionBuffer == positionBufferA) ? positionBufferB : positionBufferA);
-
         nameBufferMap.Add("Colours", colourBuffer);
     }
 
@@ -98,11 +92,6 @@ public class ShaderHelper
     public void BindStaticBuffers(KernelSet kernels)
     {
         BindBuffers(kernels.kernelStaticBufferMap);
-    }
-
-    public void BindDynamicBuffers(KernelSet kernels)
-    {
-        BindBuffers(kernels.kernelDynamicBufferMap);
     }
 
     public void SetValues(object[] pairs)
@@ -138,26 +127,22 @@ public class ShaderHelper
         localOffsetBuffer = new ComputeBuffer(Constants.binNumber, sizeof(uint));
         allBuffers.Add(localOffsetBuffer);
 
-        positionBufferA = new ComputeBuffer(positions.Length, sizeof(float) * 3);
-        positionBufferA.SetData(positions);
-        allBuffers.Add(positionBufferA);
+        sortedPositionBuffer = new ComputeBuffer(positions.Length, sizeof(float) * 3);
+        allBuffers.Add(sortedPositionBuffer);
 
-        positionBufferB = new ComputeBuffer(positions.Length, sizeof(float) * 3);
-        allBuffers.Add(positionBufferB);
-
-        positionBuffer = positionBufferA;
+        positionBuffer = new ComputeBuffer(positions.Length, sizeof(float) * 3);
+        positionBuffer.SetData(positions);
+        allBuffers.Add(positionBuffer);
 
         predictedPositions = new ComputeBuffer(positions.Length, sizeof(float) * 3);
         allBuffers.Add(predictedPositions);
 
-        velocityBufferA = new ComputeBuffer(velocities.Length, sizeof(float) * 3);
-        velocityBufferA.SetData(velocities);
-        allBuffers.Add(velocityBufferA);
+        sortedVelocityBuffer = new ComputeBuffer(velocities.Length, sizeof(float) * 3);
+        allBuffers.Add(sortedVelocityBuffer);
 
-        velocityBufferB = new ComputeBuffer(velocities.Length, sizeof(float) * 3);
-        allBuffers.Add(velocityBufferB);
-
-        velocityBuffer = velocityBufferA;
+        velocityBuffer = new ComputeBuffer(velocities.Length, sizeof(float) * 3);
+        velocityBuffer.SetData(velocities);
+        allBuffers.Add(velocityBuffer);
 
         // Stores densities first, then near-density, then advanced density
         densityBuffer = new ComputeBuffer(instanceCount * 3, sizeof(float));
@@ -183,24 +168,6 @@ public class ShaderHelper
 
         MapBuffers();
     }
-
-    public void SwapBuffers()
-    {
-        positionBuffer = (positionBuffer == positionBufferA) ? positionBufferB : positionBufferA;
-        velocityBuffer = (velocityBuffer == velocityBufferA) ? velocityBufferB : velocityBufferA;
-
-        // Update mappings
-        nameBufferMap["Positions"] = positionBuffer;
-        nameBufferMap["Velocities"] = velocityBuffer;
-
-        // Swap Old/New mappings
-        nameBufferMap["OldPositions"] = positionBuffer;
-        nameBufferMap["NewPositions"] = (positionBuffer == positionBufferA) ? positionBufferB : positionBufferA;
-
-        nameBufferMap["OldVelocities"] = velocityBuffer;
-        nameBufferMap["NewVelocities"] = (velocityBuffer == velocityBufferA) ? velocityBufferB : velocityBufferA;
-    }
-
 
     public void Dispatch(params int[] kernels)
     {

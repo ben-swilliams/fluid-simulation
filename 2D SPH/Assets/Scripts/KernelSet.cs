@@ -10,6 +10,7 @@ public class KernelSet
     public int AddBlockSums;
     public int FinalizeScan;
     public int Scatter;
+    public int CopyBack;
     public int InitialisePressures;
     public int CalculateDensity;
     public int CalculateNonPressureAcceleration;
@@ -32,7 +33,6 @@ public class KernelSet
     public int CalculatePressureColour;
 
     public Dictionary<int, string[]> kernelStaticBufferMap;
-    public Dictionary<int, string[]> kernelDynamicBufferMap;
 
     public int[] WCSPHKernels => new int[] { CalculateDensity, CalculateWCSPHPressure, UpdateWCSPHVelocities, UpdatePositions };
     public int[] PCISPHPrePressureKernels => new int[] { InitialisePressures, CalculateDensity, CalculateNonPressureAcceleration };
@@ -49,51 +49,32 @@ public class KernelSet
         kernelStaticBufferMap = new Dictionary<int, string[]>
         {
             { ClearCounts, new[] { "CellCounts", "LocalOffsets" } },
-            { Partition, new[] { "CellCounts" } },
+            { Partition, new[] { "CellCounts", "Positions" } },
             { Scan, new[] { "Offsets", "CellCounts", "BlockSums" } },
             { ScanBlockSums, new[] { "BlockSums" } },
             { AddBlockSums, new[] { "Offsets", "CellCounts", "BlockSums" } },
             { FinalizeScan, new[] { "Offsets" } },
-            { Scatter, new[] { "LocalOffsets", "Offsets" } },
+            { Scatter, new[] { "LocalOffsets", "Offsets", "IterPressures", "Velocities", "SortedVelocities", "Positions", "SortedPositions" } },
+            { CopyBack, new[] { "SortedVelocities", "SortedPositions", "Velocities", "Positions" }},
             { InitialisePressures, new[] { "Pressures" }},
-            { CalculateDensity, new[] { "Densities", "Offsets" } },
-            { CalculateNonPressureAcceleration, new[] { "Offsets", "IntermediateAccelerations", "Densities", "Pressures" } },
-            { CalculateNonPressureAccelerationAndD, new[] { "Offsets", "IntermediateAccelerations", "Densities", "Dii" } },
-            { PredictVelocity, new[] { "IntermediateAccelerations" } },
-            { PredictPosition, new[] { "IntermediateAccelerations", "PredictedPositions", "Densities", "Offsets", "Pressures" } },
-            { PredictDensityAndCalculateA, new[] { "Densities", "Offsets", "Dii", "Aii" } },
-            { CalculatePressureSums, new[] { "Offsets", "Densities", "Dii", "Aii", "DPSum", "IterPressures" } },
-            { CalculateNextIISPHPressure, new[] { "Offsets", "Densities", "Dii", "Aii", "DPSum", "IterPressures", "Pressures" } },
+            { CalculateDensity, new[] { "Densities", "Offsets", "Positions" } },
+            { CalculateNonPressureAcceleration, new[] { "Offsets", "IntermediateAccelerations", "Densities", "Pressures", "Velocities", "Positions" } },
+            { CalculateNonPressureAccelerationAndD, new[] { "Offsets", "IntermediateAccelerations", "Densities", "Dii", "Velocities", "Positions" } },
+            { PredictVelocity, new[] { "IntermediateAccelerations", "Velocities", "Positions" } },
+            { PredictPosition, new[] { "IntermediateAccelerations", "PredictedPositions", "Densities", "Offsets", "Pressures", "Velocities", "Positions" } },
+            { PredictDensityAndCalculateA, new[] { "Densities", "Offsets", "Dii", "Aii", "Velocities", "Positions" } },
+            { CalculatePressureSums, new[] { "Offsets", "Densities", "Dii", "Aii", "DPSum", "IterPressures", "Velocities", "Positions" } },
+            { CalculateNextIISPHPressure, new[] { "Offsets", "Densities", "Dii", "Aii", "DPSum", "IterPressures", "Pressures", "Positions" } },
             { FinalisePressureIteration, new[] { "Pressures", "IterPressures" } },
             { CalculateWCSPHPressure, new[] { "Pressures", "Densities" } },
-            { CalculateNextPCISPHPressure, new[] { "PredictedPositions", "Pressures", "Densities", "Offsets" } },
-            { UpdateIISPHVelocities, new[] { "Densities", "Offsets", "Pressures" } },
-            { UpdateWCSPHVelocities, new[] { "Densities", "Offsets", "Pressures" }},
-            { UpdatePCISPHVelocities, new[] { "IntermediateAccelerations", "Densities", "Offsets", "Pressures" }},
-            { UpdatePositions, new[] { "Densities", "Offsets" } },
-            { CalculateVelocityColour, new[] {"Colours"}},
+            { CalculateNextPCISPHPressure, new[] { "PredictedPositions", "Pressures", "Densities", "Offsets", "Positions" } },
+            { UpdateIISPHVelocities, new[] { "Densities", "Offsets", "Pressures", "Velocities", "Positions" } },
+            { UpdateWCSPHVelocities, new[] { "Densities", "Offsets", "Pressures", "Velocities", "Positions" }},
+            { UpdatePCISPHVelocities, new[] { "IntermediateAccelerations", "Densities", "Offsets", "Pressures", "Velocities", "Positions" }},
+            { UpdatePositions, new[] { "Densities", "Offsets", "Velocities", "Positions" } },
+            { CalculateVelocityColour, new[] {"Colours", "Velocities"}},
             { CalculateDensityColour, new[] {"Colours", "Densities"}},
             { CalculatePressureColour, new[] {"Colours", "Pressures"}},
-        };
-
-        kernelDynamicBufferMap = new Dictionary<int, string[]>
-        {
-            { Partition, new[] { "Positions" } },
-            { CalculateDensity, new[] { "Positions" } },
-            { Scatter, new[] { "Pressures", "IterPressures", "OldVelocities", "NewVelocities", "OldPositions", "NewPositions" } },
-            { CalculateNonPressureAcceleration, new[] { "Positions", "Velocities" } },
-            { CalculateNonPressureAccelerationAndD, new[] { "Positions", "Velocities" } },
-            { PredictVelocity, new[] { "Velocities", "Positions" } },
-            { PredictPosition, new[] { "Velocities", "Positions" } },
-            { PredictDensityAndCalculateA, new[] { "Positions", "Velocities" } },
-            { CalculatePressureSums, new[] { "Positions" } },
-            { CalculateNextIISPHPressure, new[] { "Positions" } },
-            { CalculateNextPCISPHPressure, new[] { "Positions" } },
-            { UpdateIISPHVelocities, new[] { "Velocities", "Positions" } },
-            { UpdateWCSPHVelocities, new[] { "Velocities", "Positions" } },
-            { UpdatePCISPHVelocities, new[] { "Velocities", "Positions" } },
-            { UpdatePositions, new[] { "Velocities", "Positions" } },
-            { CalculateVelocityColour, new[] { "Velocities" } }
         };
     }
 
@@ -106,6 +87,7 @@ public class KernelSet
         AddBlockSums = shader.FindKernel("AddBlockSums");
         FinalizeScan = shader.FindKernel("FinalizeScan");
         Scatter = shader.FindKernel("Scatter");
+        CopyBack = shader.FindKernel("CopyBack");
         InitialisePressures = shader.FindKernel("InitialisePressures");
         CalculateDensity = shader.FindKernel("CalculateDensity");
         CalculateNonPressureAcceleration = shader.FindKernel("CalculateNonPressureAcceleration");

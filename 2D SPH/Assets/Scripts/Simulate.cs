@@ -243,8 +243,6 @@ public class Simulate : MonoBehaviour
 
     void RunPhysicsStep()
     {
-        shader.BindDynamicBuffers(kernels);
-
         ScanAndScatter();
 
         if (pressureSolver == Solver.IISPH)
@@ -307,10 +305,7 @@ public class Simulate : MonoBehaviour
 
         HierarchicalScan();
 
-        shader.Dispatch(kernels.Scatter);
-
-        shader.SwapBuffers();
-        shader.BindDynamicBuffers(kernels);
+        shader.Dispatch(kernels.Scatter, kernels.CopyBack);
     }
 
     void HierarchicalScan()
