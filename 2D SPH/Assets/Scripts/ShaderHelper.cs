@@ -109,6 +109,11 @@ public class ShaderHelper
         }
     }
 
+    public void SetInts(string name, params int[] ints)
+    {
+        computeShader.SetInts(name, ints);
+    }
+
     public void SetupBuffers(Vector3[] positions, Vector3[] velocities)
     {
         allBuffers = new List<ComputeBuffer>();

@@ -74,7 +74,7 @@ public class KernelSet
             { UpdateWCSPHVelocities, new[] { "Densities", "Offsets", "Pressures", "Velocities", "Positions" }},
             { UpdatePCISPHVelocities, new[] { "IntermediateAccelerations", "Densities", "Offsets", "Pressures", "Velocities", "Positions" }},
             { UpdatePositions, new[] { "Densities", "Offsets", "Velocities", "Positions" } },
-            { WriteDensities, new[] { "Positions" }},
+            { WriteDensities, new[] { "Offsets", "Positions" }},
             { CalculateVelocityColour, new[] {"Colours", "Velocities"}},
             { CalculateDensityColour, new[] {"Colours", "Densities"}},
             { CalculatePressureColour, new[] {"Colours", "Pressures"}},

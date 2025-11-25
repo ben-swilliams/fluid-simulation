@@ -212,9 +212,9 @@ public class Simulate : MonoBehaviour
         if (started)
         {
             AdvanceFrame();
+            UpdateDensityTexture();
         }
 
-        UpdateDensityTexture();
 
         drawer.DrawFrame();
     }
@@ -593,18 +593,26 @@ public class Simulate : MonoBehaviour
 
     void UpdateDensityTexture()
     {
+        if (shader == null) return;
+
         Vector3 bounds = GetComponentInChildren<Container>().Boundary;
         float maxAxis = Mathf.Max(bounds.x, bounds.y, bounds.z);
         int width = Mathf.RoundToInt(bounds.x / maxAxis * densityTextureRes);
         int height = Mathf.RoundToInt(bounds.y / maxAxis * densityTextureRes);
         int depth = Mathf.RoundToInt(bounds.z / maxAxis * densityTextureRes);
 
-        if (densityTex != null && densityTex.width == width && densityTex.height == height && densityTex.depth == depth) return;
+        if (densityTex == null || densityTex.width != width || densityTex.height != height || densityTex.depth != depth)
+        {
+            if (densityTex != null) densityTex.Release();
 
-        if (densityTex != null) densityTex.Release();
+            densityTex = CreateDensityTexture(width, height, depth);
+            shader.SetTexture(kernels.WriteDensities, "DensityTex", densityTex);
+            shader.SetInts("densityTexDims", width, height, depth);
+        }
 
-        densityTex = CreateDensityTexture(width, height, depth);
-        shader.SetTexture(kernels.WriteDensities, "DensityTex", densityTex);
+        int dispatchCount = Mathf.CeilToInt(Mathf.Max(width, height, depth) / 8f);
+
+        shader.Dispatch(true, dispatchCount, kernels.WriteDensities);
     }
 
 	public static RenderTexture CreateDensityTexture(int width, int height, int depth)
