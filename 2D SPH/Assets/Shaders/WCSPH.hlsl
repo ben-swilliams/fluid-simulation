@@ -13,6 +13,7 @@ void CalculateWCSPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
 
     float3 posI = Positions[i];
     int3 gridPosI = GetGridPos(posI);
+    float densityI = Densities[3 * i];
 
     float3 velI = Velocities[i];
 
@@ -36,13 +37,15 @@ void CalculateWCSPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
 
             float r = length(posOffset);
             float3 velOffset = velI - Velocities[j];
+            
+            float densityJ = Densities[3 * j];
 
             float kernel = CubicSplineKernel(r);
             float3 grad = CubicSplineGrad(posOffset, r);
 
-            viscosity += CalculateViscosityContribution(posOffset, velOffset, grad, i, j);
+            viscosity += CalculateViscosityContribution(posOffset, velOffset, grad, densityI, densityJ);
             surfaceTension += -surfaceTensionMultiplier * kernel * (posOffset / r);
-            pressure += CalculatePressureContribution(posOffset, grad, i, j);
+            pressure += CalculatePressureContribution(posOffset, grad, i, j, densityI, densityJ);
 
             float massOverDensity = particleMass / Densities[3 * j];
             xsph += velocitySmoothing * massOverDensity * kernel * -velOffset;

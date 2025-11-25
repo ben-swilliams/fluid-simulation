@@ -252,11 +252,13 @@ void PredictPosition(uint3 id : SV_DispatchThreadID) {
 void PredictDensityAndCalculateA(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    float2 values = CalculateDeltaDensityAndA(id.x);
+    float density = Densities[3 * id.x];
+
+    float2 values = CalculateDeltaDensityAndA(id.x, density);
     float deltaDensity = values.x;
     float a = values.y;
 
-    Densities[3 * id.x + 2] = Densities[3 * id.x] + deltaDensity * deltaTime;
+    Densities[3 * id.x + 2] = density + deltaDensity * deltaTime;
     Aii[id.x] = a;
 }
 
@@ -271,7 +273,7 @@ void CalculatePressureSums(uint3 id : SV_DispatchThreadID) {
 void CalculateNextIISPHPressure(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
-    Pressures[id.x] = CalculateNextIISPHPressureValue(id.x);
+    Pressures[id.x] = CalculateNextIISPHPressureValue(id.x, Densities[3 * id.x]);
 }
 
 [numthreads(NumThreads, 1, 1)]
