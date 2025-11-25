@@ -211,8 +211,8 @@ void CalculateDensity(uint3 id : SV_DispatchThreadID) {
 
     float2 densities = CalculateDensities(id.x);
 
-    Densities[id.x] = max(densities.x, Epsilon);
-    Densities[instanceCount + id.x] = max(densities.y, Epsilon);
+    Densities[3 * id.x] = max(densities.x, Epsilon);
+    Densities[3 * id.x + 1] = max(densities.y, Epsilon);
 }
 
 [numthreads(NumThreads, 1, 1)]
@@ -256,7 +256,7 @@ void PredictDensityAndCalculateA(uint3 id : SV_DispatchThreadID) {
     float deltaDensity = values.x;
     float a = values.y;
 
-    Densities[2 * instanceCount + id.x] = Densities[id.x] + deltaDensity * deltaTime;
+    Densities[3 * id.x + 2] = Densities[3 * id.x] + deltaDensity * deltaTime;
     Aii[id.x] = a;
 }
 

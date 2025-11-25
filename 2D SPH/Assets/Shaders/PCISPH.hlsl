@@ -38,7 +38,7 @@ void CalculatePCISPHComponents(uint i, out float3 viscosity, out float3 surfaceT
             surfaceTension += -surfaceTensionMultiplier * kernel * (posOffset / r);
             pressure += CalculatePressureContribution(posOffset, grad, i, j);
 
-            float massOverDensity = particleMass / Densities[j];
+            float massOverDensity = particleMass / Densities[3 * j];
             xsph += velocitySmoothing * massOverDensity * kernel * -velOffset;
         }
     }

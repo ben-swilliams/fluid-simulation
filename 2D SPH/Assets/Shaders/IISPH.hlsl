@@ -9,7 +9,7 @@ float2 CalculateDeltaDensityAndA(uint i) {
     float deltaDensity = 0;
     float a = 0;
 
-    float densitySq = max(Densities[i] * Densities[i], Epsilon);
+    float densitySq = max(Densities[3 * i] * Densities[3 * i], Epsilon);
 
     float3 posI = Positions[i];
     int3 gridPosI = GetGridPos(posI);
@@ -76,7 +76,7 @@ float3 CalculatePressureSum(uint i) {
 
             float r = length(offset);
 
-            float densitySq = max(Densities[j] * Densities[j], Epsilon);
+            float densitySq = max(Densities[3 * j] * Densities[3 * j], Epsilon);
 
             pressureSum += -particleMass * IterPressures[j] * CubicSplineGrad(offset, r) / densitySq;
         }
@@ -90,7 +90,7 @@ float CalculateNextIISPHPressureValue(uint i) {
     if (abs(aii) < Epsilon) return IterPressures[i];
     float pressureSum = 0;
 
-    float densitySq = max(Densities[i] * Densities[i], Epsilon);
+    float densitySq = max(Densities[3 * i] * Densities[3 * i], Epsilon);
     
     float3 posI = Positions[i];
     float3 dpSumI = DPSum[i];
@@ -126,7 +126,7 @@ float CalculateNextIISPHPressureValue(uint i) {
     }
 
     float nextPressure = (1 - relaxationFactor) * pressureI + 
-                        (relaxationFactor / aii) * (restDensity - Densities[2 * instanceCount + i] - particleMass * pressureSum);
+                        (relaxationFactor / aii) * (restDensity - Densities[3 * i + 2] - particleMass * pressureSum);
 
     // return nextPressure;
     return max(0, nextPressure);
@@ -141,7 +141,7 @@ void CalculateIISPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
     float3 velI = Velocities[i];
     int3 gridPosI = GetGridPos(posI);
 
-    float densitySq = max(Densities[i] * Densities[i], Epsilon);
+    float densitySq = max(Densities[3 * i] * Densities[3 * i], Epsilon);
 
     for (int o = 0; o < 27; o++) {
         int3 gridPosJ = gridPosI + offsets[o];
@@ -228,7 +228,7 @@ float3 CalculateXSPHPressureForce(uint i) {
 
             pressureForce += CalculatePressureContribution(posOffset, grad, i, j);
 
-            float massOverDensity = particleMass / Densities[j];
+            float massOverDensity = particleMass / Densities[3 * j];
             xsphCorrection += velocitySmoothing * massOverDensity * kernel * -velOffset;
         }
     }
