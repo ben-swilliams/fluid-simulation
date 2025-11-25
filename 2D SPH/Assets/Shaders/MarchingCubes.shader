@@ -28,7 +28,7 @@ Shader "Custom/MarchingCubes" {
                 float4 pos : SV_POSITION;
                 float2 uv : TEXCOORD0;
                 float3 col : TEXCOORD1;
-                float3 normal : NORMAL;
+                float3 normal : TEXCOORD2;
             };
 
             v2f vert(appdata_full v, uint id : SV_InstanceID) {
@@ -39,15 +39,10 @@ Shader "Custom/MarchingCubes" {
                 float3 vertObj = centreObj + v.vertex * (size * 0.5);
 
                 o.pos = UnityObjectToClipPos(vertObj);
-                o.normal = normalize(v.vertex);
+                // Transform normal to world space
+                o.normal = UnityObjectToWorldNormal(v.vertex);
 
-                float3 texCoord = (centreWorld / containerSize) + 0.5;
-
-                float density = DensityTex.SampleLevel(samplerDensityTex, texCoord, 0);
-
-                float t = saturate(density / 2.0);
-                o.col = lerp(float3(0, 0, 1), float3(1, 0, 0), t);
-
+                o.col = float4(0, 1, 0, 1);
                 o.uv = v.texcoord;
                 return o;
             }
@@ -57,7 +52,7 @@ Shader "Custom/MarchingCubes" {
                 float shading = saturate(dot(_WorldSpaceLightPos0.xyz, i.normal));
                 shading = shading * 0.7 + 0.3;
 
-                return float4(i.col * shading, 1);
+                return float4(1, 1, 1, 1);
 			}
             ENDCG
         }
