@@ -97,6 +97,7 @@ RWStructuredBuffer<float3> DPSum;
 
 RWStructuredBuffer<float3> Colours;
 
+Texture3D<float> DensityTex;
 
 // Integers
 uint instanceCount;

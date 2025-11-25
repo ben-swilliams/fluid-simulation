@@ -28,6 +28,8 @@ public class KernelSet
     public int UpdatePCISPHVelocities;
     public int UpdatePositions;
 
+    public int WriteDensities;
+
     public int CalculateVelocityColour;
     public int CalculateDensityColour;
     public int CalculatePressureColour;
@@ -72,6 +74,7 @@ public class KernelSet
             { UpdateWCSPHVelocities, new[] { "Densities", "Offsets", "Pressures", "Velocities", "Positions" }},
             { UpdatePCISPHVelocities, new[] { "IntermediateAccelerations", "Densities", "Offsets", "Pressures", "Velocities", "Positions" }},
             { UpdatePositions, new[] { "Densities", "Offsets", "Velocities", "Positions" } },
+            { WriteDensities, new[] { "Positions" }},
             { CalculateVelocityColour, new[] {"Colours", "Velocities"}},
             { CalculateDensityColour, new[] {"Colours", "Densities"}},
             { CalculatePressureColour, new[] {"Colours", "Pressures"}},
@@ -104,6 +107,7 @@ public class KernelSet
         UpdateWCSPHVelocities = shader.FindKernel("UpdateWCSPHVelocities");
         UpdatePCISPHVelocities = shader.FindKernel("UpdatePCISPHVelocities");
         UpdatePositions = shader.FindKernel("UpdatePositions");
+        WriteDensities = shader.FindKernel("WriteDensities");
         CalculateVelocityColour = shader.FindKernel("CalculateVelocityColour");
         CalculateDensityColour = shader.FindKernel("CalculateDensityColour");
         CalculatePressureColour = shader.FindKernel("CalculatePressureColour");

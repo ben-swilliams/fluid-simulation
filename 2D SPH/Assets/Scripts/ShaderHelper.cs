@@ -169,6 +169,11 @@ public class ShaderHelper
         MapBuffers();
     }
 
+    public void SetTexture(int kernel, string name, RenderTexture texture)
+    {
+        computeShader.SetTexture(kernel, name, texture);
+    }
+
     public void Dispatch(params int[] kernels)
     {
         Dispatch(threadGroups, kernels);

@@ -604,6 +604,7 @@ public class Simulate : MonoBehaviour
         if (densityTex != null) densityTex.Release();
 
         densityTex = CreateDensityTexture(width, height, depth);
+        shader.SetTexture(kernels.WriteDensities, "DensityTex", densityTex);
     }
 
 	public static RenderTexture CreateDensityTexture(int width, int height, int depth)
