@@ -844,7 +844,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63f8fe23dbca64e96baab58a31c25591, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  distance: 10
+  distance: 5
   angle: 25
   orbitSpeed: 0.5
 --- !u!4 &106418492
@@ -6082,7 +6082,7 @@ Transform:
   m_GameObject: {fileID: 854739752}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.976296, z: -0.21643962, w: 0}
-  m_LocalPosition: {x: 0, y: 4.226183, z: 9.063078}
+  m_LocalPosition: {x: 0, y: 2.1130915, z: 4.531539}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -10342,6 +10342,7 @@ MonoBehaviour:
   velocitySmoothing: 0.01
   stepSize: 10
   maxVelocity: 5
+  densityTextureRes: 100
   initSpeed: 0
   gravity: -9.8
   dampingFactor: 0.95
@@ -10386,10 +10387,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90a21f46cb45640b88337bf5d5a09f85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawn
-  instanceCount: 140625
-  size: 0.08
+  instanceCount: 21952
+  size: 0.07
   spacing: 0
-  spawnArea: {x: 6, y: 2, z: 6}
+  spawnArea: {x: 2, y: 2, z: 2}
   spawnPosition: {x: 0, y: 0, z: 0}
   asGrid: 1
 --- !u!114 &1274155414
@@ -12944,7 +12945,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 8, y: 3, z: 8}
+  m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1433972751}

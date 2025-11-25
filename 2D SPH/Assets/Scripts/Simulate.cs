@@ -216,7 +216,7 @@ public class Simulate : MonoBehaviour
         }
 
 
-        drawer.DrawFrame();
+        drawer.DrawFrame(densityTex);
     }
 
     void UpdateWaveForce()
@@ -386,6 +386,7 @@ public class Simulate : MonoBehaviour
     {
         drawer.BindBuffers(shader.PositionBuffer, shader.Colours);
         drawer.UpdateSize(spawner.Size);
+        drawer.UpdateContainerSize(GetComponentInChildren<Container>().Boundary);
     }
 
     Vector3[] GenerateVelocityData()
