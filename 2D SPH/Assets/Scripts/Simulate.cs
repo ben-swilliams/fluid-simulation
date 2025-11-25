@@ -245,8 +245,6 @@ public class Simulate : MonoBehaviour
         {
             accumulator = 0f;
         }
-
-        BindExternalBuffers();
     }
 
     void RunPhysicsStep()

@@ -10348,14 +10348,14 @@ MonoBehaviour:
   dampingFactor: 0.95
   wavePeriod: 1
   waveStrength: 0
-  pressureSolver: 1
-  restDensity: 1
+  pressureSolver: 2
+  restDensity: 5
   nearPressureMultiplier: 0
   relaxationFactor: 0.5
   iisphSolverIterations: 4
   densityError: 0.1
   stiffness: 7
-  deltaScale: 0.01
+  deltaScale: 1
   pcisphSolverIterations: 3
   viscosityMultiplier: 0
   surfaceTensionMultiplier: 0

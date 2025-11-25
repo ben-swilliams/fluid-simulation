@@ -10342,6 +10342,7 @@ MonoBehaviour:
   velocitySmoothing: 0.01
   stepSize: 10
   maxVelocity: 5
+  densityTextureRes: 100
   initSpeed: 0
   gravity: -9.8
   dampingFactor: 0.95
@@ -10405,6 +10406,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Draw
   shader: {fileID: 4800000, guid: 86f6b5b4233e64ce79e43b45f3e9e726, type: 3}
+  cubesShader: {fileID: 4800000, guid: be28bf623796248b5a5887ad5c4ecf54, type: 3}
   sphereResolution: 0
   fastColour: {r: 1, g: 0.14044955, b: 0, a: 1}
   slowColour: {r: 0, g: 0.69803923, b: 1, a: 1}
@@ -10413,6 +10415,7 @@ MonoBehaviour:
   maxPressure: 300
   colourProperty: 0
   billboard: 0
+  useMarchingCubes: 0
 --- !u!114 &1274155415
 MonoBehaviour:
   m_ObjectHideFlags: 0
