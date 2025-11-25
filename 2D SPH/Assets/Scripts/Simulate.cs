@@ -65,12 +65,16 @@ public class Simulate : MonoBehaviour
 
     float simulationTime = 0;
 
+    RenderTexture densityTex;
+
     /*
     Public getters
     */
     public bool Started => started;
     public float SmoothingRadius => smoothingRadius;
     public ShaderHelper Shader => shader;
+
+    public RenderTexture DensityTex => densityTex;
 
     public float SimulationSpeed
     {
@@ -207,6 +211,8 @@ public class Simulate : MonoBehaviour
         {
             AdvanceFrame();
         }
+
+        UpdateDensityTexture();
 
         drawer.DrawFrame();
     }
@@ -582,6 +588,26 @@ public class Simulate : MonoBehaviour
             UpdateVariables();
         }
     }
+
+    void UpdateDensityTexture()
+    {
+        densityTex = CreateDensityTexture();
+    }
+
+	public static RenderTexture CreateDensityTexture(int width, int height, FilterMode filterMode, GraphicsFormat format, string name = "Unnamed", DepthMode depthMode = DepthMode.None, bool useMipMaps = false)
+		{
+			RenderTexture texture = new RenderTexture(width, height, (int)depthMode);
+			texture.graphicsFormat = format;
+			texture.enableRandomWrite = true;
+			texture.autoGenerateMips = false;
+			texture.useMipMap = useMipMaps;
+			texture.Create();
+
+			texture.name = name;
+			texture.wrapMode = TextureWrapMode.Clamp;
+			texture.filterMode = filterMode;
+			return texture;
+		}
 
     public void UpdateMouseForce(Vector3 origin, float radius, float power)
     {
