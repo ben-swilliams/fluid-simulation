@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.SceneManagement;
 
 public class Simulate : MonoBehaviour
@@ -17,6 +18,7 @@ public class Simulate : MonoBehaviour
     [SerializeField] float velocitySmoothing = 0f;
     [SerializeField] int stepSize = 10;
     [SerializeField] float maxVelocity = 100f;
+    [SerializeField] int densityTextureRes = 100;
 
     [Header("External forces")]
     [SerializeField] float initSpeed = 5f;
@@ -591,22 +593,35 @@ public class Simulate : MonoBehaviour
 
     void UpdateDensityTexture()
     {
-        densityTex = CreateDensityTexture();
+        Vector3 bounds = GetComponentInChildren<Container>().Boundary;
+        float maxAxis = Mathf.Max(bounds.x, bounds.y, bounds.z);
+        int width = Mathf.RoundToInt(bounds.x / maxAxis * densityTextureRes);
+        int height = Mathf.RoundToInt(bounds.y / maxAxis * densityTextureRes);
+        int depth = Mathf.RoundToInt(bounds.z / maxAxis * densityTextureRes);
+
+        if (densityTex != null && densityTex.width == width && densityTex.height == height && densityTex.depth == depth) return;
+
+        if (densityTex != null) densityTex.Release();
+
+        densityTex = CreateDensityTexture(width, height, depth);
     }
 
-	public static RenderTexture CreateDensityTexture(int width, int height, FilterMode filterMode, GraphicsFormat format, string name = "Unnamed", DepthMode depthMode = DepthMode.None, bool useMipMaps = false)
+	public static RenderTexture CreateDensityTexture(int width, int height, int depth)
 		{
-			RenderTexture texture = new RenderTexture(width, height, (int)depthMode);
-			texture.graphicsFormat = format;
-			texture.enableRandomWrite = true;
-			texture.autoGenerateMips = false;
-			texture.useMipMap = useMipMaps;
-			texture.Create();
+            RenderTexture texture = new RenderTexture(width, height, 0);
+            texture.graphicsFormat = GraphicsFormat.R16_SFloat;
+            texture.volumeDepth = depth;
+            texture.enableRandomWrite = true;
+            texture.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
+            texture.useMipMap = false;
+            texture.autoGenerateMips = false;
+            texture.Create();
 
-			texture.name = name;
 			texture.wrapMode = TextureWrapMode.Clamp;
-			texture.filterMode = filterMode;
-			return texture;
+			texture.filterMode = FilterMode.Bilinear;
+			texture.name = "DensityMap";
+
+            return texture;
 		}
 
     public void UpdateMouseForce(Vector3 origin, float radius, float power)
