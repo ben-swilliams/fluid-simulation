@@ -2,7 +2,7 @@ float B;
 float stiffness;
 
 float CalculateTaitPressure(uint i) {
-    return max(0, B * (pow(Densities[i] / restDensity, stiffness) - 1));
+    return max(0, B * (pow(Densities[3 * i] / restDensity, stiffness) - 1));
 }
 
 void CalculateWCSPHComponents(uint i, out float3 viscosity, out float3 surfaceTension, out float3 pressure, out float3 xsph) {
@@ -44,7 +44,7 @@ void CalculateWCSPHComponents(uint i, out float3 viscosity, out float3 surfaceTe
             surfaceTension += -surfaceTensionMultiplier * kernel * (posOffset / r);
             pressure += CalculatePressureContribution(posOffset, grad, i, j);
 
-            float massOverDensity = particleMass / Densities[j];
+            float massOverDensity = particleMass / Densities[3 * j];
             xsph += velocitySmoothing * massOverDensity * kernel * -velOffset;
         }
     }
