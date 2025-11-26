@@ -52,6 +52,7 @@ public class Draw : MonoBehaviour
     Public getters
     */
     public Property ColourProperty => colourProperty;
+    public bool UseMarchingCubes => useMarchingCubes;
 
     public float MaxSpeed
     {
@@ -147,6 +148,8 @@ public class Draw : MonoBehaviour
     {
         if (particleArgsBuffer != null)
             particleArgsBuffer.Release();
+        if (cubesArgsBuffer != null)
+            cubesArgsBuffer.Release();
         if (initialColourBuffer != null)
             initialColourBuffer.Release();
 
@@ -213,11 +216,11 @@ public class Draw : MonoBehaviour
         simShader = shader;
     }
 
-    public void DrawFrame(RenderTexture densityTex)
+    public void DrawFrame(RenderTexture densityTex, bool started)
     {
         if (particleArgsBuffer == null) return;
 
-        if (useMarchingCubes)
+        if (useMarchingCubes && started)
         {
             ComputeBuffer triangles = marchingCubes.Run(densityTex, isoLevel);
             DrawMesh(triangles);

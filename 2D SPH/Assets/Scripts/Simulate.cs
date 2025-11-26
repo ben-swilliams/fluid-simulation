@@ -21,7 +21,6 @@ public class Simulate : MonoBehaviour
     
     [Header("Marching cubes")]
     [SerializeField] int densityTextureRes = 100;
-    [SerializeField] bool writeToTexture = false;
 
     [Header("External forces")]
     [SerializeField] float initSpeed = 5f;
@@ -215,10 +214,10 @@ public class Simulate : MonoBehaviour
         if (started)
         {
             AdvanceFrame();
-            if (writeToTexture) DispatchTextureWrite();
+            if (drawer.UseMarchingCubes) DispatchTextureWrite();
         }
 
-        drawer.DrawFrame(densityTex);
+        drawer.DrawFrame(densityTex, started);
     }
 
     void UpdateWaveForce()
