@@ -1,5 +1,4 @@
 using System;
-using Unity.Mathematics;
 using UnityEngine;
 
 public class Draw : MonoBehaviour
@@ -10,6 +9,7 @@ public class Draw : MonoBehaviour
     Inspector properties
     */
     [Header("Shaders")]
+    [SerializeField] ComputeShader cubesShader;
     [SerializeField] Shader shader;
 
     [Header("Appearance Settings")]
@@ -21,6 +21,9 @@ public class Draw : MonoBehaviour
     [SerializeField] float maxPressure = 5000f;
     [SerializeField] Property colourProperty;
     [SerializeField, InspectorName("Billboard?")] bool billboard = false;
+    
+    [Header("Marching cubes")]
+    [SerializeField] float isoLevel = 5;
     [SerializeField] bool useMarchingCubes = false;
 
     /*
@@ -34,10 +37,11 @@ public class Draw : MonoBehaviour
     ComputeBuffer argsBuffer;
     ComputeBuffer initialColourBuffer;
 
-    ShaderHelper computeShader;
-
     float lowHue;
     float highHue;
+    ShaderHelper simShader;
+
+    MarchingCubes marchingCubes;
 
     /*
     Public getters
@@ -93,6 +97,8 @@ public class Draw : MonoBehaviour
 
         Color.RGBToHSV(slowColour, out lowHue, out _, out _);
         Color.RGBToHSV(fastColour, out highHue, out _, out _);
+
+        marchingCubes = new MarchingCubes(cubesShader);
     }
 
     void OnValidate()
@@ -138,6 +144,8 @@ public class Draw : MonoBehaviour
             argsBuffer.Release();
         if (initialColourBuffer != null)
             initialColourBuffer.Release();
+
+        marchingCubes.CleanupBuffers();
     }
 
     void InitialiseColoursBuffer()
@@ -164,7 +172,7 @@ public class Draw : MonoBehaviour
 
     void SetColourValues()
     {
-        computeShader.SetValues(new object[]
+        simShader.SetValues(new object[]
         {
             "lowHue", lowHue,
             "highHue", highHue,
@@ -176,22 +184,26 @@ public class Draw : MonoBehaviour
 
     public void SetComputeShader(ShaderHelper shader)
     {
-        computeShader = shader;
+        simShader = shader;
     }
-
 
     public void DrawFrame(RenderTexture densityTex)
     {
-
         if (argsBuffer == null) return;
 
-        Graphics.DrawMeshInstancedIndirect(
-            mesh,
-            0,
-            instanceMaterial,
-            bounds,
-            argsBuffer
-        );
+        if (useMarchingCubes)
+        {
+            ComputeBuffer triangles = marchingCubes.Run(densityTex, isoLevel);
+        }
+        else {
+                Graphics.DrawMeshInstancedIndirect(
+                mesh,
+                0,
+                instanceMaterial,
+                bounds,
+                argsBuffer
+            );
+        }
     }
 
     public void UpdateSize(float size)
