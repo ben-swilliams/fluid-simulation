@@ -10343,7 +10343,6 @@ MonoBehaviour:
   stepSize: 10
   maxVelocity: 5
   densityTextureRes: 100
-  writeToTexture: 1
   initSpeed: 0
   gravity: -9.8
   dampingFactor: 0.95
@@ -10413,7 +10412,7 @@ MonoBehaviour:
   sphereResolution: 0
   fastColour: {r: 1, g: 0.14044955, b: 0, a: 1}
   slowColour: {r: 0, g: 0.69803923, b: 1, a: 1}
-  fluidColour: {r: 0, g: 0.21010661, b: 1, a: 0}
+  fluidColour: {r: 0, g: 0.21010661, b: 1, a: 1}
   maxSpeed: 5
   maxDensityFluctuation: 0.1
   maxPressure: 300
