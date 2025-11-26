@@ -11,8 +11,6 @@ public class Draw : MonoBehaviour
     */
     [Header("Shaders")]
     [SerializeField] Shader shader;
-    [SerializeField] Shader cubesShader;
-    [SerializeField] ComputeShader cubesComputeShader;
 
     [Header("Appearance Settings")]
     [SerializeField, Range(0, 4)] int sphereResolution = 2;
@@ -37,8 +35,6 @@ public class Draw : MonoBehaviour
     ComputeBuffer initialColourBuffer;
 
     ShaderHelper computeShader;
-
-    MarchingCubes mCubes;
 
     float lowHue;
     float highHue;
@@ -95,8 +91,6 @@ public class Draw : MonoBehaviour
         if (!billboard) mesh = MeshGenerator.GenerateSphere(sphereResolution);
         else mesh = MeshGenerator.GenerateQuad();
 
-        mCubes = new MarchingCubes(cubesComputeShader, bounds, mesh);
-
         Color.RGBToHSV(slowColour, out lowHue, out _, out _);
         Color.RGBToHSV(fastColour, out highHue, out _, out _);
     }
@@ -144,8 +138,6 @@ public class Draw : MonoBehaviour
             argsBuffer.Release();
         if (initialColourBuffer != null)
             initialColourBuffer.Release();
-
-        mCubes.CleanupBuffers();
     }
 
     void InitialiseColoursBuffer()

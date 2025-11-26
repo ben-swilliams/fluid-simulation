@@ -1,8 +1,9 @@
+using System.Linq;
 using UnityEngine;
 
 class MarchingCubes
 {
-    ShaderHelper shader;
+    ComputeShader shader;
 
     ComputeBuffer argsBuffer;
 
@@ -10,16 +11,27 @@ class MarchingCubes
 
     int kernel;
 
-    public MarchingCubes(ComputeShader shader, Bounds bounds, Mesh mesh)
+    public MarchingCubes(ComputeShader shader)
     {
-        this.shader = new ShaderHelper(shader);
+        this.shader = shader;
 
         FindKernels(shader);
+        SetupBuffers();
     }
 
     void FindKernels(ComputeShader shader)
     {
         shader.FindKernel("ProcessVoxel");
+    }
+
+    void SetupBuffers()
+    {
+        string lutString = Resources.Load<TextAsset>("MarchingCubesLUT").text;
+        int[] lutVals = lutString.Trim().Split(',').Select(x => int.Parse(x)).ToArray();
+
+        ComputeBuffer lutBuffer = new ComputeBuffer(lutVals.Length, sizeof(int));
+
+        shader.SetBuffer(kernel, "LUT", lutBuffer);
     }
 
     void CreateTriangleBuffer(int maxTriangles)
