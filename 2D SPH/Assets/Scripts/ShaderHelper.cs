@@ -187,6 +187,12 @@ public class ShaderHelper
     {
         Dispatch(count, kernels);
     }
+
+    public void Dispatch(int kernel, int countX, int countY, int countZ)
+    {
+        computeShader.Dispatch(kernel, countX, countY, countZ);
+    }
+
     void Dispatch(int count, params int[] kernels)
     {
         foreach (int kernel in kernels)

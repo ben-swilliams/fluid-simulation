@@ -215,7 +215,6 @@ public class Simulate : MonoBehaviour
             UpdateDensityTexture();
         }
 
-
         drawer.DrawFrame(densityTex);
     }
 
@@ -609,9 +608,11 @@ public class Simulate : MonoBehaviour
             shader.SetInts("densityTexDims", width, height, depth);
         }
 
-        int dispatchCount = Mathf.CeilToInt(Mathf.Max(width, height, depth) / 8f);
+        int dispatchX = Mathf.CeilToInt(width / 8f);
+        int dispatchY = Mathf.CeilToInt(height / 8f);
+        int dispatchZ = Mathf.CeilToInt(depth / 8f);
 
-        shader.Dispatch(true, dispatchCount, kernels.WriteDensities);
+        shader.Dispatch(kernels.WriteDensities, dispatchX, dispatchY, dispatchZ);
     }
 
 	public static RenderTexture CreateDensityTexture(int width, int height, int depth)

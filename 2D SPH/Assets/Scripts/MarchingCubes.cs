@@ -17,6 +17,7 @@ class MarchingCubes
         this.bounds = bounds;
         this.mesh = mesh;
         mat = new Material(cubesShader);
+        mat.enableInstancing = true;
     }
 
     void InitialiseArgsBuffer(int instanceCount)
@@ -43,8 +44,15 @@ class MarchingCubes
         mat.SetVector("containerSize", containerSize);
     }
 
+    public void UpdateSize(float size)
+    {
+        mat.SetFloat("size", size);
+    }
+
     public void DrawFrame(RenderTexture densityTex)
     {
+        if (argsBuffer == null) return;
+
         mat.SetTexture("DensityTex", densityTex);
 
         Graphics.DrawMeshInstancedIndirect(

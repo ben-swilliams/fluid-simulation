@@ -1,4 +1,5 @@
 using System;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class Draw : MonoBehaviour
@@ -208,6 +209,7 @@ public class Draw : MonoBehaviour
     public void UpdateSize(float size)
     {
         instanceMaterial.SetFloat("size", size);
+        mCubes.UpdateSize(size);
     }
 
     public void UpdateContainerSize(Vector3 containerSize)
