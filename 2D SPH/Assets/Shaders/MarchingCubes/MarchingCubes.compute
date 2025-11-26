@@ -47,7 +47,7 @@ float SampleDensityTexture(uint3 voxelCoord)
 	if (isEdge) return isoLevel;
 
 	float3 uvw = voxelCoord / (float3) (densityTexDims - 1);
-	return -DensityTex.SampleLevel(linearClampSampler, uvw, 0);
+	return DensityTex.SampleLevel(linearClampSampler, uvw, 0);
 }
 
 float3 CalculateNormal(int3 corner) {
@@ -59,7 +59,7 @@ float3 CalculateNormal(int3 corner) {
     float dy = SampleDensityTexture(corner + offsetY) - SampleDensityTexture(corner - offsetY);
     float dz = SampleDensityTexture(corner + offsetZ) - SampleDensityTexture(corner - offsetZ);
 
-    return normalize(float3(dx, dy, dz));
+    return -normalize(float3(dx, dy, dz));
 }
 
 Vertex CreateVertex(int3 cornerA, int3 cornerB) {
@@ -108,7 +108,7 @@ void ProcessCube(uint3 id : SV_DispatchThreadID) {
     // Credit to SL for his lookup table/indexing method
     int cubeConfig = 0;
     for (uint i = 0; i < 8; i++) {
-        if (SampleDensityTexture(cornerIndices[i]) < isoLevel) {
+        if (SampleDensityTexture(cornerIndices[i]) > isoLevel) {
             cubeConfig |= (1 << i);
         }
     }

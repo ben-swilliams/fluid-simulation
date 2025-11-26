@@ -674,5 +674,7 @@ public class Simulate : MonoBehaviour
             "maxCornerY", maxY,
             "maxCornerZ", maxZ
         });
+
+        drawer.UpdateContainerSize(container.Boundary);
     }
 }

@@ -238,6 +238,11 @@ public class Draw : MonoBehaviour
         particleMaterial.SetFloat("size", size);
     }
 
+    public void UpdateContainerSize(Vector3 containerSize)
+    {
+        marchingCubes.UpdateContainerSize(containerSize);
+    }
+
     public void BindPositions(ComputeBuffer positionBuffer)
     {
         InitialiseArgsBuffer(positionBuffer.count);
