@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.SceneManagement;
 
 public class Simulate : MonoBehaviour
@@ -17,6 +18,7 @@ public class Simulate : MonoBehaviour
     [SerializeField] float velocitySmoothing = 0f;
     [SerializeField] int stepSize = 10;
     [SerializeField] float maxVelocity = 100f;
+    [SerializeField] int densityTextureRes = 100;
 
     [Header("External forces")]
     [SerializeField] float initSpeed = 5f;
@@ -65,12 +67,16 @@ public class Simulate : MonoBehaviour
 
     float simulationTime = 0;
 
+    RenderTexture densityTex;
+
     /*
     Public getters
     */
     public bool Started => started;
     public float SmoothingRadius => smoothingRadius;
     public ShaderHelper Shader => shader;
+
+    public RenderTexture DensityTex => densityTex;
 
     public float SimulationSpeed
     {
@@ -206,9 +212,10 @@ public class Simulate : MonoBehaviour
         if (started)
         {
             AdvanceFrame();
+            UpdateDensityTexture();
         }
 
-        drawer.DrawFrame();
+        drawer.DrawFrame(densityTex);
     }
 
     void UpdateWaveForce()
@@ -237,8 +244,6 @@ public class Simulate : MonoBehaviour
         {
             accumulator = 0f;
         }
-
-        BindExternalBuffers();
     }
 
     void RunPhysicsStep()
@@ -378,6 +383,7 @@ public class Simulate : MonoBehaviour
     {
         drawer.BindBuffers(shader.PositionBuffer, shader.Colours);
         drawer.UpdateSize(spawner.Size);
+        drawer.UpdateContainerSize(GetComponentInChildren<Container>().Boundary);
     }
 
     Vector3[] GenerateVelocityData()
@@ -582,6 +588,50 @@ public class Simulate : MonoBehaviour
             UpdateVariables();
         }
     }
+
+    void UpdateDensityTexture()
+    {
+        if (shader == null) return;
+
+        Vector3 bounds = GetComponentInChildren<Container>().Boundary;
+        float maxAxis = Mathf.Max(bounds.x, bounds.y, bounds.z);
+        int width = Mathf.RoundToInt(bounds.x / maxAxis * densityTextureRes);
+        int height = Mathf.RoundToInt(bounds.y / maxAxis * densityTextureRes);
+        int depth = Mathf.RoundToInt(bounds.z / maxAxis * densityTextureRes);
+
+        if (densityTex == null || densityTex.width != width || densityTex.height != height || densityTex.depth != depth)
+        {
+            if (densityTex != null) densityTex.Release();
+
+            densityTex = CreateDensityTexture(width, height, depth);
+            shader.SetTexture(kernels.WriteDensities, "DensityTex", densityTex);
+            shader.SetInts("densityTexDims", width, height, depth);
+        }
+
+        int dispatchX = Mathf.CeilToInt(width / 8f);
+        int dispatchY = Mathf.CeilToInt(height / 8f);
+        int dispatchZ = Mathf.CeilToInt(depth / 8f);
+
+        shader.Dispatch(kernels.WriteDensities, dispatchX, dispatchY, dispatchZ);
+    }
+
+	public static RenderTexture CreateDensityTexture(int width, int height, int depth)
+		{
+            RenderTexture texture = new RenderTexture(width, height, 0);
+            texture.graphicsFormat = GraphicsFormat.R16_SFloat;
+            texture.volumeDepth = depth;
+            texture.enableRandomWrite = true;
+            texture.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
+            texture.useMipMap = false;
+            texture.autoGenerateMips = false;
+            texture.Create();
+
+			texture.wrapMode = TextureWrapMode.Clamp;
+			texture.filterMode = FilterMode.Bilinear;
+			texture.name = "DensityMap";
+
+            return texture;
+		}
 
     public void UpdateMouseForce(Vector3 origin, float radius, float power)
     {

@@ -1,4 +1,5 @@
-using TMPro;
+using System;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class Draw : MonoBehaviour
@@ -10,6 +11,7 @@ public class Draw : MonoBehaviour
     */
     [Header("Shaders")]
     [SerializeField] Shader shader;
+    [SerializeField] Shader cubesShader;
 
     [Header("Appearance Settings")]
     [SerializeField, Range(0, 4)] int sphereResolution = 2;
@@ -20,6 +22,7 @@ public class Draw : MonoBehaviour
     [SerializeField] float maxPressure = 5000f;
     [SerializeField] Property colourProperty;
     [SerializeField, InspectorName("Billboard?")] bool billboard = false;
+    [SerializeField] bool useMarchingCubes = false;
 
     /*
     Private properties
@@ -33,6 +36,8 @@ public class Draw : MonoBehaviour
     ComputeBuffer initialColourBuffer;
 
     ShaderHelper computeShader;
+
+    MarchingCubes mCubes;
 
     float lowHue;
     float highHue;
@@ -89,6 +94,8 @@ public class Draw : MonoBehaviour
         if (!billboard) mesh = MeshGenerator.GenerateSphere(sphereResolution);
         else mesh = MeshGenerator.GenerateQuad();
 
+        mCubes = new MarchingCubes(cubesShader, bounds, mesh);
+
         Color.RGBToHSV(slowColour, out lowHue, out _, out _);
         Color.RGBToHSV(fastColour, out highHue, out _, out _);
     }
@@ -136,6 +143,8 @@ public class Draw : MonoBehaviour
             argsBuffer.Release();
         if (initialColourBuffer != null)
             initialColourBuffer.Release();
+
+        mCubes.CleanupBuffers();
     }
 
     void InitialiseColoursBuffer()
@@ -178,30 +187,43 @@ public class Draw : MonoBehaviour
     }
 
 
-    public void DrawFrame()
+    public void DrawFrame(RenderTexture densityTex)
     {
-        if (argsBuffer == null) return;
 
-        Graphics.DrawMeshInstancedIndirect(
-            mesh,
-            0,
-            instanceMaterial,
-            bounds,
-            argsBuffer
-        );
+        if (useMarchingCubes)
+        {
+            mCubes.DrawFrame(densityTex); 
+        } else
+        {
+            if (argsBuffer == null) return;
+            Graphics.DrawMeshInstancedIndirect(
+                mesh,
+                0,
+                instanceMaterial,
+                bounds,
+                argsBuffer
+            );
+        }
     }
 
     public void UpdateSize(float size)
     {
         instanceMaterial.SetFloat("size", size);
+        mCubes.UpdateSize(size);
+    }
+
+    public void UpdateContainerSize(Vector3 containerSize)
+    {
+        mCubes.UpdateContainerSize(containerSize);
     }
 
     public void BindPositions(ComputeBuffer positionBuffer)
     {
-
         InitialiseArgsBuffer(positionBuffer.count);
         InitialiseColoursBuffer();
         instanceMaterial.SetBuffer("positions", positionBuffer);
+
+        mCubes.BindPositions(positionBuffer);
     }
 
     public void BindBuffers(ComputeBuffer positionBuffer, ComputeBuffer colourBuffer)

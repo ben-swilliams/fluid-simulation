@@ -24,6 +24,8 @@
 #pragma kernel UpdatePCISPHVelocities
 #pragma kernel UpdatePositions
 
+#pragma kernel WriteDensities
+
 #pragma kernel CalculateVelocityColour
 #pragma kernel CalculateDensityColour
 #pragma kernel CalculatePressureColour
@@ -97,6 +99,8 @@ RWStructuredBuffer<float3> DPSum;
 
 RWStructuredBuffer<float3> Colours;
 
+RWTexture3D<float> DensityTex;
+int3 densityTexDims;
 
 // Integers
 uint instanceCount;
@@ -345,6 +349,16 @@ void UpdatePositions(uint3 id : SV_DispatchThreadID) {
     Positions[id.x] += Velocities[id.x] * deltaTime;
 
     Collisions(id.x);
+}
+
+[numthreads(8, 8, 8)]
+void WriteDensities(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= densityTexDims.x || id.y >= densityTexDims.y || id.z >= densityTexDims.z) return;
+
+    float3 texPos = id / (densityTexDims - 1.0);
+    float3 pos = (texPos - 0.5) * containerSize;
+
+    DensityTex[id] = CalculateDensityAtWorld(pos);
 }
 
 // TODO: Extract these into their own .compute file
