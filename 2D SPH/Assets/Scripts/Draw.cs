@@ -1,5 +1,4 @@
 using System;
-using Unity.Mathematics;
 using UnityEngine;
 
 public class Draw : MonoBehaviour
@@ -10,42 +9,50 @@ public class Draw : MonoBehaviour
     Inspector properties
     */
     [Header("Shaders")]
-    [SerializeField] Shader shader;
+    [SerializeField] ComputeShader cubesCompute;
+    [SerializeField] ComputeShader renderArgsCompute;
+    [SerializeField] Shader particleShader;
     [SerializeField] Shader cubesShader;
 
     [Header("Appearance Settings")]
     [SerializeField, Range(0, 4)] int sphereResolution = 2;
     [SerializeField] Color fastColour;
     [SerializeField] Color slowColour;
+    [SerializeField] Color fluidColour;
     [SerializeField] float maxSpeed = 10f;
     [SerializeField] float maxDensityFluctuation = 0.1f;
     [SerializeField] float maxPressure = 5000f;
     [SerializeField] Property colourProperty;
     [SerializeField, InspectorName("Billboard?")] bool billboard = false;
+    
+    [Header("Marching cubes")]
+    [SerializeField] float isoLevel = 5;
     [SerializeField] bool useMarchingCubes = false;
 
     /*
     Private properties
     */
-    Material instanceMaterial;
+    Material particleMaterial;
+    Material cubesMaterial;
     Bounds bounds;
     Mesh mesh;
 
     uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
-    ComputeBuffer argsBuffer;
+    ComputeBuffer particleArgsBuffer;
+    ComputeBuffer cubesArgsBuffer;
     ComputeBuffer initialColourBuffer;
-
-    ShaderHelper computeShader;
-
-    MarchingCubes mCubes;
 
     float lowHue;
     float highHue;
+    ShaderHelper simShader;
+
+    MarchingCubes marchingCubes;
 
     /*
     Public getters
     */
     public Property ColourProperty => colourProperty;
+    public bool UseMarchingCubes => useMarchingCubes;
 
     public float MaxSpeed
     {
@@ -85,19 +92,19 @@ public class Draw : MonoBehaviour
 
     void Start()
     {
-        instanceMaterial = new Material(shader);
-        instanceMaterial.enableInstancing = true;
-        instanceMaterial.SetInt("billboard", billboard ? 1 : 0);
+        particleMaterial = new Material(particleShader);
+        particleMaterial.enableInstancing = true;
+        particleMaterial.SetInt("billboard", billboard ? 1 : 0);
 
         bounds = new Bounds(Vector3.zero, Vector3.one * 1000f);
 
         if (!billboard) mesh = MeshGenerator.GenerateSphere(sphereResolution);
         else mesh = MeshGenerator.GenerateQuad();
 
-        mCubes = new MarchingCubes(cubesShader, bounds, mesh);
-
         Color.RGBToHSV(slowColour, out lowHue, out _, out _);
         Color.RGBToHSV(fastColour, out highHue, out _, out _);
+
+        marchingCubes = new MarchingCubes(cubesCompute);
     }
 
     void OnValidate()
@@ -109,9 +116,9 @@ public class Draw : MonoBehaviour
         Color.RGBToHSV(slowColour, out lowHue, out _, out _);
         Color.RGBToHSV(fastColour, out highHue, out _, out _);
 
-        if (!Application.isPlaying || instanceMaterial == null) return;
+        if (!Application.isPlaying || particleMaterial == null) return;
 
-        instanceMaterial.SetInt("billboard", billboard ? 1 : 0);
+        particleMaterial.SetInt("billboard", billboard ? 1 : 0);
 
         SetColourValues();
 
@@ -126,25 +133,27 @@ public class Draw : MonoBehaviour
 
     void InitialiseArgsBuffer(int instanceCount)
     {
-        if (argsBuffer != null) argsBuffer.Release();
+        if (particleArgsBuffer != null) particleArgsBuffer.Release();
 
-        argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
+        particleArgsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
 
         args[0] = mesh.GetIndexCount(0);
         args[1] = (uint)instanceCount;
         args[2] = mesh.GetIndexStart(0);
         args[3] = mesh.GetBaseVertex(0);
-        argsBuffer.SetData(args);
+        particleArgsBuffer.SetData(args);
     }
 
     void CleanupBuffers()
     {
-        if (argsBuffer != null)
-            argsBuffer.Release();
+        if (particleArgsBuffer != null)
+            particleArgsBuffer.Release();
+        if (cubesArgsBuffer != null)
+            cubesArgsBuffer.Release();
         if (initialColourBuffer != null)
             initialColourBuffer.Release();
 
-        mCubes.CleanupBuffers();
+        marchingCubes.CleanupBuffers();
     }
 
     void InitialiseColoursBuffer()
@@ -166,12 +175,12 @@ public class Draw : MonoBehaviour
 
     void BindColours(ComputeBuffer colourBuffer)
     {
-        instanceMaterial.SetBuffer("colours", colourBuffer);
+        particleMaterial.SetBuffer("colours", colourBuffer);
     }
 
     void SetColourValues()
     {
-        computeShader.SetValues(new object[]
+        simShader.SetValues(new object[]
         {
             "lowHue", lowHue,
             "highHue", highHue,
@@ -181,49 +190,67 @@ public class Draw : MonoBehaviour
         });
     }
 
-    public void SetComputeShader(ShaderHelper shader)
+    void DrawMesh(ComputeBuffer triangles)
     {
-        computeShader = shader;
+        // We need to dispatch a compute to set render args as it changes on each draw
+        // and we don't wanna force a read-back to the CPU
+        if (!cubesMaterial) cubesMaterial = new Material(cubesShader);
+
+        cubesMaterial.SetBuffer("VertexBuffer", triangles);
+        cubesMaterial.SetColor("col", fluidColour);
+        
+        if (cubesArgsBuffer == null)
+        {
+            cubesArgsBuffer = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
+            renderArgsCompute.SetBuffer(0, "RenderArgs", cubesArgsBuffer);
+        }
+
+        ComputeBuffer.CopyCount(triangles, cubesArgsBuffer, 0);
+        renderArgsCompute.Dispatch(0, 1, 1, 1);
+        
+        Graphics.DrawProceduralIndirect(cubesMaterial, bounds, MeshTopology.Triangles, cubesArgsBuffer);
     }
 
-
-    public void DrawFrame(RenderTexture densityTex)
+    public void SetComputeShader(ShaderHelper shader)
     {
+        simShader = shader;
+    }
 
-        if (useMarchingCubes)
+    public void DrawFrame(RenderTexture densityTex, bool started)
+    {
+        if (particleArgsBuffer == null) return;
+
+        if (useMarchingCubes && started)
         {
-            mCubes.DrawFrame(densityTex); 
-        } else
-        {
-            if (argsBuffer == null) return;
-            Graphics.DrawMeshInstancedIndirect(
+            ComputeBuffer triangles = marchingCubes.Run(densityTex, isoLevel);
+            DrawMesh(triangles);
+        }
+        else {
+                Graphics.DrawMeshInstancedIndirect(
                 mesh,
                 0,
-                instanceMaterial,
+                particleMaterial,
                 bounds,
-                argsBuffer
+                particleArgsBuffer
             );
         }
     }
 
     public void UpdateSize(float size)
     {
-        instanceMaterial.SetFloat("size", size);
-        mCubes.UpdateSize(size);
+        particleMaterial.SetFloat("size", size);
     }
 
     public void UpdateContainerSize(Vector3 containerSize)
     {
-        mCubes.UpdateContainerSize(containerSize);
+        marchingCubes.UpdateContainerSize(containerSize);
     }
 
     public void BindPositions(ComputeBuffer positionBuffer)
     {
         InitialiseArgsBuffer(positionBuffer.count);
         InitialiseColoursBuffer();
-        instanceMaterial.SetBuffer("positions", positionBuffer);
-
-        mCubes.BindPositions(positionBuffer);
+        particleMaterial.SetBuffer("positions", positionBuffer);
     }
 
     public void BindBuffers(ComputeBuffer positionBuffer, ComputeBuffer colourBuffer)

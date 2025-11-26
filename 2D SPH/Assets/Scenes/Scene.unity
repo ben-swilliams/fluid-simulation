@@ -10347,7 +10347,7 @@ MonoBehaviour:
   gravity: -9.8
   dampingFactor: 0.95
   wavePeriod: 1
-  waveStrength: 0
+  waveStrength: 3
   pressureSolver: 2
   restDensity: 5
   nearPressureMultiplier: 0
@@ -10405,16 +10405,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22d3b29815ac44b1ea1b236981483eee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Draw
-  shader: {fileID: 4800000, guid: 86f6b5b4233e64ce79e43b45f3e9e726, type: 3}
+  cubesCompute: {fileID: 7200000, guid: 1d31a9d15b3f74e14898637718254f0a, type: 3}
+  renderArgsCompute: {fileID: 7200000, guid: 0e305fad541c7403cbf0289fe8f0120a, type: 3}
+  particleShader: {fileID: 4800000, guid: 86f6b5b4233e64ce79e43b45f3e9e726, type: 3}
   cubesShader: {fileID: 4800000, guid: be28bf623796248b5a5887ad5c4ecf54, type: 3}
   sphereResolution: 0
   fastColour: {r: 1, g: 0.14044955, b: 0, a: 1}
   slowColour: {r: 0, g: 0.69803923, b: 1, a: 1}
+  fluidColour: {r: 0, g: 0.21010661, b: 1, a: 1}
   maxSpeed: 5
   maxDensityFluctuation: 0.1
   maxPressure: 300
   colourProperty: 0
   billboard: 0
+  isoLevel: 5
   useMarchingCubes: 0
 --- !u!114 &1274155415
 MonoBehaviour:

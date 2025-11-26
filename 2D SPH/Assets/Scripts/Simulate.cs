@@ -215,10 +215,10 @@ public class Simulate : MonoBehaviour
         if (started)
         {
             AdvanceFrame();
-            if (writeToTexture) DispatchTextureWrite();
+            if (drawer.UseMarchingCubes) DispatchTextureWrite();
         }
 
-        drawer.DrawFrame(densityTex);
+        drawer.DrawFrame(densityTex, started);
     }
 
     void UpdateWaveForce()
@@ -297,6 +297,8 @@ public class Simulate : MonoBehaviour
 
     void UpdateColours()
     {
+        if (drawer.UseMarchingCubes) return; 
+
         Draw.Property propChoice = drawer.ColourProperty;
 
         if (propChoice == Draw.Property.Velocity) shader.Dispatch(kernels.CalculateVelocityColour);
@@ -386,7 +388,6 @@ public class Simulate : MonoBehaviour
     {
         drawer.BindBuffers(shader.PositionBuffer, shader.Colours);
         drawer.UpdateSize(spawner.Size);
-        drawer.UpdateContainerSize(GetComponentInChildren<Container>().Boundary);
     }
 
     Vector3[] GenerateVelocityData()
@@ -675,5 +676,7 @@ public class Simulate : MonoBehaviour
             "maxCornerY", maxY,
             "maxCornerZ", maxZ
         });
+
+        drawer.UpdateContainerSize(container.Boundary);
     }
 }
