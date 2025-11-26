@@ -1,7 +1,20 @@
-#pragma ProcessVoxel
+#pragma kernel ProcessVoxel
+
+struct Vertex {
+	float3 position;
+	float3 normal;
+};
+
+struct Triangle {
+	Vertex vertexC;
+	Vertex vertexB;
+	Vertex vertexA;
+};
 
 RWTexture3D<float> DensityTex;
 int3 densityTexDims;
+
+AppendStructuredBuffer<Triangle> Triangles;
 
 [numthreads(8, 8, 8)]
 void ProcessVoxel(uint3 id : SV_DispatchThreadID) {
