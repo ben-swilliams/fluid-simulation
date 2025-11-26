@@ -61,7 +61,7 @@
                     float shading = saturate(dot(_WorldSpaceLightPos0.xyz, i.normal));
 					shading = shading * 0.7 + 0.3;
 
-					return float4(float3(1,1,1) * shading, 1);
+                    return col * shading;
               }
               ENDCG
           }
