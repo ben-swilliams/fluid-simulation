@@ -95,7 +95,7 @@ public class Draw : MonoBehaviour
         if (!billboard) mesh = MeshGenerator.GenerateSphere(sphereResolution);
         else mesh = MeshGenerator.GenerateQuad();
 
-        mCubes = new MarchingCubes(cubesShader, cubesComputeShader, bounds, mesh);
+        mCubes = new MarchingCubes(cubesComputeShader, bounds, mesh);
 
         Color.RGBToHSV(slowColour, out lowHue, out _, out _);
         Color.RGBToHSV(fastColour, out highHue, out _, out _);
@@ -191,31 +191,20 @@ public class Draw : MonoBehaviour
     public void DrawFrame(RenderTexture densityTex)
     {
 
-        if (useMarchingCubes)
-        {
-            mCubes.DrawFrame(densityTex); 
-        } else
-        {
-            if (argsBuffer == null) return;
-            Graphics.DrawMeshInstancedIndirect(
-                mesh,
-                0,
-                instanceMaterial,
-                bounds,
-                argsBuffer
-            );
-        }
+        if (argsBuffer == null) return;
+
+        Graphics.DrawMeshInstancedIndirect(
+            mesh,
+            0,
+            instanceMaterial,
+            bounds,
+            argsBuffer
+        );
     }
 
     public void UpdateSize(float size)
     {
         instanceMaterial.SetFloat("size", size);
-        mCubes.UpdateSize(size);
-    }
-
-    public void UpdateContainerSize(Vector3 containerSize)
-    {
-        mCubes.UpdateContainerSize(containerSize);
     }
 
     public void BindPositions(ComputeBuffer positionBuffer)
@@ -223,8 +212,6 @@ public class Draw : MonoBehaviour
         InitialiseArgsBuffer(positionBuffer.count);
         InitialiseColoursBuffer();
         instanceMaterial.SetBuffer("positions", positionBuffer);
-
-        mCubes.BindPositions(positionBuffer);
     }
 
     public void BindBuffers(ComputeBuffer positionBuffer, ComputeBuffer colourBuffer)

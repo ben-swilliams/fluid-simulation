@@ -1,44 +1,20 @@
-using UnityEditor;
 using UnityEngine;
 
 class MarchingCubes
 {
-    Shader vertexShader;
-    ShaderHelper computeShader;
+    ShaderHelper shader;
 
-    Bounds bounds;
-    Mesh mesh;
-    Material mat;
     ComputeBuffer argsBuffer;
 
     ComputeBuffer triangleBuffer;
-    uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
 
     int kernel;
 
-    public MarchingCubes(Shader vertexShader, ComputeShader computeShader, Bounds bounds, Mesh mesh)
+    public MarchingCubes(ComputeShader shader, Bounds bounds, Mesh mesh)
     {
-        this.vertexShader = vertexShader;
-        this.computeShader = new ShaderHelper(computeShader);
-        this.bounds = bounds;
-        this.mesh = mesh;
-        mat = new Material(vertexShader);
-        mat.enableInstancing = true;
+        this.shader = new ShaderHelper(shader);
 
-        FindKernels(computeShader);
-    }
-
-    void InitialiseArgsBuffer(int instanceCount)
-    {
-        if (argsBuffer != null) argsBuffer.Release();
-
-        argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
-
-        args[0] = mesh.GetIndexCount(0);
-        args[1] = (uint)instanceCount;
-        args[2] = mesh.GetIndexStart(0);
-        args[3] = mesh.GetBaseVertex(0);
-        argsBuffer.SetData(args);
+        FindKernels(shader);
     }
 
     void FindKernels(ComputeShader shader)
@@ -78,38 +54,7 @@ class MarchingCubes
         int dispatchY = Mathf.CeilToInt(voxelsY / 8f);
         int dispatchZ = Mathf.CeilToInt(voxelsZ / 8f);
 
-        computeShader.Dispatch(kernel, dispatchX, dispatchY, dispatchZ);
-    }
-
-    public void BindPositions(ComputeBuffer positionBuffer)
-    {
-        mat.SetBuffer("positions", positionBuffer);
-        InitialiseArgsBuffer(positionBuffer.count);
-    }
-
-    public void UpdateContainerSize(Vector3 containerSize)
-    {
-        mat.SetVector("containerSize", containerSize);
-    }
-
-    public void UpdateSize(float size)
-    {
-        mat.SetFloat("size", size);
-    }
-
-    public void DrawFrame(RenderTexture densityTex)
-    {
-        if (argsBuffer == null) return;
-
-        mat.SetTexture("DensityTex", densityTex);
-
-        Graphics.DrawMeshInstancedIndirect(
-            mesh,
-            0,
-            mat,
-            bounds,
-            argsBuffer
-        );
+        shader.Dispatch(kernel, dispatchX, dispatchY, dispatchZ);
     }
 
     public void CleanupBuffers()

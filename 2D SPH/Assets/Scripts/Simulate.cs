@@ -386,7 +386,6 @@ public class Simulate : MonoBehaviour
     {
         drawer.BindBuffers(shader.PositionBuffer, shader.Colours);
         drawer.UpdateSize(spawner.Size);
-        drawer.UpdateContainerSize(GetComponentInChildren<Container>().Boundary);
     }
 
     Vector3[] GenerateVelocityData()
