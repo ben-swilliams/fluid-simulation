@@ -296,6 +296,8 @@ public class Simulate : MonoBehaviour
 
     void UpdateColours()
     {
+        if (drawer.UseMarchingCubes) return; 
+
         Draw.Property propChoice = drawer.ColourProperty;
 
         if (propChoice == Draw.Property.Velocity) shader.Dispatch(kernels.CalculateVelocityColour);

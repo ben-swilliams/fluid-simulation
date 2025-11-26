@@ -6,7 +6,10 @@
 
       SubShader
       {
-          Tags { "RenderType"="Opaque" }
+          Tags { "RenderType"="Transparent" "Queue"="Transparent" }
+
+          Blend SrcAlpha OneMinusSrcAlpha
+          ZWrite Off
 
           Pass
           {
@@ -51,7 +54,7 @@
                   else v = tri.c;
 
                   v2f o;
-                  o.pos = UnityObjectToClipPos(float4(v.position, 1));
+                  o.pos = UnityObjectToClipPos(float4(v.position, 1.0));
                   o.normal = UnityObjectToWorldNormal(v.normal);
                   return o;
               }
@@ -61,7 +64,7 @@
                     float shading = saturate(dot(_WorldSpaceLightPos0.xyz, i.normal));
 					shading = shading * 0.7 + 0.3;
 
-                    return col * shading;
+                    return float4(col.rgb * shading, col.a);
               }
               ENDCG
           }
