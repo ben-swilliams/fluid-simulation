@@ -1,0 +1,11 @@
+#pragma ProcessVoxel
+
+RWTexture3D<float> DensityTex;
+int3 densityTexDims;
+
+[numthreads(8, 8, 8)]
+void ProcessVoxel(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= densityTexDims.x || id.y >= densityTexDims.y || id.z >= densityTexDims.z) return;
+
+    // STUFF
+}
