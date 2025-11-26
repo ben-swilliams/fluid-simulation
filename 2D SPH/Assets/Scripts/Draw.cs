@@ -9,13 +9,16 @@ public class Draw : MonoBehaviour
     Inspector properties
     */
     [Header("Shaders")]
-    [SerializeField] ComputeShader cubesShader;
-    [SerializeField] Shader shader;
+    [SerializeField] ComputeShader cubesCompute;
+    [SerializeField] ComputeShader renderArgsCompute;
+    [SerializeField] Shader particleShader;
+    [SerializeField] Shader cubesShader;
 
     [Header("Appearance Settings")]
     [SerializeField, Range(0, 4)] int sphereResolution = 2;
     [SerializeField] Color fastColour;
     [SerializeField] Color slowColour;
+    [SerializeField] Color fluidColour;
     [SerializeField] float maxSpeed = 10f;
     [SerializeField] float maxDensityFluctuation = 0.1f;
     [SerializeField] float maxPressure = 5000f;
@@ -29,12 +32,14 @@ public class Draw : MonoBehaviour
     /*
     Private properties
     */
-    Material instanceMaterial;
+    Material particleMaterial;
+    Material cubesMaterial;
     Bounds bounds;
     Mesh mesh;
 
     uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
-    ComputeBuffer argsBuffer;
+    ComputeBuffer particleArgsBuffer;
+    ComputeBuffer cubesArgsBuffer;
     ComputeBuffer initialColourBuffer;
 
     float lowHue;
@@ -86,9 +91,9 @@ public class Draw : MonoBehaviour
 
     void Start()
     {
-        instanceMaterial = new Material(shader);
-        instanceMaterial.enableInstancing = true;
-        instanceMaterial.SetInt("billboard", billboard ? 1 : 0);
+        particleMaterial = new Material(particleShader);
+        particleMaterial.enableInstancing = true;
+        particleMaterial.SetInt("billboard", billboard ? 1 : 0);
 
         bounds = new Bounds(Vector3.zero, Vector3.one * 1000f);
 
@@ -98,7 +103,7 @@ public class Draw : MonoBehaviour
         Color.RGBToHSV(slowColour, out lowHue, out _, out _);
         Color.RGBToHSV(fastColour, out highHue, out _, out _);
 
-        marchingCubes = new MarchingCubes(cubesShader);
+        marchingCubes = new MarchingCubes(cubesCompute);
     }
 
     void OnValidate()
@@ -110,9 +115,9 @@ public class Draw : MonoBehaviour
         Color.RGBToHSV(slowColour, out lowHue, out _, out _);
         Color.RGBToHSV(fastColour, out highHue, out _, out _);
 
-        if (!Application.isPlaying || instanceMaterial == null) return;
+        if (!Application.isPlaying || particleMaterial == null) return;
 
-        instanceMaterial.SetInt("billboard", billboard ? 1 : 0);
+        particleMaterial.SetInt("billboard", billboard ? 1 : 0);
 
         SetColourValues();
 
@@ -127,21 +132,21 @@ public class Draw : MonoBehaviour
 
     void InitialiseArgsBuffer(int instanceCount)
     {
-        if (argsBuffer != null) argsBuffer.Release();
+        if (particleArgsBuffer != null) particleArgsBuffer.Release();
 
-        argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
+        particleArgsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
 
         args[0] = mesh.GetIndexCount(0);
         args[1] = (uint)instanceCount;
         args[2] = mesh.GetIndexStart(0);
         args[3] = mesh.GetBaseVertex(0);
-        argsBuffer.SetData(args);
+        particleArgsBuffer.SetData(args);
     }
 
     void CleanupBuffers()
     {
-        if (argsBuffer != null)
-            argsBuffer.Release();
+        if (particleArgsBuffer != null)
+            particleArgsBuffer.Release();
         if (initialColourBuffer != null)
             initialColourBuffer.Release();
 
@@ -167,7 +172,7 @@ public class Draw : MonoBehaviour
 
     void BindColours(ComputeBuffer colourBuffer)
     {
-        instanceMaterial.SetBuffer("colours", colourBuffer);
+        particleMaterial.SetBuffer("colours", colourBuffer);
     }
 
     void SetColourValues()
@@ -182,6 +187,27 @@ public class Draw : MonoBehaviour
         });
     }
 
+    void DrawMesh(ComputeBuffer triangles)
+    {
+        // We need to dispatch a compute to set render args as it changes on each draw
+        // and we don't wanna force a read-back to the CPU
+        if (!cubesMaterial) cubesMaterial = new Material(cubesShader);
+
+        cubesMaterial.SetBuffer("VertexBuffer", triangles);
+        cubesMaterial.SetColor("col", fluidColour);
+        
+        if (cubesArgsBuffer == null)
+        {
+            cubesArgsBuffer = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
+            renderArgsCompute.SetBuffer(0, "RenderArgs", cubesArgsBuffer);
+        }
+
+        ComputeBuffer.CopyCount(triangles, cubesArgsBuffer, 0);
+        renderArgsCompute.Dispatch(0, 1, 1, 1);
+        
+        Graphics.DrawProceduralIndirect(cubesMaterial, bounds, MeshTopology.Triangles, cubesArgsBuffer);
+    }
+
     public void SetComputeShader(ShaderHelper shader)
     {
         simShader = shader;
@@ -189,33 +215,34 @@ public class Draw : MonoBehaviour
 
     public void DrawFrame(RenderTexture densityTex)
     {
-        if (argsBuffer == null) return;
+        if (particleArgsBuffer == null) return;
 
         if (useMarchingCubes)
         {
             ComputeBuffer triangles = marchingCubes.Run(densityTex, isoLevel);
+            DrawMesh(triangles);
         }
         else {
                 Graphics.DrawMeshInstancedIndirect(
                 mesh,
                 0,
-                instanceMaterial,
+                particleMaterial,
                 bounds,
-                argsBuffer
+                particleArgsBuffer
             );
         }
     }
 
     public void UpdateSize(float size)
     {
-        instanceMaterial.SetFloat("size", size);
+        particleMaterial.SetFloat("size", size);
     }
 
     public void BindPositions(ComputeBuffer positionBuffer)
     {
         InitialiseArgsBuffer(positionBuffer.count);
         InitialiseColoursBuffer();
-        instanceMaterial.SetBuffer("positions", positionBuffer);
+        particleMaterial.SetBuffer("positions", positionBuffer);
     }
 
     public void BindBuffers(ComputeBuffer positionBuffer, ComputeBuffer colourBuffer)
