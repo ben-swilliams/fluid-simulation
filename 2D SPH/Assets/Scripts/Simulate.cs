@@ -18,7 +18,10 @@ public class Simulate : MonoBehaviour
     [SerializeField] float velocitySmoothing = 0f;
     [SerializeField] int stepSize = 10;
     [SerializeField] float maxVelocity = 100f;
+    
+    [Header("Marching cubes")]
     [SerializeField] int densityTextureRes = 100;
+    [SerializeField] bool writeToTexture = false;
 
     [Header("External forces")]
     [SerializeField] float initSpeed = 5f;
@@ -212,7 +215,7 @@ public class Simulate : MonoBehaviour
         if (started)
         {
             AdvanceFrame();
-            UpdateDensityTexture();
+            if (writeToTexture) DispatchTextureWrite();
         }
 
         drawer.DrawFrame(densityTex);
@@ -417,10 +420,10 @@ public class Simulate : MonoBehaviour
         };
         shader.SetValues(keyValues);
 
+        FindKernels();
+
         UpdateMouseForce(Vector3.zero, 0, 0);
         UpdateVariables();
-
-        FindKernels();
     }
 
     void UpdateVariables()
@@ -459,6 +462,7 @@ public class Simulate : MonoBehaviour
         };
 
         shader.SetValues(keyValues);
+        UpdateDensityTexture();
     }
 
     float ComputeDelta(float particleSpacing, float beta, float gradConstant)
@@ -599,7 +603,7 @@ public class Simulate : MonoBehaviour
         int height = Mathf.RoundToInt(bounds.y / maxAxis * densityTextureRes);
         int depth = Mathf.RoundToInt(bounds.z / maxAxis * densityTextureRes);
 
-        if (densityTex == null || densityTex.width != width || densityTex.height != height || densityTex.depth != depth)
+        if (densityTex == null || densityTex.width != width || densityTex.height != height || densityTex.volumeDepth != depth)
         {
             if (densityTex != null) densityTex.Release();
 
@@ -607,10 +611,13 @@ public class Simulate : MonoBehaviour
             shader.SetTexture(kernels.WriteDensities, "DensityTex", densityTex);
             shader.SetInts("densityTexDims", width, height, depth);
         }
+    }
 
-        int dispatchX = Mathf.CeilToInt(width / 8f);
-        int dispatchY = Mathf.CeilToInt(height / 8f);
-        int dispatchZ = Mathf.CeilToInt(depth / 8f);
+    void DispatchTextureWrite()
+    {
+        int dispatchX = Mathf.CeilToInt(densityTex.width / 8f);
+        int dispatchY = Mathf.CeilToInt(densityTex.height / 8f);
+        int dispatchZ = Mathf.CeilToInt(densityTex.volumeDepth / 8f);
 
         shader.Dispatch(kernels.WriteDensities, dispatchX, dispatchY, dispatchZ);
     }
