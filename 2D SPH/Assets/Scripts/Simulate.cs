@@ -18,6 +18,7 @@ public class Simulate : MonoBehaviour
     [SerializeField] float velocitySmoothing = 0f;
     [SerializeField] int stepSize = 10;
     [SerializeField] float maxVelocity = 100f;
+    [SerializeField] int binNumber = 10000;
     
     [Header("Marching cubes")]
     [SerializeField] int densityTextureRes = 100;
@@ -307,7 +308,7 @@ public class Simulate : MonoBehaviour
 
     void ScanAndScatter()
     {
-        int clearCountsGroupNum = Mathf.CeilToInt(Constants.binNumber / (float)Constants.threadGroupSize);
+        int clearCountsGroupNum = Mathf.CeilToInt(binNumber / (float)Constants.threadGroupSize);
         shader.Dispatch(true, clearCountsGroupNum, kernels.ClearCounts);
 
         shader.Dispatch(kernels.Partition);
@@ -319,7 +320,7 @@ public class Simulate : MonoBehaviour
 
     void HierarchicalScan()
     {
-        int numBlocks = Mathf.CeilToInt(Constants.binNumber / (float)Constants.scanBlockSize);
+        int numBlocks = Mathf.CeilToInt(binNumber / (float)Constants.scanBlockSize);
 
         // Phase 1: Local scan in each block (stores block sums in BlockSums buffer)
         shader.Dispatch(true, numBlocks, kernels.Scan);
@@ -349,7 +350,7 @@ public class Simulate : MonoBehaviour
         // Phase 3: Add scanned block sums to each block's elements
         if (numBlocks > 1)
         {
-            int addThreadGroups = Mathf.CeilToInt(Constants.binNumber / (float)Constants.threadGroupSize);
+            int addThreadGroups = Mathf.CeilToInt(binNumber / (float)Constants.threadGroupSize);
             shader.Dispatch(true, addThreadGroups, kernels.AddBlockSums);
         }
 
@@ -376,7 +377,7 @@ public class Simulate : MonoBehaviour
         instanceCount = spawner.InstanceCount;
 
         shader.InitialiseCount(instanceCount);
-        shader.SetupBuffers(spawner.ExtractPositions(), GenerateVelocityData());
+        shader.SetupBuffers(spawner.ExtractPositions(), GenerateVelocityData(), binNumber);
 
         InitialiseVariables();
         UpdateBoundary();
@@ -427,7 +428,6 @@ public class Simulate : MonoBehaviour
     {
         object[] keyValues =
         {
-            "tableSize", Constants.binNumber,
             "size", spawner.Size,
             "instanceCount", instanceCount
         };
@@ -471,10 +471,15 @@ public class Simulate : MonoBehaviour
             "B", B,
             "nearPressureMultiplier", nearPressureMultiplier,
             "beta", beta,
-            "delta", delta
+            "delta", delta,
+            "tableSize", binNumber
         };
 
         shader.SetValues(keyValues);
+
+        shader.SetupBinBuffers(binNumber);
+        shader.BindStaticBuffers(kernels);
+
         UpdateDensityTexture();
     }
 
@@ -560,6 +565,7 @@ public class Simulate : MonoBehaviour
         stepSize = Mathf.Max(0, stepSize);
         maxVelocity = Mathf.Max(0.01f, maxVelocity);
         iisphSolverIterations = Mathf.Max(0, iisphSolverIterations);
+        binNumber = Mathf.Max(1, binNumber);
     }
 
     void HandleKeyPresses()
