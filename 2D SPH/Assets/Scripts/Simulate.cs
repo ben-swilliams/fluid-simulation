@@ -558,7 +558,7 @@ public class Simulate : MonoBehaviour
         return Constants.stableWCSPHStep;
     }
 
-    void ValidateInspectorProperties()
+    public void ValidateInspectorProperties()
     {
         simulationSpeed = Mathf.Clamp(simulationSpeed, 0, 1);
         initSpeed = Mathf.Max(0, initSpeed);
@@ -570,7 +570,9 @@ public class Simulate : MonoBehaviour
         stepSize = Mathf.Max(0, stepSize);
         maxVelocity = Mathf.Max(0.01f, maxVelocity);
         iisphSolverIterations = Mathf.Max(0, iisphSolverIterations);
-        binNumber = indexHash && started ? CalculateCellNumber() : Mathf.Max(1, binNumber);
+        binNumber = indexHash ? CalculateCellNumber() : Mathf.Max(1, binNumber);
+
+        if (started) UpdateVariables();
     }
 
     void HandleKeyPresses()
@@ -600,7 +602,7 @@ public class Simulate : MonoBehaviour
     {
         Vector3 containerSize = GetComponentInChildren<Container>().Boundary;
         float cellSize = 2f * smoothingRadius;
-        float particleSize = spawner.Size;
+        float particleSize = GetComponent<Spawn>().Size;
         Vector3 effectiveBoundary = containerSize - Vector3.one * particleSize;
 
         int maxX = Mathf.FloorToInt(effectiveBoundary.x / cellSize);

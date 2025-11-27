@@ -67,6 +67,7 @@ public class Spawn : MonoBehaviour
     void OnValidate()
     {
         ValidateInspectorProperties();
+        GetComponent<Simulate>().ValidateInspectorProperties();
 
         if (!Application.isPlaying) return;
         RecreatePositions();
