@@ -377,11 +377,11 @@ public class Simulate : MonoBehaviour
     {
         instanceCount = spawner.InstanceCount;
 
-        shader.InitialiseCount(instanceCount);
-        shader.SetupBuffers(spawner.ExtractPositions(), GenerateVelocityData(), binNumber);
-
         if (indexHash)
             binNumber = CalculateCellNumber();
+
+        shader.InitialiseCount(instanceCount);
+        shader.SetupBuffers(spawner.ExtractPositions(), GenerateVelocityData(), binNumber);
 
         InitialiseVariables();
         UpdateBoundary();
@@ -485,6 +485,7 @@ public class Simulate : MonoBehaviour
         shader.SetupBinBuffers(binNumber);
         shader.BindStaticBuffers(kernels);
 
+        UpdateBoundary();
         UpdateDensityTexture();
     }
 
@@ -602,14 +603,15 @@ public class Simulate : MonoBehaviour
     {
         Vector3 containerSize = GetComponentInChildren<Container>().Boundary;
         float cellSize = 2f * smoothingRadius;
-        float particleSize = GetComponent<Spawn>().Size;
-        Vector3 effectiveBoundary = containerSize - Vector3.one * particleSize;
 
-        int maxX = Mathf.FloorToInt(effectiveBoundary.x / cellSize);
-        int maxY = Mathf.FloorToInt(effectiveBoundary.y / cellSize);
-        int maxZ = Mathf.FloorToInt(effectiveBoundary.z / cellSize);
+        // Calculate grid dimensions (number of cells in each axis)
+        int gridX = Mathf.CeilToInt(containerSize.x / cellSize);
+        int gridY = Mathf.CeilToInt(containerSize.y / cellSize);
+        int gridZ = Mathf.CeilToInt(containerSize.z / cellSize);
 
-        return (maxX + 1) * (maxY + 1) * (maxZ + 1);
+        int cellCount = gridX * gridY * gridZ;
+
+        return cellCount;
     }
 
     void HandleSpeedControls()
@@ -700,13 +702,9 @@ public class Simulate : MonoBehaviour
 
         Container container = GetComponentInChildren<Container>();
 
-        // Calculate based on the actual boundary particles can reach
-        float particleSize = spawner.Size;
-        Vector3 effectiveBoundary = container.Boundary - Vector3.one * particleSize;
-
-        int maxX = Mathf.FloorToInt(effectiveBoundary.x / cellSize);
-        int maxY = Mathf.FloorToInt(effectiveBoundary.y / cellSize);
-        int maxZ = Mathf.FloorToInt(effectiveBoundary.z / cellSize);
+        int maxX = Mathf.CeilToInt(container.Boundary.x / cellSize) - 1;
+        int maxY = Mathf.CeilToInt(container.Boundary.y / cellSize) - 1;
+        int maxZ = Mathf.CeilToInt(container.Boundary.z / cellSize) - 1;
 
         shader.SetValues(new object[]
         {
