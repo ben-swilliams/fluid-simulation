@@ -11,6 +11,7 @@ void CalculatePCISPHComponents(uint i, out float3 viscosity, out float3 surfaceT
 
     float3 velI = Velocities[i];
     float densityI = Densities[3 * i];
+    float nearDensityI = Densities[3 * i + 1];
 
     for (int o = 0; o < 27; o++) {
         int3 gridPosJ = gridPosI + offsets[o];
@@ -33,13 +34,14 @@ void CalculatePCISPHComponents(uint i, out float3 viscosity, out float3 surfaceT
             float3 velOffset = velI - Velocities[j];
 
             float densityJ = Densities[3 * j];
+            float nearDensityJ = Densities[3 * j + 1];
             
             float kernel = CubicSplineKernel(r);
             float3 grad = CubicSplineGrad(posOffset, r);
 
             viscosity += CalculateViscosityContribution(posOffset, velOffset, grad, densityI, densityJ);
             surfaceTension += -surfaceTensionMultiplier * kernel * (posOffset / r);
-            pressure += CalculatePressureContribution(posOffset, grad, i, j, densityI, densityJ);
+            pressure += CalculatePressureContribution(posOffset, grad, i, j, densityI, densityJ, nearDensityI, nearDensityJ);
 
             float massOverDensity = particleMass / Densities[3 * j];
             xsph += velocitySmoothing * massOverDensity * kernel * -velOffset;
@@ -94,6 +96,7 @@ float3 CalculatePCISPHPressureForce(int i) {
     float3 posI = Positions[i];
     int3 gridPosI = GetGridPos(posI);
     float densityI = Densities[3 * i];
+    float nearDensityI = Densities[3 * i + 1];
 
     for (int o = 0; o < 27; o++) {
         int3 gridPosJ = gridPosI + offsets[o];
@@ -116,7 +119,7 @@ float3 CalculatePCISPHPressureForce(int i) {
 
             float3 grad = CubicSplineGrad(offset, r);
             
-            pressureForce += CalculatePressureContribution(offset, grad, i, j, densityI, Densities[3 * j]);
+            pressureForce += CalculatePressureContribution(offset, grad, i, j, densityI, Densities[3 * j], nearDensityI, Densities[3 * j + 1]);
         }
     } 
 
