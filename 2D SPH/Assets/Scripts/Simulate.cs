@@ -21,7 +21,6 @@ public class Simulate : MonoBehaviour
     
     [Header("Marching cubes")]
     [SerializeField] int densityTextureRes = 100;
-    [SerializeField] bool writeToTexture = false;
 
     [Header("External forces")]
     [SerializeField] float initSpeed = 5f;
