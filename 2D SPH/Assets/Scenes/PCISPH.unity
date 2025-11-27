@@ -10338,10 +10338,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
   computeShader: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
   simulationSpeed: 1
-  smoothingRadius: 0.1
+  smoothingRadius: 0.05
   velocitySmoothing: 0.01
   stepSize: 10
   maxVelocity: 5
+  binNumber: 10000
   densityTextureRes: 100
   initSpeed: 0
   gravity: -9.8

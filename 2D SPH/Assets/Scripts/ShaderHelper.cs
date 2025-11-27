@@ -116,18 +116,19 @@ public class ShaderHelper
         computeShader.SetInts(name, ints);
     }
 
-    public void SetupBuffers(Vector3[] positions, Vector3[] velocities)
+    public void SetupBinBuffers(int binNumber)
     {
-        allBuffers = new List<ComputeBuffer>();
+        CleanupBinBuffers();
 
-        countBuffer = new ComputeBuffer(Constants.binNumber, sizeof(uint));
+        // Create new buffers
+        countBuffer = new ComputeBuffer(binNumber, sizeof(uint));
         allBuffers.Add(countBuffer);
 
-        offsetBuffer = new ComputeBuffer(Constants.binNumber + 1, sizeof(uint));
+        offsetBuffer = new ComputeBuffer(binNumber + 1, sizeof(uint));
         allBuffers.Add(offsetBuffer);
 
         // Calculate number of blocks needed for hierarchical scan
-        int numBlocks = Mathf.CeilToInt(Constants.binNumber / (float)Constants.scanBlockSize);
+        int numBlocks = Mathf.CeilToInt(binNumber / (float)Constants.scanBlockSize);
         blockSumsBuffer = new ComputeBuffer(Mathf.Max(1, numBlocks), sizeof(uint));
         allBuffers.Add(blockSumsBuffer);
 
@@ -136,8 +137,55 @@ public class ShaderHelper
         superBlockSumsBuffer = new ComputeBuffer(Mathf.Max(1, numSuperBlocks), sizeof(uint));
         allBuffers.Add(superBlockSumsBuffer);
 
-        localOffsetBuffer = new ComputeBuffer(Constants.binNumber, sizeof(uint));
+        localOffsetBuffer = new ComputeBuffer(binNumber, sizeof(uint));
         allBuffers.Add(localOffsetBuffer);
+
+        // Update nameBufferMap only if it's already been initialized (runtime updates only)
+        if (nameBufferMap.ContainsKey("CellCounts"))
+        {
+            nameBufferMap["CellCounts"] = countBuffer;
+            nameBufferMap["LocalOffsets"] = localOffsetBuffer;
+            nameBufferMap["Offsets"] = offsetBuffer;
+            nameBufferMap["BlockSums"] = blockSumsBuffer;
+            nameBufferMap["SuperBlockSums"] = superBlockSumsBuffer;
+        }
+    }
+
+    void CleanupBinBuffers()
+    {
+        if (countBuffer != null)
+        {
+            allBuffers.Remove(countBuffer);
+            countBuffer.Release();
+        }
+        if (offsetBuffer != null)
+        {
+            allBuffers.Remove(offsetBuffer);
+            offsetBuffer.Release();
+        }
+        if (blockSumsBuffer != null)
+        {
+            allBuffers.Remove(blockSumsBuffer);
+            blockSumsBuffer.Release();
+        }
+        if (superBlockSumsBuffer != null)
+        {
+            allBuffers.Remove(superBlockSumsBuffer);
+            superBlockSumsBuffer.Release();
+        }
+        if (localOffsetBuffer != null)
+        {
+            allBuffers.Remove(localOffsetBuffer);
+            localOffsetBuffer.Release();
+        }
+
+    }
+
+    public void SetupBuffers(Vector3[] positions, Vector3[] velocities, int binNumber)
+    {
+        allBuffers = new List<ComputeBuffer>();
+
+        SetupBinBuffers(binNumber);
 
         sortedPositionBuffer = new ComputeBuffer(positions.Length, sizeof(float) * 3);
         allBuffers.Add(sortedPositionBuffer);
