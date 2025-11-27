@@ -1,4 +1,5 @@
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.SceneManagement;
@@ -18,7 +19,8 @@ public class Simulate : MonoBehaviour
     [SerializeField] float velocitySmoothing = 0f;
     [SerializeField] int stepSize = 10;
     [SerializeField] float maxVelocity = 100f;
-    [SerializeField] int binNumber = 10000;
+    [SerializeField] int binNumber = 200000;
+    [SerializeField] bool indexHash = true;
     
     [Header("Marching cubes")]
     [SerializeField] int densityTextureRes = 100;
@@ -472,7 +474,8 @@ public class Simulate : MonoBehaviour
             "nearPressureMultiplier", nearPressureMultiplier,
             "beta", beta,
             "delta", delta,
-            "tableSize", binNumber
+            "tableSize", binNumber,
+            "useIndex", indexHash ? 1 : 0
         };
 
         shader.SetValues(keyValues);

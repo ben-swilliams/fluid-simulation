@@ -6,6 +6,8 @@ int maxCornerX;
 int maxCornerY;
 int maxCornerZ;
 
+uint useIndex;
+
 uint PrimeHash(int3 gridPos) {
     uint total = (uint)gridPos.x * primeX + (uint)gridPos.y * primeY + (uint)gridPos.z * primeZ;
     return total % tableSize;
@@ -26,7 +28,7 @@ int3 GetGridPos(float3 pos) {
 }
 
 uint CalculateHashFromGrid(int3 gridPos) {
-    return PrimeHash(gridPos);
+    return useIndex == 1 ? IndexHash(gridPos) : PrimeHash(gridPos);
 }
 
 uint CalculateHash(float3 pos) {
