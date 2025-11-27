@@ -7,6 +7,8 @@ public class KernelSet
     public int Partition;
     public int Scan;
     public int ScanBlockSums;
+    public int ScanSuperBlockSums;
+    public int AddSuperBlockSums;
     public int AddBlockSums;
     public int FinalizeScan;
     public int Scatter;
@@ -53,7 +55,9 @@ public class KernelSet
             { ClearCounts, new[] { "CellCounts", "LocalOffsets" } },
             { Partition, new[] { "CellCounts", "Positions" } },
             { Scan, new[] { "Offsets", "CellCounts", "BlockSums" } },
-            { ScanBlockSums, new[] { "BlockSums" } },
+            { ScanBlockSums, new[] { "BlockSums", "SuperBlockSums" } },
+            { ScanSuperBlockSums, new[] { "SuperBlockSums" } },
+            { AddSuperBlockSums, new[] { "BlockSums", "SuperBlockSums" } },
             { AddBlockSums, new[] { "Offsets", "CellCounts", "BlockSums" } },
             { FinalizeScan, new[] { "Offsets" } },
             { Scatter, new[] { "LocalOffsets", "Offsets", "IterPressures", "Velocities", "SortedVelocities", "Positions", "SortedPositions" } },
@@ -87,6 +91,8 @@ public class KernelSet
         Partition = shader.FindKernel("Partition");
         Scan = shader.FindKernel("Scan");
         ScanBlockSums = shader.FindKernel("ScanBlockSums");
+        ScanSuperBlockSums = shader.FindKernel("ScanSuperBlockSums");
+        AddSuperBlockSums = shader.FindKernel("AddSuperBlockSums");
         AddBlockSums = shader.FindKernel("AddBlockSums");
         FinalizeScan = shader.FindKernel("FinalizeScan");
         Scatter = shader.FindKernel("Scatter");

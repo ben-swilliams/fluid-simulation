@@ -327,10 +327,23 @@ public class Simulate : MonoBehaviour
         // Phase 2: If we have multiple blocks, scan the block sums themselves
         if (numBlocks > 1)
         {
-            // For 1000 bins with scanBlockSize=128: numBlocks = 8
-            computeShader.SetInt("numBlockSums", numBlocks);
-            shader.SetValues(new object[] { "numBlockSums", numBlocks });
-            shader.Dispatch(true, 1, kernels.ScanBlockSums);
+            int numSuperBlocks = Mathf.CeilToInt(numBlocks / (float)Constants.scanBlockSize);
+
+            shader.SetValues(new object[] { "numBlockSums", numBlocks, "numSuperBlocks", numSuperBlocks });
+            shader.Dispatch(true, numSuperBlocks, kernels.ScanBlockSums);
+
+            // Phase 2.5: If we have multiple super-blocks, scan them (three-level scan)
+            if (numSuperBlocks > 1)
+            {
+                shader.Dispatch(true, 1, kernels.ScanSuperBlockSums);
+            }
+
+            // Phase 2.75: Add scanned super-block sums to BlockSums
+            if (numSuperBlocks > 1)
+            {
+                int addSuperThreadGroups = Mathf.CeilToInt(numBlocks / (float)Constants.threadGroupSize);
+                shader.Dispatch(true, addSuperThreadGroups, kernels.AddSuperBlockSums);
+            }
         }
 
         // Phase 3: Add scanned block sums to each block's elements
