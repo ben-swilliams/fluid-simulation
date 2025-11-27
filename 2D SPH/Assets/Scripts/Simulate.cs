@@ -381,6 +381,9 @@ public class Simulate : MonoBehaviour
         shader.InitialiseCount(instanceCount);
         shader.SetupBuffers(spawner.ExtractPositions(), GenerateVelocityData(), binNumber);
 
+        if (indexHash)
+            binNumber = CalculateCellNumber();
+
         InitialiseVariables();
         UpdateBoundary();
         BindExternalBuffers();
@@ -568,7 +571,7 @@ public class Simulate : MonoBehaviour
         stepSize = Mathf.Max(0, stepSize);
         maxVelocity = Mathf.Max(0.01f, maxVelocity);
         iisphSolverIterations = Mathf.Max(0, iisphSolverIterations);
-        binNumber = Mathf.Max(1, binNumber);
+        binNumber = indexHash && started ? CalculateCellNumber() : Mathf.Max(1, binNumber);
     }
 
     void HandleKeyPresses()
@@ -592,6 +595,20 @@ public class Simulate : MonoBehaviour
         }
 
         HandleSpeedControls();
+    }
+
+    int CalculateCellNumber()
+    {
+        Vector3 containerSize = GetComponentInChildren<Container>().Boundary;
+        float cellSize = 2f * smoothingRadius;
+        float particleSize = spawner.Size;
+        Vector3 effectiveBoundary = containerSize - Vector3.one * particleSize;
+
+        int maxX = Mathf.FloorToInt(effectiveBoundary.x / cellSize);
+        int maxY = Mathf.FloorToInt(effectiveBoundary.y / cellSize);
+        int maxZ = Mathf.FloorToInt(effectiveBoundary.z / cellSize);
+
+        return (maxX + 1) * (maxY + 1) * (maxZ + 1);
     }
 
     void HandleSpeedControls()
