@@ -6,6 +6,16 @@ int maxCornerX;
 int maxCornerY;
 int maxCornerZ;
 
+uint PrimeHash(int3 gridPos) {
+    uint total = (uint)gridPos.x * primeX + (uint)gridPos.y * primeY + (uint)gridPos.z * primeZ;
+    return total % tableSize;
+}
+
+uint IndexHash(int3 gridPos) {
+    uint total = gridPos.x + gridPos.y * (maxCornerX + 1) + gridPos.z * (maxCornerX + 1) * (maxCornerY + 1);
+    return total;
+}
+
 int3 GetGridPos(float3 pos) {
     float3 offsetPos = pos + containerSize / 2;
     int3 gridPos = int3(floor(offsetPos.x / (2 * smoothingRadius)),
@@ -16,8 +26,7 @@ int3 GetGridPos(float3 pos) {
 }
 
 uint CalculateHashFromGrid(int3 gridPos) {
-    uint total = (uint)gridPos.x * primeX + (uint)gridPos.y * primeY + (uint)gridPos.z * primeZ;
-    return total % tableSize;
+    return PrimeHash(gridPos);
 }
 
 uint CalculateHash(float3 pos) {
