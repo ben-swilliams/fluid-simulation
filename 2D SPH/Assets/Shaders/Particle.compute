@@ -2,6 +2,8 @@
 #pragma kernel Partition
 #pragma kernel Scan
 #pragma kernel ScanBlockSums
+#pragma kernel ScanSuperBlockSums
+#pragma kernel AddSuperBlockSums
 #pragma kernel AddBlockSums
 #pragma kernel FinalizeScan
 #pragma kernel Scatter
@@ -136,6 +138,7 @@ Scan/partition parameters
 // Integers
 uint tableSize;
 uint numBlockSums;
+uint numSuperBlocks;
 
 #include "Kernels.hlsl"
 #include "Partition.hlsl"
@@ -173,8 +176,18 @@ void Scan(uint3 id : SV_GroupThreadID, uint3 groupId : SV_GroupID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void ScanBlockSums(uint3 id : SV_GroupThreadID) {
-    ScanBlockSums(id.x, numBlockSums);
+void ScanBlockSums(uint3 id : SV_GroupThreadID, uint3 groupId : SV_GroupID) {
+    ScanBlockSums(id.x, numBlockSums, groupId.x);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void ScanSuperBlockSums(uint3 id : SV_GroupThreadID) {
+    ScanSuperBlockSums(id.x, numSuperBlocks);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void AddSuperBlockSums(uint3 id : SV_DispatchThreadID) {
+    AddSuperBlockSums(id.x, numBlockSums);
 }
 
 [numthreads(NumThreads, 1, 1)]

@@ -15,6 +15,7 @@ public class ShaderHelper
     ComputeBuffer countBuffer;
     ComputeBuffer offsetBuffer;
     ComputeBuffer blockSumsBuffer;
+    ComputeBuffer superBlockSumsBuffer;
     ComputeBuffer localOffsetBuffer;
     ComputeBuffer positionBuffer;
     ComputeBuffer sortedPositionBuffer;
@@ -68,6 +69,7 @@ public class ShaderHelper
         nameBufferMap.Add("LocalOffsets", localOffsetBuffer);
         nameBufferMap.Add("Offsets", offsetBuffer);
         nameBufferMap.Add("BlockSums", blockSumsBuffer);
+        nameBufferMap.Add("SuperBlockSums", superBlockSumsBuffer);
         nameBufferMap.Add("Densities", densityBuffer);
         nameBufferMap.Add("IntermediateAccelerations", intermediateAccelerationBuffer);
         nameBufferMap.Add("Dii", diiBuffer);
@@ -128,6 +130,11 @@ public class ShaderHelper
         int numBlocks = Mathf.CeilToInt(Constants.binNumber / (float)Constants.scanBlockSize);
         blockSumsBuffer = new ComputeBuffer(Mathf.Max(1, numBlocks), sizeof(uint));
         allBuffers.Add(blockSumsBuffer);
+
+        // Calculate number of super blocks needed for three-level scan
+        int numSuperBlocks = Mathf.CeilToInt(numBlocks / (float)Constants.scanBlockSize);
+        superBlockSumsBuffer = new ComputeBuffer(Mathf.Max(1, numSuperBlocks), sizeof(uint));
+        allBuffers.Add(superBlockSumsBuffer);
 
         localOffsetBuffer = new ComputeBuffer(Constants.binNumber, sizeof(uint));
         allBuffers.Add(localOffsetBuffer);
