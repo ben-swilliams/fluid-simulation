@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[ExecuteAlways]
 public class Container : MonoBehaviour
 {
     /*
@@ -13,7 +14,7 @@ public class Container : MonoBehaviour
     /*
     Private properties
     */
-    private Vector3 lastScale;
+    Vector3 lastScale;
 
     /*
     Public getters
@@ -23,27 +24,22 @@ public class Container : MonoBehaviour
     void Start()
     {
         ClampScale();
-        lastScale = transform.localScale;
     }
 
     void Update()
     {
-        if (transform.hasChanged) OnValidate();
-    }
-
-    void LateUpdate()
-    {
-        if (lastScale != transform.localScale)
-        {
-            ClampScale();
+        if (transform.localScale != lastScale) {
+            OnValidate();
+            lastScale = transform.localScale;
         }
     }
 
     void OnValidate()
     {
-        if (!Application.isPlaying) return;
+        ClampScale();
 
         GetComponentInParent<Simulate>().UpdateBoundary();
+        GetComponentInParent<Simulate>().ValidateInspectorProperties();
     }
 
     void OnDrawGizmos()
