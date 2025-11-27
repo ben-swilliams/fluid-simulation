@@ -203,6 +203,7 @@ float3 CalculateXSPHPressureForce(uint i) {
     int3 gridPosI = GetGridPos(posI);
     float3 velI = Velocities[i];
     float densityI = Densities[3 * i];
+    float nearDensityI = Densities[3 * i + 1];
 
     for (int o = 0; o < 27; o++) {
         int3 gridPosJ = gridPosI + offsets[o];
@@ -228,7 +229,7 @@ float3 CalculateXSPHPressureForce(uint i) {
             float kernel = CubicSplineKernel(r);
             float3 grad = CubicSplineGrad(posOffset, r);
 
-            pressureForce += CalculatePressureContribution(posOffset, grad, i, j, densityI, Densities[3 * j]);
+            pressureForce += CalculatePressureContribution(posOffset, grad, i, j, densityI, Densities[3 * j], nearDensityI, Densities[3 * j + 1]);
 
             float massOverDensity = particleMass / Densities[3 * j];
             xsphCorrection += velocitySmoothing * massOverDensity * kernel * -velOffset;
