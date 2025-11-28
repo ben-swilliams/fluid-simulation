@@ -1,13 +1,3 @@
-#pragma kernel ClearCounts
-#pragma kernel Partition
-#pragma kernel Scan
-#pragma kernel ScanBlockSums
-#pragma kernel ScanSuperBlockSums
-#pragma kernel AddSuperBlockSums
-#pragma kernel AddBlockSums
-#pragma kernel FinalizeScan
-#pragma kernel Scatter
-#pragma kernel CopyBack
 #pragma kernel InitialisePressures
 #pragma kernel CalculateDensity
 #pragma kernel CalculateNonPressureAcceleration
@@ -36,7 +26,6 @@
 Global parameters
 */
 
-static const uint NumThreads = 256;
 static const float Epsilon = 1e-12;
 static const int3 offsets[27] =
 {
@@ -136,14 +125,9 @@ float3 gravity;
 Scan/partition parameters
 */
 // Integers
-uint tableSize;
-uint numBlockSums;
-uint numSuperBlocks;
 
+#include "Constants.hlsl"
 #include "Kernels.hlsl"
-#include "Partition.hlsl"
-#include "Scan.hlsl"
-#include "Scatter.hlsl"
 #include "External.hlsl"
 #include "Density.hlsl"
 #include "Pressure.hlsl"
@@ -156,64 +140,6 @@ uint numSuperBlocks;
 /*
 SPATIAL HASHING
 */
-[numthreads(NumThreads, 1, 1)]
-void ClearCounts(uint id : SV_DispatchThreadID) {
-    if (id.x >= tableSize) return;
-
-    CellCounts[id.x] = 0;
-    LocalOffsets[id.x] = 0;
-}
-
-[numthreads(NumThreads, 1, 1)]
-void Partition(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-    IndexAndCount(id.x);
-}
-
-[numthreads(NumThreads, 1, 1)]
-void Scan(uint3 id : SV_GroupThreadID, uint3 groupId : SV_GroupID) {
-    PrefixScan(id.x, groupId.x);
-}
-
-[numthreads(NumThreads, 1, 1)]
-void ScanBlockSums(uint3 id : SV_GroupThreadID, uint3 groupId : SV_GroupID) {
-    ScanBlockSums(id.x, numBlockSums, groupId.x);
-}
-
-[numthreads(NumThreads, 1, 1)]
-void ScanSuperBlockSums(uint3 id : SV_GroupThreadID) {
-    ScanSuperBlockSums(id.x, numSuperBlocks);
-}
-
-[numthreads(NumThreads, 1, 1)]
-void AddSuperBlockSums(uint3 id : SV_DispatchThreadID) {
-    AddSuperBlockSums(id.x, numBlockSums);
-}
-
-[numthreads(NumThreads, 1, 1)]
-void AddBlockSums(uint3 id : SV_DispatchThreadID) {
-    AddBlockSums(id.x);
-}
-
-[numthreads(1, 1, 1)]
-void FinalizeScan(uint3 id : SV_DispatchThreadID) {
-    Offsets[tableSize] = instanceCount;
-}
-
-[numthreads(NumThreads, 1, 1)]
-void Scatter(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    SortParticle(id.x);
-}
-
-[numthreads(NumThreads, 1, 1)]
-void CopyBack(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    Velocities[id.x] = SortedVelocities[id.x];
-    Positions[id.x] = SortedPositions[id.x];
-}
 
 [numthreads(NumThreads, 1, 1)]
 void InitialisePressures(uint3 id : SV_DispatchThreadID) {
