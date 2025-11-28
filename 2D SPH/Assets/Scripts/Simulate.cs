@@ -55,6 +55,13 @@ public class Simulate : MonoBehaviour
     [Header("Surface tension")]
     [SerializeField] float surfaceTensionMultiplier = 1f;
 
+    int CalculateDensity;
+    int UpdatePositions;
+    int WriteDensities;
+    int CalculateVelocityColour;
+    int CalculateDensityColour;
+    int CalculatePressureColour;
+
     /*
     Private properties
     */
@@ -331,20 +338,36 @@ public class Simulate : MonoBehaviour
     {
         instanceCount = spawner.InstanceCount;
 
-        commonBufferHelper = new BufferHelper(simCompute, dependencies, bufferInfo, externalBuffers);
-
-        shader.InitialiseCount(instanceCount);
-        shader.SetupBuffers(spawner.ExtractPositions(), GenerateVelocityData(), binNumber);
+        if (indexHash)
+            binNumber = CalculateCellNumber();
 
         Dictionary<string, ComputeBuffer> hashDependencies = new Dictionary<string, ComputeBuffer>
         {
-            { "Velocities", shader.VelocityBuffer },
-            { "Positions", shader.PositionBuffer },
+            { "Velocities", null },
+            { "Positions", null },
         };
         hashManager = new SpatialHashManager(spatialCompute, binNumber, instanceCount, hashDependencies);
 
-        if (indexHash)
-            binNumber = CalculateCellNumber();
+        Dictionary<int, string[]> dependencies = new Dictionary<int, string[]>
+        {
+            { CalculateDensity, new string[] { "Densities", "Positions", "Offsets"} },
+            { UpdatePositions, new string[] { "Velocities", "Positions" } },
+            { WriteDensities, new string[] { "Densities" } },
+            { CalculateVelocityColour, new[] {"Colours", "Velocities"}},
+            { CalculateDensityColour, new[] {"Colours", "Densities"}},
+            { CalculatePressureColour, new[] {"Colours", "Pressures"}}
+        };
+
+        Dictionary<string, BufferInfo> bufferInfo = GenerateBufferInfo(instanceCount);
+        Dictionary<string, ComputeBuffer> externalBuffers = new Dictionary<string, ComputeBuffer>
+        {
+            { "Offsets", hashManager.Buffers.RetrieveBuffer("Offsets") },
+        };
+
+        commonBufferHelper = new BufferHelper(simCompute, dependencies, bufferInfo, externalBuffers);
+
+        hashManager.Buffers.UpdateBuffer("Velocities", commonBufferHelper.RetrieveBuffer("Velocities"));
+        hashManager.Buffers.UpdateBuffer("Positions", commonBufferHelper.RetrieveBuffer("Positions"));
 
         InitialiseVariables();
         UpdateBoundary();
@@ -352,6 +375,22 @@ public class Simulate : MonoBehaviour
         InitialiseLeapFrogVelocities();
 
         started = true;
+    }
+
+    Dictionary<string, BufferInfo> GenerateBufferInfo(int instanceCount)
+    {
+        Array velocities = GenerateVelocityData();
+        Array positions = spawner.ExtractPositions();
+
+        Dictionary<string, BufferInfo> bufferInfo = new Dictionary<string, BufferInfo>
+        {
+            { "Densities", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) } },
+            { "Velocities", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) * 3, InitData = velocities } },
+            { "Positions", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) * 3 , InitData = positions} },
+            { "Colours", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) * 3 }}
+        };
+
+        return bufferInfo;
     }
 
     void InitialiseLeapFrogVelocities()

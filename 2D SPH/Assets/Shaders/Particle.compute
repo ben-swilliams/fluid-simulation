@@ -1,5 +1,7 @@
 #pragma kernel CalculateDensity
 
+#pragma kernel UpdatePositions
+
 #pragma kernel WriteDensities
 
 #pragma kernel CalculateVelocityColour

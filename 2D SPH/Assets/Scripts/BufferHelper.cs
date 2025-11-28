@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,7 +8,7 @@ public struct BufferInfo
 {
     public int Length;
     public int ElementSize;
-    public byte[]? InitData;
+    public Array? InitData;
 }
 
 public class BufferHelper
@@ -64,6 +65,7 @@ public class BufferHelper
 
         foreach (int k in dependentKernels)
         {
+            if (buffer == null) continue;
             shader.SetBuffer(k, name, buffer);
         }
     }
@@ -85,6 +87,13 @@ public class BufferHelper
                 buffers.Add(name, buffer);
     }
 
+    void ReleaseBuffer(string name){ 
+        if (buffers.ContainsKey(name)) {
+            buffers[name].Release();
+            buffers.Remove(name);
+        }
+    }
+
     public void Destroy()
     {
         foreach (KeyValuePair<string, ComputeBuffer> pair in buffers)
@@ -95,13 +104,18 @@ public class BufferHelper
 
     public void UpdateBuffer(string name, BufferInfo info)
     {
-        if (buffers.ContainsKey(name)) {
-            buffers[name].Release();
-            buffers.Remove(name);
-        }
+        ReleaseBuffer(name);
 
-       CreateBuffer(name, info);
-       BindBuffer(name, buffers[name]);
+        CreateBuffer(name, info);
+        BindBuffer(name, buffers[name]);
+    }
+
+    public void UpdateBuffer(string name, ComputeBuffer buffer)
+    {
+        ReleaseBuffer(name);
+
+        buffers[name] = buffer;
+        BindBuffer(name, buffers[name]);
     }
 
     public void UpdateBuffers(Dictionary<string, BufferInfo> buffers)
@@ -110,5 +124,12 @@ public class BufferHelper
         {
             UpdateBuffer(pair.Key, pair.Value);
         }
+    }
+
+    public ComputeBuffer? RetrieveBuffer(string name)
+    {
+        if (buffers.ContainsKey(name)) return buffers[name];
+
+        return null;
     }
 }

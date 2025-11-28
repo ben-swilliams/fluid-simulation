@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -18,6 +20,8 @@ public class SpatialHashManager
 
     ComputeShader shader;
     BufferHelper bufferHelper;
+
+    public BufferHelper Buffers => bufferHelper;
 
     public SpatialHashManager(ComputeShader spatialShader, int binNumber, int instanceCount, Dictionary<string, ComputeBuffer> externalBuffers)
     {
