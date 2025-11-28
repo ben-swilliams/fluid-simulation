@@ -88,7 +88,7 @@ public class BufferHelper
     }
 
     void ReleaseBuffer(string name){ 
-        if (buffers.ContainsKey(name)) {
+        if (buffers.ContainsKey(name) && buffers[name] != null) {
             buffers[name].Release();
             buffers.Remove(name);
         }

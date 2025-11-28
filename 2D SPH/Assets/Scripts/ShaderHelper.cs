@@ -88,7 +88,7 @@ public class ShaderHelper
     public void InitialiseCount(int instanceCount)
     {
         this.instanceCount = instanceCount;
-        threadGroups = Mathf.CeilToInt(instanceCount / (float)Constants.threadGroupSize);
+        threadGroups = Mathf.CeilToInt(instanceCount / (float)Utils.Constants.threadGroupSize);
     }
 
     public void BindStaticBuffers(KernelSet kernels)
@@ -128,12 +128,12 @@ public class ShaderHelper
         allBuffers.Add(offsetBuffer);
 
         // Calculate number of blocks needed for hierarchical scan
-        int numBlocks = Mathf.CeilToInt(binNumber / (float)Constants.scanBlockSize);
+        int numBlocks = Mathf.CeilToInt(binNumber / (float)Utils.Constants.scanBlockSize);
         blockSumsBuffer = new ComputeBuffer(Mathf.Max(1, numBlocks), sizeof(uint));
         allBuffers.Add(blockSumsBuffer);
 
         // Calculate number of super blocks needed for three-level scan
-        int numSuperBlocks = Mathf.CeilToInt(numBlocks / (float)Constants.scanBlockSize);
+        int numSuperBlocks = Mathf.CeilToInt(numBlocks / (float)Utils.Constants.scanBlockSize);
         superBlockSumsBuffer = new ComputeBuffer(Mathf.Max(1, numSuperBlocks), sizeof(uint));
         allBuffers.Add(superBlockSumsBuffer);
 
