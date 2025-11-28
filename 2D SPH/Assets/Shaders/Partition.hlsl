@@ -43,9 +43,3 @@ bool IsInBounds(int3 gridPos) {
 
     return true;
 }
-
-void IndexAndCount(uint i) {
-    uint hash = CalculateHash(Positions[i]);
-    
-    InterlockedAdd(CellCounts[hash], 1);
-}

@@ -3,16 +3,6 @@ using UnityEngine;
 
 public class KernelSet
 {
-    public int ClearCounts;
-    public int Partition;
-    public int Scan;
-    public int ScanBlockSums;
-    public int ScanSuperBlockSums;
-    public int AddSuperBlockSums;
-    public int AddBlockSums;
-    public int FinalizeScan;
-    public int Scatter;
-    public int CopyBack;
     public int InitialisePressures;
     public int CalculateDensity;
     public int CalculateNonPressureAcceleration;
@@ -87,16 +77,6 @@ public class KernelSet
 
     private void SetKernels(ComputeShader shader)
     {
-        ClearCounts = shader.FindKernel("ClearCounts");
-        Partition = shader.FindKernel("Partition");
-        Scan = shader.FindKernel("Scan");
-        ScanBlockSums = shader.FindKernel("ScanBlockSums");
-        ScanSuperBlockSums = shader.FindKernel("ScanSuperBlockSums");
-        AddSuperBlockSums = shader.FindKernel("AddSuperBlockSums");
-        AddBlockSums = shader.FindKernel("AddBlockSums");
-        FinalizeScan = shader.FindKernel("FinalizeScan");
-        Scatter = shader.FindKernel("Scatter");
-        CopyBack = shader.FindKernel("CopyBack");
         InitialisePressures = shader.FindKernel("InitialisePressures");
         CalculateDensity = shader.FindKernel("CalculateDensity");
         CalculateNonPressureAcceleration = shader.FindKernel("CalculateNonPressureAcceleration");

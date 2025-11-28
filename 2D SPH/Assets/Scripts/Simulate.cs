@@ -10,7 +10,8 @@ public class Simulate : MonoBehaviour
     Inspector properties
     */
     [Header("Shaders")]
-    [SerializeField] ComputeShader computeShader;
+    [SerializeField] ComputeShader spatialCompute;
+    [SerializeField] ComputeShader simCompute;
 
     [Header("Simulation Settings")]
     [SerializeField] float simulationSpeed = 1f;
@@ -72,6 +73,8 @@ public class Simulate : MonoBehaviour
     float simulationTime = 0;
 
     RenderTexture densityTex;
+
+    SpatialHashManager hashManager;
 
     /*
     Public getters
@@ -202,8 +205,10 @@ public class Simulate : MonoBehaviour
     {
         spawner = GetComponent<Spawn>();
         drawer = GetComponent<Draw>();
+
+        hashManager = new SpatialHashManager(spatialCompute);
         
-        shader = new ShaderHelper(computeShader);
+        shader = new ShaderHelper(simCompute);
         drawer.SetComputeShader(shader);
 
         physicsTimeStep = 1f / SolverSteps(pressureSolver);
@@ -252,7 +257,7 @@ public class Simulate : MonoBehaviour
 
     void RunPhysicsStep()
     {
-        ScanAndScatter();
+        hashManager.ScanAndScatter(binNumber);
 
         if (pressureSolver == Solver.IISPH)
             RunIISPHStep();
@@ -305,58 +310,6 @@ public class Simulate : MonoBehaviour
         if (propChoice == Draw.Property.Velocity) shader.Dispatch(kernels.CalculateVelocityColour);
         if (propChoice == Draw.Property.Density) shader.Dispatch(kernels.CalculateDensityColour);
         if (propChoice == Draw.Property.Pressure) shader.Dispatch(kernels.CalculatePressureColour);
-    }
-
-    void ScanAndScatter()
-    {
-        int clearCountsGroupNum = Mathf.CeilToInt(binNumber / (float)Constants.threadGroupSize);
-        shader.Dispatch(true, clearCountsGroupNum, kernels.ClearCounts);
-
-        shader.Dispatch(kernels.Partition);
-
-        HierarchicalScan();
-
-        shader.Dispatch(kernels.Scatter, kernels.CopyBack);
-    }
-
-    void HierarchicalScan()
-    {
-        int numBlocks = Mathf.CeilToInt(binNumber / (float)Constants.scanBlockSize);
-
-        // Phase 1: Local scan in each block (stores block sums in BlockSums buffer)
-        shader.Dispatch(true, numBlocks, kernels.Scan);
-
-        // Phase 2: If we have multiple blocks, scan the block sums themselves
-        if (numBlocks > 1)
-        {
-            int numSuperBlocks = Mathf.CeilToInt(numBlocks / (float)Constants.scanBlockSize);
-
-            shader.SetValues(new object[] { "numBlockSums", numBlocks, "numSuperBlocks", numSuperBlocks });
-            shader.Dispatch(true, numSuperBlocks, kernels.ScanBlockSums);
-
-            // Phase 2.5: If we have multiple super-blocks, scan them (three-level scan)
-            if (numSuperBlocks > 1)
-            {
-                shader.Dispatch(true, 1, kernels.ScanSuperBlockSums);
-            }
-
-            // Phase 2.75: Add scanned super-block sums to BlockSums
-            if (numSuperBlocks > 1)
-            {
-                int addSuperThreadGroups = Mathf.CeilToInt(numBlocks / (float)Constants.threadGroupSize);
-                shader.Dispatch(true, addSuperThreadGroups, kernels.AddSuperBlockSums);
-            }
-        }
-
-        // Phase 3: Add scanned block sums to each block's elements
-        if (numBlocks > 1)
-        {
-            int addThreadGroups = Mathf.CeilToInt(binNumber / (float)Constants.threadGroupSize);
-            shader.Dispatch(true, addThreadGroups, kernels.AddBlockSums);
-        }
-
-        // Phase 4: Write final element (total particle count)
-        shader.Dispatch(true, 1, kernels.FinalizeScan);
     }
 
     void OnValidate()
@@ -423,7 +376,7 @@ public class Simulate : MonoBehaviour
 
     void FindKernels()
     {
-        kernels = new KernelSet(computeShader);
+        kernels = new KernelSet(simCompute);
 
         shader.BindStaticBuffers(kernels);
     }

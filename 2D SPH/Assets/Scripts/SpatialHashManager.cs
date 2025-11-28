@@ -37,6 +37,8 @@ public class SpatialHashManager
 
     public void ScanAndScatter(int binNumber)
     {
+        shader.SetInt("tableSize", binNumber);
+
         int clearCountsGroupNum = Mathf.CeilToInt(binNumber / (float)Constants.threadGroupSize);
         shader.Dispatch(ClearCounts, clearCountsGroupNum, 1, 1);
 

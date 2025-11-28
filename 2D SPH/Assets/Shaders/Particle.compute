@@ -67,9 +67,7 @@ static const int3 offsets[27] =
 };
 
 // Integer buffers
-RWStructuredBuffer<uint> CellCounts;
 RWStructuredBuffer<uint> Offsets;
-RWStructuredBuffer<uint> LocalOffsets;
 
 // Float buffers
 RWStructuredBuffer<float> Aii;
@@ -80,7 +78,6 @@ RWStructuredBuffer<float> Densities;
 // Vector buffers
 RWStructuredBuffer<float3> PredictedPositions;
 RWStructuredBuffer<float3> Positions;
-RWStructuredBuffer<float3> SortedPositions;
 RWStructuredBuffer<float3> Velocities;
 RWStructuredBuffer<float3> SortedVelocities;
 
@@ -121,12 +118,15 @@ float velocitySmoothing;
 float3 mousePos;
 float3 gravity;
 
+uint tableSize;
+
 /*
 Scan/partition parameters
 */
 // Integers
 
 #include "Constants.hlsl"
+#include "Partition.hlsl"
 #include "Kernels.hlsl"
 #include "External.hlsl"
 #include "Density.hlsl"

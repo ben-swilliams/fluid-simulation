@@ -9,14 +9,28 @@
 #pragma kernel Scatter
 #pragma kernel CopyBack
 
+RWStructuredBuffer<uint> CellCounts;
+RWStructuredBuffer<uint> Offsets;
+RWStructuredBuffer<uint> LocalOffsets;
+
+RWStructuredBuffer<float3> Positions;
+RWStructuredBuffer<float3> SortedPositions;
+RWStructuredBuffer<float3> Velocities;
+RWStructuredBuffer<float3> SortedVelocities;
+
+uint instanceCount;
+uint tableSize;
+uint numBlockSums;
+uint numSuperBlocks;
+
+float smoothingRadius;
+
+float3 containerSize;
+
 #include "Constants.hlsl"
 #include "Partition.hlsl"
 #include "Scan.hlsl"
 #include "Scatter.hlsl"
-
-uint tableSize;
-uint numBlockSums;
-uint numSuperBlocks;
 
 [numthreads(NumThreads, 1, 1)]
 void ClearCounts(uint id : SV_DispatchThreadID) {
@@ -29,7 +43,8 @@ void ClearCounts(uint id : SV_DispatchThreadID) {
 [numthreads(NumThreads, 1, 1)]
 void Partition(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
-    IndexAndCount(id.x);
+    
+    InterlockedAdd(CellCounts[CalculateHash(Positions[id.x])], 1);
 }
 
 [numthreads(NumThreads, 1, 1)]
