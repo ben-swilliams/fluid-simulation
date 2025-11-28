@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class SpatialHashManager
@@ -13,12 +15,75 @@ public class SpatialHashManager
     int AddBlockSums;
     int FinalizeScan;
 
-    ComputeShader shader;
+    int binNumber;
 
-    public SpatialHashManager(ComputeShader spatialShader)
+    ComputeShader shader;
+    BufferHelper bufferHelper;
+
+    public SpatialHashManager(ComputeShader spatialShader, int binNumber, int instanceCount, Dictionary<string, ComputeBuffer> externalBuffers)
     {
         shader = spatialShader;
+
+        this.binNumber = binNumber;
+
+        shader.SetInt("tableSize", this.binNumber);
+        shader.SetInt("instanceCount", instanceCount);
+
         FindKernels();
+
+        Dictionary<int, string[]> dependencies = new Dictionary<int, string[]>
+        {
+            { ClearCounts, new[] { "CellCounts", "LocalOffsets" } },
+            { Partition, new[] { "CellCounts", "Positions" } },
+            { Scan, new[] { "Offsets", "CellCounts", "BlockSums" } },
+            { ScanBlockSums, new[] { "BlockSums", "SuperBlockSums" } },
+            { ScanSuperBlockSums, new[] { "SuperBlockSums" } },
+            { AddSuperBlockSums, new[] { "BlockSums", "SuperBlockSums" } },
+            { AddBlockSums, new[] { "Offsets", "CellCounts", "BlockSums" } },
+            { FinalizeScan, new[] { "Offsets" } },
+            { Scatter, new[] { "LocalOffsets", "Offsets", "Velocities", "SortedVelocities", "Positions", "SortedPositions" } },
+            { CopyBack, new[] { "SortedVelocities", "SortedPositions", "Velocities", "Positions" }},
+        };
+
+        Dictionary<string, BufferInfo> bufferInfo = GenerateBufferInfo(binNumber, instanceCount);
+
+        bufferHelper = new BufferHelper(shader, dependencies, bufferInfo, externalBuffers);
+    }
+
+    Dictionary<string, BufferInfo> GenerateBufferInfo(int binNumber, int instanceCount)
+    {
+        // Calculate number of blocks needed for hierarchical scan
+        int numBlocks = Mathf.CeilToInt(binNumber / (float)Constants.scanBlockSize);
+
+        // Calculate number of super blocks needed for three-level scan
+        int numSuperBlocks = Mathf.CeilToInt(numBlocks / (float)Constants.scanBlockSize);
+
+        Dictionary<string, BufferInfo> bufferInfo = GenerateBinDependentBufferInfo(binNumber);
+
+        bufferInfo.Add("SortedVelocities", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) * 3});
+        bufferInfo.Add("SortedPositions", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) * 3});
+        
+        return bufferInfo;
+    }
+
+    Dictionary<string, BufferInfo> GenerateBinDependentBufferInfo(int binNumber)
+    {
+        // Calculate number of blocks needed for hierarchical scan
+        int numBlocks = Mathf.CeilToInt(binNumber / (float)Constants.scanBlockSize);
+
+        // Calculate number of super blocks needed for three-level scan
+        int numSuperBlocks = Mathf.CeilToInt(numBlocks / (float)Constants.scanBlockSize);
+
+        Dictionary<string, BufferInfo> bufferInfo = new Dictionary<string, BufferInfo>
+        {
+            { "CellCounts", new BufferInfo { Length = binNumber, ElementSize = sizeof(uint) } },
+            { "LocalOffsets", new BufferInfo { Length = binNumber, ElementSize = sizeof(uint) } },
+            { "Offsets", new BufferInfo { Length = binNumber + 1, ElementSize = sizeof(uint) } },
+            { "BlockSums", new BufferInfo { Length = Mathf.Max(1, numBlocks), ElementSize = sizeof(uint) }},
+            { "SuperBlockSums", new BufferInfo { Length = Mathf.Max(1, numSuperBlocks), ElementSize = sizeof(uint)}},
+        };
+
+        return bufferInfo;
     }
 
     void FindKernels()
@@ -33,21 +98,6 @@ public class SpatialHashManager
         AddSuperBlockSums = shader.FindKernel("AddSuperBlockSums");
         AddBlockSums = shader.FindKernel("AddBlockSums");
         FinalizeScan = shader.FindKernel("FinalizeScan");
-    }
-
-    public void ScanAndScatter(int binNumber)
-    {
-        shader.SetInt("tableSize", binNumber);
-
-        int clearCountsGroupNum = Mathf.CeilToInt(binNumber / (float)Constants.threadGroupSize);
-        shader.Dispatch(ClearCounts, clearCountsGroupNum, 1, 1);
-
-        shader.Dispatch(Partition, Constants.threadGroupSize, 1, 1);
-
-        HierarchicalScan(binNumber);
-
-        shader.Dispatch(Scatter, Constants.threadGroupSize, 1, 1);
-        shader.Dispatch(CopyBack, Constants.threadGroupSize, 1, 1);
     }
 
     void HierarchicalScan(int binNumber)
@@ -90,5 +140,30 @@ public class SpatialHashManager
 
         // Phase 4: Write final element (total particle count)
         shader.Dispatch(FinalizeScan, 1, 1, 1);
+    }
+
+    public void ScanAndScatter(int binNumber)
+    {
+        if (this.binNumber != binNumber) {
+            shader.SetInt("tableSize", binNumber);
+            bufferHelper.UpdateBuffers(GenerateBinDependentBufferInfo(binNumber));
+
+            this.binNumber = binNumber;
+        }
+
+        int clearCountsGroupNum = Mathf.CeilToInt(binNumber / (float)Constants.threadGroupSize);
+        shader.Dispatch(ClearCounts, clearCountsGroupNum, 1, 1);
+
+        shader.Dispatch(Partition, Constants.threadGroupSize, 1, 1);
+
+        HierarchicalScan(binNumber);
+
+        shader.Dispatch(Scatter, Constants.threadGroupSize, 1, 1);
+        shader.Dispatch(CopyBack, Constants.threadGroupSize, 1, 1);
+    }
+
+    public void Destroy()
+    {
+        bufferHelper.Destroy();
     }
 }

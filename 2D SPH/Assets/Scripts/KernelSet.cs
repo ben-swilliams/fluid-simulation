@@ -42,16 +42,6 @@ public class KernelSet
 
         kernelStaticBufferMap = new Dictionary<int, string[]>
         {
-            { ClearCounts, new[] { "CellCounts", "LocalOffsets" } },
-            { Partition, new[] { "CellCounts", "Positions" } },
-            { Scan, new[] { "Offsets", "CellCounts", "BlockSums" } },
-            { ScanBlockSums, new[] { "BlockSums", "SuperBlockSums" } },
-            { ScanSuperBlockSums, new[] { "SuperBlockSums" } },
-            { AddSuperBlockSums, new[] { "BlockSums", "SuperBlockSums" } },
-            { AddBlockSums, new[] { "Offsets", "CellCounts", "BlockSums" } },
-            { FinalizeScan, new[] { "Offsets" } },
-            { Scatter, new[] { "LocalOffsets", "Offsets", "IterPressures", "Velocities", "SortedVelocities", "Positions", "SortedPositions" } },
-            { CopyBack, new[] { "SortedVelocities", "SortedPositions", "Velocities", "Positions" }},
             { InitialisePressures, new[] { "Pressures" }},
             { CalculateDensity, new[] { "Densities", "Offsets", "Positions" } },
             { CalculateNonPressureAcceleration, new[] { "Offsets", "IntermediateAccelerations", "Densities", "Pressures", "Velocities", "Positions" } },

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.SceneManagement;
@@ -206,8 +207,6 @@ public class Simulate : MonoBehaviour
         spawner = GetComponent<Spawn>();
         drawer = GetComponent<Draw>();
 
-        hashManager = new SpatialHashManager(spatialCompute);
-        
         shader = new ShaderHelper(simCompute);
         drawer.SetComputeShader(shader);
 
@@ -324,6 +323,7 @@ public class Simulate : MonoBehaviour
     void OnDestroy()
     {
         shader.Destroy();
+        hashManager?.Destroy();
     }
 
     void StartSimulation()
@@ -332,6 +332,13 @@ public class Simulate : MonoBehaviour
 
         shader.InitialiseCount(instanceCount);
         shader.SetupBuffers(spawner.ExtractPositions(), GenerateVelocityData(), binNumber);
+
+        Dictionary<string, ComputeBuffer> hashDependencies = new Dictionary<string, ComputeBuffer>
+        {
+            { "Velocities", shader.VelocityBuffer },
+            { "Positions", shader.PositionBuffer },
+        };
+        hashManager = new SpatialHashManager(spatialCompute, binNumber, instanceCount, hashDependencies);
 
         if (indexHash)
             binNumber = CalculateCellNumber();
