@@ -64,7 +64,6 @@ public class BufferHelper
 
         foreach (int k in dependentKernels)
         {
-            Debug.Log($"Binding buffer {k}: {name}");
             shader.SetBuffer(k, name, buffer);
         }
     }

@@ -10336,12 +10336,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5bff678dc30d6f419dcd0ec0451cb4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
-  computeShader: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
+  spatialCompute: {fileID: 7200000, guid: d47f4318ac5bd4e9f8022f5eb9d0f83a, type: 3}
+  simCompute: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
   simulationSpeed: 1
   smoothingRadius: 0.05
   velocitySmoothing: 0.01
   stepSize: 10
   maxVelocity: 5
+  binNumber: 27000
+  indexHash: 1
   densityTextureRes: 100
   initSpeed: 0
   gravity: -9.8
