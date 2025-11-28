@@ -10,24 +10,15 @@
 #pragma kernel CopyBack
 
 RWStructuredBuffer<uint> CellCounts;
-RWStructuredBuffer<uint> Offsets;
 RWStructuredBuffer<uint> LocalOffsets;
 
-RWStructuredBuffer<float3> Positions;
 RWStructuredBuffer<float3> SortedPositions;
-RWStructuredBuffer<float3> Velocities;
 RWStructuredBuffer<float3> SortedVelocities;
 
-uint instanceCount;
-uint tableSize;
 uint numBlockSums;
 uint numSuperBlocks;
 
-float smoothingRadius;
-
-float3 containerSize;
-
-#include "Constants.hlsl"
+#include "Common.hlsl"
 #include "Partition.hlsl"
 #include "Scan.hlsl"
 #include "Scatter.hlsl"

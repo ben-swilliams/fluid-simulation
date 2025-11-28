@@ -1,20 +1,4 @@
-#pragma kernel InitialisePressures
 #pragma kernel CalculateDensity
-#pragma kernel CalculateNonPressureAcceleration
-#pragma kernel CalculateNonPressureAccelerationAndD
-#pragma kernel PredictVelocity
-#pragma kernel PredictPosition
-#pragma kernel PredictDensityAndCalculateA
-#pragma kernel CalculatePressureSums
-#pragma kernel CalculateNextIISPHPressure
-#pragma kernel FinalisePressureIteration
-#pragma kernel CalculateWCSPHPressure
-#pragma kernel CalculateNextPCISPHPressure
-
-#pragma kernel UpdateIISPHVelocities
-#pragma kernel UpdateWCSPHVelocities
-#pragma kernel UpdatePCISPHVelocities
-#pragma kernel UpdatePositions
 
 #pragma kernel WriteDensities
 
@@ -26,127 +10,28 @@
 Global parameters
 */
 
-static const float Epsilon = 1e-12;
-static const int3 offsets[27] =
-{
-	int3(-1, -1, -1),
-	int3(0, -1, -1),
-	int3(1, -1, -1),
-
-	int3(-1, 0, -1),
-	int3(0, 0, -1),
-	int3(1, 0, -1),
-
-	int3(-1, 1, -1),
-	int3(0, 1, -1),
-	int3(1, 1, -1),
-
-	int3(-1, -1, 0),
-	int3(0, -1, 0),
-	int3(1, -1, 0),
-
-	int3(-1, 0, 0),
-	int3(0, 0, 0),
-	int3(1, 0, 0),
-
-	int3(-1, 1, 0),
-	int3(0, 1, 0),
-	int3(1, 1, 0),
-
-	int3(-1, -1, 1),
-	int3(0, -1, 1),
-	int3(1, -1, 1),
-
-	int3(-1, 0, 1),
-	int3(0, 0, 1),
-	int3(1, 0, 1),
-
-	int3(-1, 1, 1),
-	int3(0, 1, 1),
-	int3(1, 1, 1)
-};
-
-// Integer buffers
-RWStructuredBuffer<uint> Offsets;
-
 // Float buffers
-RWStructuredBuffer<float> Aii;
-RWStructuredBuffer<float> IterPressures;
-RWStructuredBuffer<float> Pressures;
-RWStructuredBuffer<float> Densities;
 
 // Vector buffers
-RWStructuredBuffer<float3> PredictedPositions;
-RWStructuredBuffer<float3> Positions;
-RWStructuredBuffer<float3> Velocities;
-RWStructuredBuffer<float3> SortedVelocities;
 
-RWStructuredBuffer<float3> IntermediateAccelerations;
-RWStructuredBuffer<float3> Dii;
-RWStructuredBuffer<float3> DPSum;
 
 RWStructuredBuffer<float3> Colours;
 
 RWTexture3D<float> DensityTex;
 int3 densityTexDims;
 
-// Integers
-uint instanceCount;
-
-// Floats
-float deltaTime;
-float particleMass;
-float smoothingRadius;
-float maxVelocity;
-float restDensity;
-
-// Vectors
-float3 containerSize;
-
-/*
-External force parameters
-*/
-// Floats
-float size;
-float dampingFactor;
-float power;
-float mouseRadius;
-float surfaceTensionMultiplier;
-float velocitySmoothing;
-
-// Vectors
-float3 mousePos;
-float3 gravity;
-
-uint tableSize;
-
-/*
-Scan/partition parameters
-*/
-// Integers
-
-#include "Constants.hlsl"
+#include "Common.hlsl"
 #include "Partition.hlsl"
 #include "Kernels.hlsl"
 #include "External.hlsl"
 #include "Density.hlsl"
 #include "Pressure.hlsl"
 #include "Viscosity.hlsl"
-#include "IISPH.hlsl"
-#include "WCSPH.hlsl"
-#include "PCISPH.hlsl"
 #include "Colours.hlsl"
 
 /*
 SPATIAL HASHING
 */
-
-[numthreads(NumThreads, 1, 1)]
-void InitialisePressures(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    Pressures[id.x] = 0;
-}
 
 [numthreads(NumThreads, 1, 1)]
 void CalculateDensity(uint3 id : SV_DispatchThreadID) {
@@ -156,129 +41,6 @@ void CalculateDensity(uint3 id : SV_DispatchThreadID) {
 
     Densities[3 * id.x] = max(densities.x, Epsilon);
     Densities[3 * id.x + 1] = max(densities.y, Epsilon);
-}
-
-[numthreads(NumThreads, 1, 1)]
-void CalculateNonPressureAcceleration(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    IntermediateAccelerations[id.x] = CalculatePCISPHAcceleration(id.x);
-}
-
-[numthreads(NumThreads, 1, 1)]
-void CalculateNonPressureAccelerationAndD(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    AccAndD accAndD = CalculateAccelerationAndD(id.x);
-    IntermediateAccelerations[id.x] = accAndD.acceleration;
-    Dii[id.x] = accAndD.D;
-}
-
-[numthreads(NumThreads, 1, 1)]
-void PredictVelocity(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    Velocities[id.x] += IntermediateAccelerations[id.x] * deltaTime;
-    Velocities[id.x] = CollideVelocity(id.x);
-}
-
-[numthreads(NumThreads, 1, 1)]
-void PredictPosition(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    float3 predictedVelocity = Velocities[id.x] + (IntermediateAccelerations[id.x] + CalculatePCISPHPressureForce(id.x)) * deltaTime;
-
-    PredictedPositions[id.x] = Positions[id.x] + predictedVelocity * deltaTime;
-}
-
-[numthreads(NumThreads, 1, 1)]
-void PredictDensityAndCalculateA(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    float density = Densities[3 * id.x];
-
-    float2 values = CalculateDeltaDensityAndA(id.x, density);
-    float deltaDensity = values.x;
-    float a = values.y;
-
-    Densities[3 * id.x + 2] = density + deltaDensity * deltaTime;
-    Aii[id.x] = a;
-}
-
-[numthreads(NumThreads, 1, 1)]
-void CalculatePressureSums(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    DPSum[id.x] = CalculatePressureSum(id.x);
-}
-
-[numthreads(NumThreads, 1, 1)]
-void CalculateNextIISPHPressure(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    Pressures[id.x] = CalculateNextIISPHPressureValue(id.x, Densities[3 * id.x]);
-}
-
-[numthreads(NumThreads, 1, 1)]
-void FinalisePressureIteration(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    IterPressures[id.x] = Pressures[id.x];
-}
-
-[numthreads(NumThreads, 1, 1)]
-void CalculateWCSPHPressure(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    Pressures[id.x] = CalculateTaitPressure(id.x);
-}
-
-[numthreads(NumThreads, 1, 1)]
-void CalculateNextPCISPHPressure(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    Pressures[id.x] += CalculatePressureChange(id.x);
-}
-
-[numthreads(NumThreads, 1, 1)]
-void UpdateIISPHVelocities(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    float3 pressureForce = CalculateXSPHPressureForce(id.x);
-
-    if (any(isnan(pressureForce))) return;
-
-    Velocities[id.x] += pressureForce * deltaTime / particleMass;
-    float mag = length(Velocities[id.x]);
-    if (mag > maxVelocity) {
-        Velocities[id.x] = maxVelocity * Velocities[id.x] / mag;
-    }
-}
-
-[numthreads(NumThreads, 1, 1)]
-void UpdatePCISPHVelocities(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    Velocities[id.x] += (IntermediateAccelerations[id.x] + CalculatePCISPHPressureForce(id.x)) * deltaTime;
-    float mag = length(Velocities[id.x]);
-    if (mag > maxVelocity) {
-        Velocities[id.x] = maxVelocity * Velocities[id.x] / mag;
-    }
-}
-
-[numthreads(NumThreads, 1, 1)]
-void UpdateWCSPHVelocities(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    float3 acceleration = CalculateWCSPHAcceleration(id.x);
-
-    if (any(isnan(acceleration))) return;
-
-    Velocities[id.x] += acceleration * deltaTime;
-    float mag = length(Velocities[id.x]);
-    if (mag > maxVelocity) {
-        Velocities[id.x] = maxVelocity * Velocities[id.x] / mag;
-    }
 }
 
 [numthreads(NumThreads, 1, 1)]

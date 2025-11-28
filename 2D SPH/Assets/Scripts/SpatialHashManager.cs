@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -52,12 +51,6 @@ public class SpatialHashManager
 
     Dictionary<string, BufferInfo> GenerateBufferInfo(int binNumber, int instanceCount)
     {
-        // Calculate number of blocks needed for hierarchical scan
-        int numBlocks = Mathf.CeilToInt(binNumber / (float)Constants.scanBlockSize);
-
-        // Calculate number of super blocks needed for three-level scan
-        int numSuperBlocks = Mathf.CeilToInt(numBlocks / (float)Constants.scanBlockSize);
-
         Dictionary<string, BufferInfo> bufferInfo = GenerateBinDependentBufferInfo(binNumber);
 
         bufferInfo.Add("SortedVelocities", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) * 3});

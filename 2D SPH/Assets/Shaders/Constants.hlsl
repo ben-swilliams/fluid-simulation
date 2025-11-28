@@ -1,1 +1,0 @@
-static const uint NumThreads = 256;

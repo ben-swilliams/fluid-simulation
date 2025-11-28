@@ -76,6 +76,7 @@ public class Simulate : MonoBehaviour
     RenderTexture densityTex;
 
     SpatialHashManager hashManager;
+    BufferHelper commonBufferHelper;
 
     /*
     Public getters
@@ -329,6 +330,8 @@ public class Simulate : MonoBehaviour
     void StartSimulation()
     {
         instanceCount = spawner.InstanceCount;
+
+        commonBufferHelper = new BufferHelper(simCompute, dependencies, bufferInfo, externalBuffers);
 
         shader.InitialiseCount(instanceCount);
         shader.SetupBuffers(spawner.ExtractPositions(), GenerateVelocityData(), binNumber);
