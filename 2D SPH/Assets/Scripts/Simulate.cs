@@ -241,7 +241,7 @@ public class Simulate : MonoBehaviour
 
         float angle = wavePeriod * simulationTime;
         Vector3 gravityForce = new Vector3(waveStrength * Mathf.Cos(angle), gravity, waveStrength * Mathf.Sin(angle));
-        shader.SetValues(new object[] { "gravity", gravityForce });
+        Utils.SetValues(wcsphCompute, new object[] { "gravity", gravityForce });
     }
 
     void AdvanceFrame()
@@ -403,7 +403,7 @@ public class Simulate : MonoBehaviour
 
         Dictionary<string, BufferInfo> bufferInfo = new Dictionary<string, BufferInfo>
         {
-            { "Densities", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) } },
+            { "Densities", new BufferInfo { Length = instanceCount * 3, ElementSize = sizeof(float) } },
             { "Pressures", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) } },
             { "Velocities", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) * 3, InitData = velocities } },
             { "Positions", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) * 3 , InitData = positions} },
@@ -415,12 +415,18 @@ public class Simulate : MonoBehaviour
 
     void InitialiseLeapFrogVelocities()
     {
+        object[] halfStep = new object[] { "deltaTime", physicsTimeStep * 0.5f };
         // Set half timestep for initialization
-        shader.SetValues(new object[] { "deltaTime", physicsTimeStep * 0.5f });
+        Utils.SetValues(spatialCompute, halfStep);
+        Utils.SetValues(simCompute, halfStep);
+        Utils.SetValues(wcsphCompute, halfStep);
 
         RunPhysicsStep();
 
-        shader.SetValues(new object[] { "deltaTime", physicsTimeStep });
+        object[] fullStep = new object[] { "deltaTime", physicsTimeStep };
+        Utils.SetValues(spatialCompute, fullStep);
+        Utils.SetValues(simCompute, fullStep);
+        Utils.SetValues(wcsphCompute, fullStep);
     }
 
     void BindExternalBuffers()
@@ -460,7 +466,9 @@ public class Simulate : MonoBehaviour
             "size", spawner.Size,
             "instanceCount", instanceCount
         };
-        shader.SetValues(keyValues);
+        Utils.SetValues(spatialCompute, keyValues);
+        Utils.SetValues(simCompute, keyValues);
+        Utils.SetValues(wcsphCompute, keyValues);
 
         UpdateMouseForce(Vector3.zero, 0, 0);
         UpdateVariables();
@@ -730,13 +738,16 @@ public class Simulate : MonoBehaviour
         int maxY = Mathf.FloorToInt(effectiveBoundary.y / cellSize);
         int maxZ = Mathf.FloorToInt(effectiveBoundary.z / cellSize);
 
-        shader.SetValues(new object[]
-        {
+        object[] values = {
             "containerSize", container.Boundary,
             "maxCornerX", maxX,
             "maxCornerY", maxY,
             "maxCornerZ", maxZ
-        });
+        };
+        
+        Utils.SetValues(spatialCompute, values);
+        Utils.SetValues(simCompute, values);
+        Utils.SetValues(wcsphCompute, values);
 
         drawer.UpdateContainerSize(container.Boundary);
     }
