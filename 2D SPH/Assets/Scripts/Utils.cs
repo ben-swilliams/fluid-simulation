@@ -11,18 +11,21 @@ static class Utils
         public static int stablePCISPHStep = 150;
     }
 
-    public static void SetValues(ComputeShader shader, object[] pairs)
+    public static void SetValues(object[] pairs, params ComputeShader[] shaders)
     {
-        for (int i = 0; i < pairs.Length; i += 2)
+        foreach (ComputeShader shader in shaders)
         {
-            if (pairs[i] is not string name) continue;
+            for (int i = 0; i < pairs.Length; i += 2)
+            {
+                if (pairs[i] is not string name) continue;
 
-            if (pairs[i + 1] is int intVal)
-                shader.SetInt(name, intVal);
-            if (pairs[i + 1] is float floatVal)
-                shader.SetFloat(name, floatVal);
-            if (pairs[i + 1] is Vector3 vecVal)
-                shader.SetVector(name, vecVal);
+                if (pairs[i + 1] is int intVal)
+                    shader.SetInt(name, intVal);
+                if (pairs[i + 1] is float floatVal)
+                    shader.SetFloat(name, floatVal);
+                if (pairs[i + 1] is Vector3 vecVal)
+                    shader.SetVector(name, vecVal);
+            }
         }
     }
 }

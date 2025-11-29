@@ -238,10 +238,10 @@ public class Simulate : MonoBehaviour
 
     void UpdateWaveForce()
     {
-
         float angle = wavePeriod * simulationTime;
         Vector3 gravityForce = new Vector3(waveStrength * Mathf.Cos(angle), gravity, waveStrength * Mathf.Sin(angle));
-        Utils.SetValues(wcsphCompute, new object[] { "gravity", gravityForce });
+
+        Utils.SetValues(new object[] { "gravity", gravityForce }, wcsphCompute);
     }
 
     void AdvanceFrame()
@@ -417,16 +417,12 @@ public class Simulate : MonoBehaviour
     {
         object[] halfStep = new object[] { "deltaTime", physicsTimeStep * 0.5f };
         // Set half timestep for initialization
-        Utils.SetValues(spatialCompute, halfStep);
-        Utils.SetValues(simCompute, halfStep);
-        Utils.SetValues(wcsphCompute, halfStep);
+        Utils.SetValues(halfStep, spatialCompute, simCompute, wcsphCompute);
 
         RunPhysicsStep();
 
         object[] fullStep = new object[] { "deltaTime", physicsTimeStep };
-        Utils.SetValues(spatialCompute, fullStep);
-        Utils.SetValues(simCompute, fullStep);
-        Utils.SetValues(wcsphCompute, fullStep);
+        Utils.SetValues(fullStep, spatialCompute, simCompute, wcsphCompute);
     }
 
     void BindExternalBuffers()
@@ -466,9 +462,7 @@ public class Simulate : MonoBehaviour
             "size", spawner.Size,
             "instanceCount", instanceCount
         };
-        Utils.SetValues(spatialCompute, keyValues);
-        Utils.SetValues(simCompute, keyValues);
-        Utils.SetValues(wcsphCompute, keyValues);
+        Utils.SetValues(keyValues, spatialCompute, simCompute, wcsphCompute);
 
         UpdateMouseForce(Vector3.zero, 0, 0);
         UpdateVariables();
@@ -511,9 +505,7 @@ public class Simulate : MonoBehaviour
             "useIndex", indexHash ? 1 : 0
         };
 
-        Utils.SetValues(simCompute, keyValues);
-        Utils.SetValues(spatialCompute, keyValues);
-        Utils.SetValues(wcsphCompute, keyValues);
+        Utils.SetValues(keyValues, simCompute, spatialCompute, wcsphCompute);
 
         // UpdateDensityTexture();
     }
@@ -745,9 +737,7 @@ public class Simulate : MonoBehaviour
             "maxCornerZ", maxZ
         };
         
-        Utils.SetValues(spatialCompute, values);
-        Utils.SetValues(simCompute, values);
-        Utils.SetValues(wcsphCompute, values);
+        Utils.SetValues(values, spatialCompute, simCompute, wcsphCompute);
 
         drawer.UpdateContainerSize(container.Boundary);
     }
