@@ -271,13 +271,13 @@ public class Simulate : MonoBehaviour
         simCompute.Dispatch(CalculateDensity, Utils.Constants.threadGroupSize, 1, 1);
 
         if (pressureSolver == Solver.IISPH)
-            RunIISPHStep();
+            return;
         if (pressureSolver == Solver.WCSPH)
         {
-            RunWCSPHStep();
+            wcsphManager.SolvePressure();
         }
         if (pressureSolver == Solver.PCISPH)
-            RunPCISPHStep();
+            return;
 
         simCompute.Dispatch(UpdatePositions, Utils.Constants.threadGroupSize, 1, 1);
 
@@ -336,7 +336,6 @@ public class Simulate : MonoBehaviour
 
     void OnDestroy()
     {
-        shader.Destroy();
         hashManager?.Destroy();
         commonBufferHelper?.Destroy();
     }
@@ -348,6 +347,18 @@ public class Simulate : MonoBehaviour
         if (indexHash)
             binNumber = CalculateCellNumber();
 
+        CreateManagers();
+
+        InitialiseVariables();
+        UpdateBoundary();
+        BindExternalBuffers();
+        InitialiseLeapFrogVelocities();
+
+        started = true;
+    }
+
+    void CreateManagers()
+    {
         Dictionary<string, ComputeBuffer> hashDependencies = new Dictionary<string, ComputeBuffer>
         {
             { "Velocities", null },
@@ -387,13 +398,6 @@ public class Simulate : MonoBehaviour
             { "Positions", commonBufferHelper.RetrieveBuffer("Positions") }
         };
         wcsphManager = new WCSPH(wcsphCompute, wcsphDependencies, instanceCount);
-
-        InitialiseVariables();
-        UpdateBoundary();
-        BindExternalBuffers();
-        InitialiseLeapFrogVelocities();
-
-        started = true;
     }
 
     Dictionary<string, BufferInfo> GenerateBufferInfo(int instanceCount)
