@@ -14,6 +14,7 @@ public class Simulate : MonoBehaviour
     [SerializeField] ComputeShader spatialCompute;
     [SerializeField] ComputeShader simCompute;
     [SerializeField] ComputeShader wcsphCompute;
+    [SerializeField] ComputeShader iisphCompute;
 
     [Header("Simulation Settings")]
     [SerializeField] float simulationSpeed = 1f;
@@ -85,7 +86,8 @@ public class Simulate : MonoBehaviour
 
     BufferHelper commonBufferHelper;
     SpatialHashManager hashManager;
-    WCSPH wcsphManager;
+    WCSPHManager wcsphManager;
+    IISPHManager iisphManager;
 
     /*
     Public getters
@@ -241,7 +243,7 @@ public class Simulate : MonoBehaviour
         float angle = wavePeriod * simulationTime;
         Vector3 gravityForce = new Vector3(waveStrength * Mathf.Cos(angle), gravity, waveStrength * Mathf.Sin(angle));
 
-        Utils.SetValues(new object[] { "gravity", gravityForce }, wcsphCompute);
+        Utils.SetValues(new object[] { "gravity", gravityForce }, wcsphCompute, iisphCompute);
     }
 
     void AdvanceFrame()
@@ -271,7 +273,7 @@ public class Simulate : MonoBehaviour
         simCompute.Dispatch(CalculateDensity, Utils.Constants.threadGroupSize, 1, 1);
 
         if (pressureSolver == Solver.IISPH)
-            return;
+            iisphManager.SolvePressure(iisphSolverIterations);
         if (pressureSolver == Solver.WCSPH)
         {
             wcsphManager.SolvePressure();
@@ -338,6 +340,7 @@ public class Simulate : MonoBehaviour
     {
         hashManager?.Destroy();
         commonBufferHelper?.Destroy();
+        iisphManager?.Destroy();
     }
 
     void StartSimulation()
@@ -397,7 +400,19 @@ public class Simulate : MonoBehaviour
             { "Velocities", commonBufferHelper.RetrieveBuffer("Velocities") },
             { "Positions", commonBufferHelper.RetrieveBuffer("Positions") }
         };
-        wcsphManager = new WCSPH(wcsphCompute, wcsphDependencies, instanceCount);
+        wcsphManager = new WCSPHManager(wcsphCompute, wcsphDependencies, instanceCount);
+
+        Dictionary<string, ComputeBuffer> iisphDependencies = new Dictionary<string, ComputeBuffer>
+        {
+            { "Offsets", hashManager.Buffers.RetrieveBuffer("Offsets") },
+            { "Densities", commonBufferHelper.RetrieveBuffer("Densities") },
+            { "Pressures", commonBufferHelper.RetrieveBuffer("Pressures") },
+            { "IntermediateAccelerations", commonBufferHelper.RetrieveBuffer("IntermediateAccelerations") },
+            { "Velocities", commonBufferHelper.RetrieveBuffer("Velocities") },
+            { "Positions", commonBufferHelper.RetrieveBuffer("Positions") }
+        };
+
+        iisphManager = new IISPHManager(iisphCompute, iisphDependencies, instanceCount);
     }
 
     Dictionary<string, BufferInfo> GenerateBufferInfo(int instanceCount)
@@ -409,6 +424,7 @@ public class Simulate : MonoBehaviour
         {
             { "Densities", new BufferInfo { Length = instanceCount * 3, ElementSize = sizeof(float) } },
             { "Pressures", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) } },
+            { "IntermediateAccelerations", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) * 3 }},
             { "Velocities", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) * 3, InitData = velocities } },
             { "Positions", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) * 3 , InitData = positions} },
             { "Colours", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) * 3 }}
@@ -421,12 +437,12 @@ public class Simulate : MonoBehaviour
     {
         object[] halfStep = new object[] { "deltaTime", physicsTimeStep * 0.5f };
         // Set half timestep for initialization
-        Utils.SetValues(halfStep, spatialCompute, simCompute, wcsphCompute);
+        Utils.SetValues(halfStep, spatialCompute, simCompute, wcsphCompute, iisphCompute);
 
         RunPhysicsStep();
 
         object[] fullStep = new object[] { "deltaTime", physicsTimeStep };
-        Utils.SetValues(fullStep, spatialCompute, simCompute, wcsphCompute);
+        Utils.SetValues(fullStep, spatialCompute, simCompute, wcsphCompute, iisphCompute);
     }
 
     void BindExternalBuffers()
@@ -466,7 +482,7 @@ public class Simulate : MonoBehaviour
             "size", spawner.Size,
             "instanceCount", instanceCount
         };
-        Utils.SetValues(keyValues, spatialCompute, simCompute, wcsphCompute);
+        Utils.SetValues(keyValues, spatialCompute, simCompute, wcsphCompute, iisphCompute);
 
         UpdateMouseForce(Vector3.zero, 0, 0);
         UpdateVariables();
@@ -509,7 +525,7 @@ public class Simulate : MonoBehaviour
             "useIndex", indexHash ? 1 : 0
         };
 
-        Utils.SetValues(keyValues, simCompute, spatialCompute, wcsphCompute);
+        Utils.SetValues(keyValues, simCompute, spatialCompute, wcsphCompute, iisphCompute);
 
         // UpdateDensityTexture();
     }
@@ -710,12 +726,12 @@ public class Simulate : MonoBehaviour
     {
         if (shader == null) return;
 
-        shader.SetValues(new object[]
+        Utils.SetValues(new object[]
         {
             "mousePos", origin,
             "mouseRadius", radius,
             "power", power
-        });
+        }, wcsphCompute, iisphCompute);
     }
 
     public void UpdateBoundary()
@@ -741,7 +757,7 @@ public class Simulate : MonoBehaviour
             "maxCornerZ", maxZ
         };
         
-        Utils.SetValues(values, spatialCompute, simCompute, wcsphCompute);
+        Utils.SetValues(values, spatialCompute, simCompute, wcsphCompute, iisphCompute);
 
         drawer.UpdateContainerSize(container.Boundary);
     }

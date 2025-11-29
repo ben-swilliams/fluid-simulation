@@ -14,7 +14,7 @@ public struct BufferInfo
 public class BufferHelper
 {
     ComputeShader shader;
-    
+
     HashSet<string> managedBuffers;
     HashSet<string> externalDependencies;
     Dictionary<string, HashSet<int>> bufferToKernelDependencies;
@@ -48,19 +48,25 @@ public class BufferHelper
                     bufferToKernelDependencies.Add(name, new HashSet<int>());
 
                 bufferToKernelDependencies[name].Add(pair.Key);
-
-                if (buffers.ContainsKey(name)) continue;
-
-                if (externalDependencies.Contains(name))
-                    buffers.Add(name, externalBuffers[name]);
-                else
-                    CreateBuffer(name, bufferInfo[name]);
             }
+        }
+
+        foreach (string name in bufferInfo.Keys)
+        {
+            CreateBuffer(name, bufferInfo[name]);
+        }
+
+        foreach (KeyValuePair<string, ComputeBuffer> external in externalBuffers)
+        {
+            if (!buffers.ContainsKey(external.Key))
+                buffers.Add(external.Key, external.Value);
         }
     }
 
     void BindBuffer(string name, ComputeBuffer buffer)
     {
+        if (!bufferToKernelDependencies.ContainsKey(name)) return;
+
         HashSet<int> dependentKernels = bufferToKernelDependencies[name];
 
         foreach (int k in dependentKernels)
@@ -80,15 +86,17 @@ public class BufferHelper
 
     void CreateBuffer(string name, BufferInfo info)
     {
-                ComputeBuffer buffer = new ComputeBuffer(info.Length, info.ElementSize);
+        ComputeBuffer buffer = new ComputeBuffer(info.Length, info.ElementSize);
 
-                if (info.InitData != null) buffer.SetData(info.InitData);
+        if (info.InitData != null) buffer.SetData(info.InitData);
 
-                buffers.Add(name, buffer);
+        buffers.Add(name, buffer);
     }
 
-    void ReleaseBuffer(string name){ 
-        if (buffers.ContainsKey(name) && buffers[name] != null) {
+    void ReleaseBuffer(string name)
+    {
+        if (buffers.ContainsKey(name) && buffers[name] != null)
+        {
             buffers[name].Release();
             buffers.Remove(name);
         }

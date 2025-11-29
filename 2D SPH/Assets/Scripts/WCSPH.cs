@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using System.Threading;
 using UnityEngine;
 
-public class WCSPH
+public class WCSPHManager
 {
     ComputeShader shader;
     BufferHelper bufferHelper;
@@ -12,7 +11,7 @@ public class WCSPH
     int CalculateWCSPHPressure;
     int UpdateWCSPHVelocities;
 
-    public WCSPH(ComputeShader wcsphShader, Dictionary<string, ComputeBuffer> externalBuffers, int instanceCount)
+    public WCSPHManager(ComputeShader wcsphShader, Dictionary<string, ComputeBuffer> externalBuffers, int instanceCount)
     {
         shader = wcsphShader;
 

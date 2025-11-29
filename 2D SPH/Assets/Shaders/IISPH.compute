@@ -1,3 +1,4 @@
+#pragma kernel InitialisePressures
 #pragma kernel CalculateNonPressureAccelerationAndD
 #pragma kernel PredictVelocity
 #pragma kernel PredictDensityAndCalculateA
@@ -19,6 +20,13 @@ RWStructuredBuffer<float3> DPSum;
 #include "Pressure.hlsl"
 #include "External.hlsl"
 #include "IISPH.hlsl"
+
+[numthreads(NumThreads, 1, 1)]
+void InitialisePressures(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    IterPressures[id.x] = 0;
+}
 
 [numthreads(NumThreads, 1, 1)]
 void CalculateNonPressureAccelerationAndD(uint3 id : SV_DispatchThreadID) {
