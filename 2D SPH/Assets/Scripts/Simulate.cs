@@ -568,10 +568,6 @@ public class Simulate : MonoBehaviour
     {
         Vector3 containerSize = GetComponentInChildren<Container>().Boundary;
         float cellSize = 2f * smoothingRadius;
-<<<<<<< HEAD
-        Vector3 effectiveBoundary = containerSize - Vector3.one * size;
-=======
->>>>>>> main
 
         // Calculate grid dimensions (number of cells in each axis)
         int gridX = Mathf.CeilToInt(containerSize.x / cellSize);
