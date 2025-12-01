@@ -4,16 +4,19 @@ using UnityEngine;
 public class Draw : MonoBehaviour
 {
     public enum Property { Velocity, Density, Pressure }
+    public enum DrawMethod { Particles, Cubes, Rays }
 
     /*
     Inspector properties
     */
+    [SerializeField] DrawMethod drawMethod;
     [Header("Shaders")]
     [SerializeField] ComputeShader simCompute;
     [SerializeField] ComputeShader cubesCompute;
     [SerializeField] ComputeShader renderArgsCompute;
     [SerializeField] Shader particleShader;
     [SerializeField] Shader cubesShader;
+    [SerializeField] Shader raysShader;
 
     [Header("Appearance Settings")]
     [SerializeField, Range(0, 4)] int sphereResolution = 2;
@@ -215,19 +218,29 @@ public class Draw : MonoBehaviour
     {
         if (particleArgsBuffer == null) return;
 
-        if (useMarchingCubes && started)
+        if (!started || (drawMethod == DrawMethod.Particles))
         {
-            ComputeBuffer triangles = marchingCubes.Run(densityTex, isoLevel);
-            DrawMesh(triangles);
-        }
-        else {
-                Graphics.DrawMeshInstancedIndirect(
+            Graphics.DrawMeshInstancedIndirect(
                 mesh,
                 0,
                 particleMaterial,
                 bounds,
                 particleArgsBuffer
             );
+
+            return;
+        }
+
+        if (drawMethod == DrawMethod.Cubes)
+        {
+            ComputeBuffer triangles = marchingCubes.Run(densityTex, isoLevel);
+            DrawMesh(triangles);
+            return;
+        }
+
+        if (drawMethod == DrawMethod.Rays)
+        {
+            return;
         }
     }
 
