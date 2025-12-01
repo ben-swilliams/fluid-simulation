@@ -216,7 +216,7 @@ public class Simulate : MonoBehaviour
         if (started)
         {
             AdvanceFrame();
-            if (drawer.UseMarchingCubes) DispatchTextureWrite();
+            if (drawer.DrawTarget == Draw.DrawMethod.Cubes) DispatchTextureWrite();
         }
 
         drawer.DrawFrame(densityTex, started);
@@ -288,7 +288,7 @@ public class Simulate : MonoBehaviour
 
     void UpdateColours()
     {
-        if (drawer.UseMarchingCubes) return; 
+        if (drawer.DrawTarget != Draw.DrawMethod.Particles) return; 
 
         Draw.Property propChoice = drawer.ColourProperty;
 

@@ -4,16 +4,19 @@ using UnityEngine;
 public class Draw : MonoBehaviour
 {
     public enum Property { Velocity, Density, Pressure }
+    public enum DrawMethod { Particles, Cubes, Rays }
 
     /*
     Inspector properties
     */
+    [SerializeField] DrawMethod drawMethod;
     [Header("Shaders")]
     [SerializeField] ComputeShader simCompute;
     [SerializeField] ComputeShader cubesCompute;
     [SerializeField] ComputeShader renderArgsCompute;
     [SerializeField] Shader particleShader;
     [SerializeField] Shader cubesShader;
+    [SerializeField] Shader raysShader;
 
     [Header("Appearance Settings")]
     [SerializeField, Range(0, 4)] int sphereResolution = 2;
@@ -28,7 +31,9 @@ public class Draw : MonoBehaviour
     
     [Header("Marching cubes")]
     [SerializeField] float isoLevel = 5;
-    [SerializeField] bool useMarchingCubes = false;
+
+    [Header("Volumetric rays")]
+    [SerializeField] GameObject raysCube;
 
     /*
     Private properties
@@ -47,12 +52,13 @@ public class Draw : MonoBehaviour
     float highHue;
 
     MarchingCubes marchingCubes;
+    Rays rays;
 
     /*
     Public getters
     */
     public Property ColourProperty => colourProperty;
-    public bool UseMarchingCubes => useMarchingCubes;
+    public DrawMethod DrawTarget => drawMethod;
 
     public float MaxSpeed
     {
@@ -105,6 +111,7 @@ public class Draw : MonoBehaviour
         Color.RGBToHSV(fastColour, out highHue, out _, out _);
 
         marchingCubes = new MarchingCubes(cubesCompute);
+        rays = new Rays(raysShader, raysCube);
     }
 
     void OnValidate()
@@ -215,19 +222,33 @@ public class Draw : MonoBehaviour
     {
         if (particleArgsBuffer == null) return;
 
-        if (useMarchingCubes && started)
+        if (!started || (drawMethod == DrawMethod.Particles))
         {
-            ComputeBuffer triangles = marchingCubes.Run(densityTex, isoLevel);
-            DrawMesh(triangles);
-        }
-        else {
-                Graphics.DrawMeshInstancedIndirect(
+            rays.DisableRays();
+
+            Graphics.DrawMeshInstancedIndirect(
                 mesh,
                 0,
                 particleMaterial,
                 bounds,
                 particleArgsBuffer
             );
+
+            return;
+        }
+
+        if (drawMethod == DrawMethod.Cubes)
+        {
+            rays.DisableRays();
+
+            ComputeBuffer triangles = marchingCubes.Run(densityTex, isoLevel);
+            DrawMesh(triangles);
+            return;
+        }
+
+        if (drawMethod == DrawMethod.Rays)
+        {
+            rays.RenderToCube();
         }
     }
 

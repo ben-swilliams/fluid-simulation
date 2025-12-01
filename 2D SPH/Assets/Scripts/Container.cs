@@ -4,14 +4,6 @@ using UnityEngine;
 public class Container : MonoBehaviour
 {
     /*
-    Inspector settings
-    */
-    [Header("Size settings")]
-
-    [Header("Miscallaneous")]
-    [SerializeField] Mesh mesh;
-
-    /*
     Private properties
     */
     Vector3 lastScale;
