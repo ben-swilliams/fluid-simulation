@@ -9647,6 +9647,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d2ec3d814f38464b9735b28fc6975a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  sim: {fileID: 0}
   selectedColour: {r: 0.4, g: 0.4, b: 0.4, a: 0}
   tabButtons:
   - {fileID: 911672181}
@@ -10336,19 +10337,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5bff678dc30d6f419dcd0ec0451cb4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
-  computeShader: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
+  spatialCompute: {fileID: 7200000, guid: d47f4318ac5bd4e9f8022f5eb9d0f83a, type: 3}
+  simCompute: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
+  wcsphCompute: {fileID: 7200000, guid: 4e4dc8800ceef4244a4534937cb85599, type: 3}
+  iisphCompute: {fileID: 7200000, guid: 48efe4550ac3a40e89423a36aceaa63a, type: 3}
+  pcisphCompute: {fileID: 7200000, guid: 3ede64c1e9c46417fbc253629a0628a4, type: 3}
   simulationSpeed: 1
   smoothingRadius: 0.05
   velocitySmoothing: 0.01
   stepSize: 10
   maxVelocity: 5
+  binNumber: 27000
+  indexHash: 0
   densityTextureRes: 100
   initSpeed: 0
   gravity: -9.8
   dampingFactor: 0.95
   wavePeriod: 1
   waveStrength: 3
-  pressureSolver: 2
+  pressureSolver: 0
   restDensity: 5
   nearPressureMultiplier: 0
   relaxationFactor: 0.5
@@ -10405,6 +10412,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22d3b29815ac44b1ea1b236981483eee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Draw
+  simCompute: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
   cubesCompute: {fileID: 7200000, guid: 1d31a9d15b3f74e14898637718254f0a, type: 3}
   renderArgsCompute: {fileID: 7200000, guid: 0e305fad541c7403cbf0289fe8f0120a, type: 3}
   particleShader: {fileID: 4800000, guid: 86f6b5b4233e64ce79e43b45f3e9e726, type: 3}

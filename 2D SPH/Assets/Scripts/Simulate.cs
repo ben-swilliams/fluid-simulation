@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.SceneManagement;
@@ -10,7 +11,11 @@ public class Simulate : MonoBehaviour
     Inspector properties
     */
     [Header("Shaders")]
-    [SerializeField] ComputeShader computeShader;
+    [SerializeField] ComputeShader spatialCompute;
+    [SerializeField] ComputeShader simCompute;
+    [SerializeField] ComputeShader wcsphCompute;
+    [SerializeField] ComputeShader iisphCompute;
+    [SerializeField] ComputeShader pcisphCompute;
 
     [Header("Simulation Settings")]
     [SerializeField] float simulationSpeed = 1f;
@@ -53,11 +58,16 @@ public class Simulate : MonoBehaviour
     [Header("Surface tension")]
     [SerializeField] float surfaceTensionMultiplier = 1f;
 
+    int CalculateDensity;
+    int UpdatePositions;
+    int WriteDensities;
+    int CalculateVelocityColour;
+    int CalculateDensityColour;
+    int CalculatePressureColour;
+
     /*
     Private properties
     */
-    ShaderHelper shader;
-
     Spawn spawner;
     Draw drawer;
     bool started;
@@ -66,25 +76,28 @@ public class Simulate : MonoBehaviour
     int maxStepsPerFrame = 3;
 
     int instanceCount;
-
-    KernelSet kernels;
+    float size;
 
     float simulationTime = 0;
 
     RenderTexture densityTex;
+
+    BufferHelper commonBufferHelper;
+    SpatialHashManager hashManager;
+    WCSPHManager wcsphManager;
+    IISPHManager iisphManager;
+    PCISPHManager pcisphManager;
 
     /*
     Public getters
     */
     public bool Started => started;
     public float SmoothingRadius => smoothingRadius;
-    public ShaderHelper Shader => shader;
 
     public RenderTexture DensityTex => densityTex;
 
     public float SimulationSpeed
     {
-        get => simulationSpeed;
         set
         {
             simulationSpeed = value;
@@ -94,7 +107,6 @@ public class Simulate : MonoBehaviour
 
     public float Gravity
     {
-        get => gravity;
         set
         {
             gravity = value;
@@ -104,7 +116,6 @@ public class Simulate : MonoBehaviour
 
     public float DampingFactor
     {
-        get => dampingFactor;
         set
         {
             dampingFactor = value;
@@ -114,7 +125,6 @@ public class Simulate : MonoBehaviour
 
     public float WaveStrength
     {
-        get => waveStrength;
         set
         {
             waveStrength = value;
@@ -124,7 +134,6 @@ public class Simulate : MonoBehaviour
 
     public float WavePeriod
     {
-        get => wavePeriod;
         set
         {
             wavePeriod = value;
@@ -134,7 +143,6 @@ public class Simulate : MonoBehaviour
 
     public float DensityFluctuation
     {
-        get => densityError;
         set
         {
             densityError = value;
@@ -144,7 +152,6 @@ public class Simulate : MonoBehaviour
 
     public float Stiffness
     {
-        get => stiffness;
         set
         {
             stiffness = value;
@@ -154,7 +161,6 @@ public class Simulate : MonoBehaviour
 
     public float IISPHSolverIterations
     {
-        get => iisphSolverIterations;
         set
         {
             iisphSolverIterations = Mathf.FloorToInt(value);
@@ -164,7 +170,6 @@ public class Simulate : MonoBehaviour
 
     public float PCISPHSolverIterations
     {
-        get => pcisphSolverIterations;
         set
         {
             pcisphSolverIterations = Mathf.FloorToInt(value);
@@ -174,7 +179,6 @@ public class Simulate : MonoBehaviour
 
     public float RestDensity
     {
-        get => restDensity;
         set
         {
             restDensity = value;
@@ -184,7 +188,6 @@ public class Simulate : MonoBehaviour
 
     public float DeltaScale
     {
-        get => deltaScale;
         set
         {
             deltaScale = value;
@@ -202,9 +205,6 @@ public class Simulate : MonoBehaviour
     {
         spawner = GetComponent<Spawn>();
         drawer = GetComponent<Draw>();
-        
-        shader = new ShaderHelper(computeShader);
-        drawer.SetComputeShader(shader);
 
         physicsTimeStep = 1f / SolverSteps(pressureSolver);
     }
@@ -224,10 +224,10 @@ public class Simulate : MonoBehaviour
 
     void UpdateWaveForce()
     {
-
         float angle = wavePeriod * simulationTime;
         Vector3 gravityForce = new Vector3(waveStrength * Mathf.Cos(angle), gravity, waveStrength * Mathf.Sin(angle));
-        shader.SetValues(new object[] { "gravity", gravityForce });
+
+        Utils.SetValues(new object[] { "gravity", gravityForce }, wcsphCompute, iisphCompute, pcisphCompute);
     }
 
     void AdvanceFrame()
@@ -252,48 +252,38 @@ public class Simulate : MonoBehaviour
 
     void RunPhysicsStep()
     {
-        ScanAndScatter();
+        // True if binNumber has changed
+        bool rebindBuffers = hashManager.ScanAndScatter(binNumber);
+
+        if (rebindBuffers) UpdateOffsets();
+
+        simCompute.Dispatch(CalculateDensity, Utils.Constants.threadGroupSize, 1, 1);
 
         if (pressureSolver == Solver.IISPH)
-            RunIISPHStep();
+            iisphManager.SolvePressure(iisphSolverIterations);
         if (pressureSolver == Solver.WCSPH)
         {
-            RunWCSPHStep();
+            wcsphManager.SolvePressure();
         }
         if (pressureSolver == Solver.PCISPH)
-            RunPCISPHStep();
+            pcisphManager.SolvePressure(pcisphSolverIterations);
+
+        simCompute.Dispatch(UpdatePositions, Utils.Constants.threadGroupSize, 1, 1);
 
         UpdateColours();
 
         simulationTime += physicsTimeStep * simulationSpeed;
     }
 
-    void RunIISPHStep()
+    void UpdateOffsets()
     {
-        shader.Dispatch(kernels.IISPHPrePressureKernels);
+        ComputeBuffer newBuffer = hashManager.Buffers.RetrieveBuffer("Offsets");
+        simCompute.SetBuffer(CalculateDensity, "Offsets", newBuffer);
+        simCompute.SetBuffer(WriteDensities, "Offsets", newBuffer);
 
-        for (int l = 0; l < iisphSolverIterations; l++)
-        {
-            shader.Dispatch(kernels.IISPHPressureKernels);
-        }
-
-        shader.Dispatch(kernels.IISPHPostPressureKernels);
-    }
-
-    void RunWCSPHStep()
-    {
-        shader.Dispatch(kernels.WCSPHKernels);
-    }
-
-    void RunPCISPHStep()
-    {
-        shader.Dispatch(kernels.PCISPHPrePressureKernels);
-        
-        for (int i = 0; i < pcisphSolverIterations; i++)
-        {
-            shader.Dispatch(kernels.PCISPHPressureKernels);
-        }
-        shader.Dispatch(kernels.PCISPHPostPressureKernels);
+        wcsphManager.Buffers.UpdateBuffer("Offsets", newBuffer);
+        iisphManager.Buffers.UpdateBuffer("Offsets", newBuffer);
+        pcisphManager.Buffers.UpdateBuffer("Offsets", newBuffer);
     }
 
     void UpdateColours()
@@ -302,61 +292,9 @@ public class Simulate : MonoBehaviour
 
         Draw.Property propChoice = drawer.ColourProperty;
 
-        if (propChoice == Draw.Property.Velocity) shader.Dispatch(kernels.CalculateVelocityColour);
-        if (propChoice == Draw.Property.Density) shader.Dispatch(kernels.CalculateDensityColour);
-        if (propChoice == Draw.Property.Pressure) shader.Dispatch(kernels.CalculatePressureColour);
-    }
-
-    void ScanAndScatter()
-    {
-        int clearCountsGroupNum = Mathf.CeilToInt(binNumber / (float)Constants.threadGroupSize);
-        shader.Dispatch(true, clearCountsGroupNum, kernels.ClearCounts);
-
-        shader.Dispatch(kernels.Partition);
-
-        HierarchicalScan();
-
-        shader.Dispatch(kernels.Scatter, kernels.CopyBack);
-    }
-
-    void HierarchicalScan()
-    {
-        int numBlocks = Mathf.CeilToInt(binNumber / (float)Constants.scanBlockSize);
-
-        // Phase 1: Local scan in each block (stores block sums in BlockSums buffer)
-        shader.Dispatch(true, numBlocks, kernels.Scan);
-
-        // Phase 2: If we have multiple blocks, scan the block sums themselves
-        if (numBlocks > 1)
-        {
-            int numSuperBlocks = Mathf.CeilToInt(numBlocks / (float)Constants.scanBlockSize);
-
-            shader.SetValues(new object[] { "numBlockSums", numBlocks, "numSuperBlocks", numSuperBlocks });
-            shader.Dispatch(true, numSuperBlocks, kernels.ScanBlockSums);
-
-            // Phase 2.5: If we have multiple super-blocks, scan them (three-level scan)
-            if (numSuperBlocks > 1)
-            {
-                shader.Dispatch(true, 1, kernels.ScanSuperBlockSums);
-            }
-
-            // Phase 2.75: Add scanned super-block sums to BlockSums
-            if (numSuperBlocks > 1)
-            {
-                int addSuperThreadGroups = Mathf.CeilToInt(numBlocks / (float)Constants.threadGroupSize);
-                shader.Dispatch(true, addSuperThreadGroups, kernels.AddSuperBlockSums);
-            }
-        }
-
-        // Phase 3: Add scanned block sums to each block's elements
-        if (numBlocks > 1)
-        {
-            int addThreadGroups = Mathf.CeilToInt(binNumber / (float)Constants.threadGroupSize);
-            shader.Dispatch(true, addThreadGroups, kernels.AddBlockSums);
-        }
-
-        // Phase 4: Write final element (total particle count)
-        shader.Dispatch(true, 1, kernels.FinalizeScan);
+        if (propChoice == Draw.Property.Velocity) simCompute.Dispatch(CalculateVelocityColour, Utils.Constants.threadGroupSize, 1, 1);
+        if (propChoice == Draw.Property.Density) simCompute.Dispatch(CalculateDensityColour, Utils.Constants.threadGroupSize, 1, 1);
+        if (propChoice == Draw.Property.Pressure) simCompute.Dispatch(CalculatePressureColour, Utils.Constants.threadGroupSize, 1, 1);
     }
 
     void OnValidate()
@@ -366,22 +304,26 @@ public class Simulate : MonoBehaviour
         if (!Application.isPlaying || !started) return;
 
         UpdateVariables();
+        UpdateBoundary();
     }
 
     void OnDestroy()
     {
-        shader.Destroy();
+        hashManager?.Destroy();
+        commonBufferHelper?.Destroy();
+        iisphManager?.Destroy();
+        pcisphManager?.Destroy();
     }
 
     void StartSimulation()
     {
         instanceCount = spawner.InstanceCount;
+        size = spawner.Size;
 
         if (indexHash)
             binNumber = CalculateCellNumber();
 
-        shader.InitialiseCount(instanceCount);
-        shader.SetupBuffers(spawner.ExtractPositions(), GenerateVelocityData(), binNumber);
+        CreateManagers();
 
         InitialiseVariables();
         UpdateBoundary();
@@ -391,19 +333,106 @@ public class Simulate : MonoBehaviour
         started = true;
     }
 
+    void CreateManagers()
+    {
+        Dictionary<string, ComputeBuffer> hashDependencies = new Dictionary<string, ComputeBuffer>
+        {
+            { "Velocities", null },
+            { "Positions", null },
+        };
+        hashManager = new SpatialHashManager(spatialCompute, hashDependencies, binNumber, instanceCount);
+
+        FindKernels();
+        Dictionary<int, string[]> dependencies = new Dictionary<int, string[]>
+        {
+            { CalculateDensity, new string[] { "Densities", "Positions", "Offsets"} },
+            { UpdatePositions, new string[] { "Velocities", "Positions" } },
+            { WriteDensities, new string[] { "Densities", "Positions", "Offsets" } },
+            { CalculateVelocityColour, new[] {"Colours", "Velocities"}},
+            { CalculateDensityColour, new[] {"Colours", "Densities"}},
+            { CalculatePressureColour, new[] {"Colours", "Pressures"}}
+        };
+
+        Dictionary<string, BufferInfo> bufferInfo = GenerateBufferInfo(instanceCount);
+        Dictionary<string, ComputeBuffer> commonDependencies = new Dictionary<string, ComputeBuffer>
+        {
+            { "Offsets", hashManager.Buffers.RetrieveBuffer("Offsets") }
+        };
+
+        commonBufferHelper = new BufferHelper(simCompute, dependencies, bufferInfo, commonDependencies);
+
+        hashManager.Buffers.UpdateBuffer("Velocities", commonBufferHelper.RetrieveBuffer("Velocities"));
+        hashManager.Buffers.UpdateBuffer("Positions", commonBufferHelper.RetrieveBuffer("Positions"));
+
+        
+        Dictionary<string, ComputeBuffer> wcsphDependencies = new Dictionary<string, ComputeBuffer>
+        {
+            { "Offsets", hashManager.Buffers.RetrieveBuffer("Offsets") },
+            { "Densities", commonBufferHelper.RetrieveBuffer("Densities") },
+            { "Pressures", commonBufferHelper.RetrieveBuffer("Pressures") },
+            { "Velocities", commonBufferHelper.RetrieveBuffer("Velocities") },
+            { "Positions", commonBufferHelper.RetrieveBuffer("Positions") }
+        };
+        wcsphManager = new WCSPHManager(wcsphCompute, wcsphDependencies, instanceCount);
+
+        Dictionary<string, ComputeBuffer> iisphDependencies = new Dictionary<string, ComputeBuffer>
+        {
+            { "Offsets", hashManager.Buffers.RetrieveBuffer("Offsets") },
+            { "Densities", commonBufferHelper.RetrieveBuffer("Densities") },
+            { "Pressures", commonBufferHelper.RetrieveBuffer("Pressures") },
+            { "IntermediateAccelerations", commonBufferHelper.RetrieveBuffer("IntermediateAccelerations") },
+            { "Velocities", commonBufferHelper.RetrieveBuffer("Velocities") },
+            { "Positions", commonBufferHelper.RetrieveBuffer("Positions") }
+        };
+
+        iisphManager = new IISPHManager(iisphCompute, iisphDependencies, instanceCount);
+
+        Dictionary<string, ComputeBuffer> pcisphDependencies = new Dictionary<string, ComputeBuffer>
+        {
+            { "Offsets", hashManager.Buffers.RetrieveBuffer("Offsets") },
+            { "Densities", commonBufferHelper.RetrieveBuffer("Densities") },
+            { "Pressures", commonBufferHelper.RetrieveBuffer("Pressures") },
+            { "IntermediateAccelerations", commonBufferHelper.RetrieveBuffer("IntermediateAccelerations") },
+            { "Velocities", commonBufferHelper.RetrieveBuffer("Velocities") },
+            { "Positions", commonBufferHelper.RetrieveBuffer("Positions") }
+        };
+
+        pcisphManager = new PCISPHManager(pcisphCompute, pcisphDependencies, instanceCount);
+    }
+
+    Dictionary<string, BufferInfo> GenerateBufferInfo(int instanceCount)
+    {
+        Array velocities = GenerateVelocityData();
+        Array positions = spawner.ExtractPositions();
+
+        Dictionary<string, BufferInfo> bufferInfo = new Dictionary<string, BufferInfo>
+        {
+            { "Densities", new BufferInfo { Length = instanceCount * 3, ElementSize = sizeof(float) } },
+            { "Pressures", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) } },
+            { "IntermediateAccelerations", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) * 3 }},
+            { "Velocities", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) * 3, InitData = velocities } },
+            { "Positions", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) * 3 , InitData = positions} },
+            { "Colours", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) * 3 }}
+        };
+
+        return bufferInfo;
+    }
+
     void InitialiseLeapFrogVelocities()
     {
+        object[] halfStep = new object[] { "deltaTime", physicsTimeStep * 0.5f };
         // Set half timestep for initialization
-        shader.SetValues(new object[] { "deltaTime", physicsTimeStep * 0.5f });
+        Utils.SetValues(halfStep, spatialCompute, simCompute, wcsphCompute, iisphCompute, pcisphCompute);
 
         RunPhysicsStep();
 
-        shader.SetValues(new object[] { "deltaTime", physicsTimeStep });
+        object[] fullStep = new object[] { "deltaTime", physicsTimeStep };
+        Utils.SetValues(fullStep, spatialCompute, simCompute, wcsphCompute, iisphCompute, pcisphCompute);
     }
 
     void BindExternalBuffers()
     {
-        drawer.BindBuffers(shader.PositionBuffer, shader.Colours);
+        drawer.BindBuffers(commonBufferHelper.RetrieveBuffer("Positions"), commonBufferHelper.RetrieveBuffer("Colours"));
         drawer.UpdateSize(spawner.Size);
     }
 
@@ -423,9 +452,12 @@ public class Simulate : MonoBehaviour
 
     void FindKernels()
     {
-        kernels = new KernelSet(computeShader);
-
-        shader.BindStaticBuffers(kernels);
+        CalculateDensity = simCompute.FindKernel("CalculateDensity");
+        UpdatePositions = simCompute.FindKernel("UpdatePositions");
+        WriteDensities = simCompute.FindKernel("WriteDensities");
+        CalculateVelocityColour = simCompute.FindKernel("CalculateVelocityColour");
+        CalculateDensityColour = simCompute.FindKernel("CalculateDensityColour");
+        CalculatePressureColour = simCompute.FindKernel("CalculatePressureColour");
     }
 
     void InitialiseVariables()
@@ -435,12 +467,11 @@ public class Simulate : MonoBehaviour
             "size", spawner.Size,
             "instanceCount", instanceCount
         };
-        shader.SetValues(keyValues);
-
-        FindKernels();
+        Utils.SetValues(keyValues, spatialCompute, simCompute, wcsphCompute, iisphCompute, pcisphCompute);
 
         UpdateMouseForce(Vector3.zero, 0, 0);
         UpdateVariables();
+        UpdateBoundary();
     }
 
     void UpdateVariables()
@@ -454,7 +485,7 @@ public class Simulate : MonoBehaviour
         float speedOfSound = maxVelocity / Mathf.Sqrt(densityError);
         float B = restDensity * speedOfSound * speedOfSound / stiffness;
         float beta = deltaTime * deltaTime * particleMass * particleMass * 2 / (restDensity * restDensity);
-        float delta = ComputeDelta(particleSpacing, beta, gradConstant) * deltaScale;
+        float delta = Utils.ComputeDelta(particleSpacing, beta, gradConstant, smoothingRadius) * deltaScale;
 
         object[] keyValues =
         {
@@ -477,86 +508,22 @@ public class Simulate : MonoBehaviour
             "beta", beta,
             "delta", delta,
             "tableSize", binNumber,
-            "useIndex", indexHash ? 1 : 0
+            "useIndex", indexHash ? 1 : 0,
         };
 
-        shader.SetValues(keyValues);
-
-        shader.SetupBinBuffers(binNumber);
-        shader.BindStaticBuffers(kernels);
+        Utils.SetValues(keyValues, simCompute, spatialCompute, wcsphCompute, iisphCompute, pcisphCompute);
 
         UpdateBoundary();
         UpdateDensityTexture();
     }
 
-    float ComputeDelta(float particleSpacing, float beta, float gradConstant)
-    {
-        Vector3 gradSum = Vector3.zero;
-        float dotGradSum = 0f;
-
-        Vector3 prototypePos = Vector3.zero;
-
-        int range = Mathf.CeilToInt(2 * smoothingRadius / particleSpacing);
-
-        for (int x = -range; x <= range; x++)
-        {
-            for (int y = -range; y <= range; y++)
-            {
-                for (int z = -range; z <= range; z++)
-                {
-                    if (x == 0 && y == 0 && z == 0) continue;
-
-                    Vector3 neighborPos = new Vector3(x, y, z) * particleSpacing;
-                    Vector3 offset = prototypePos - neighborPos;
-                    float r = offset.magnitude;
-
-                    if (r >= 2 * smoothingRadius) continue;
-
-                    Vector3 grad = CubicSplineGrad(offset, r, gradConstant);
-
-                    gradSum += grad;
-                    dotGradSum += Vector3.Dot(grad, grad);
-                }
-            }
-        }
-
-        float denominator = beta * (-Vector3.Dot(gradSum, gradSum) - dotGradSum);
-
-        if (Mathf.Abs(denominator) < 1e-12)
-        {
-            return 0f;
-        }
-
-        return -1f / denominator;
-    }
-
-    Vector3 CubicSplineGrad(Vector3 offset, float r, float gradConstant)
-    {
-        if (r < 1e-12) return Vector3.zero;
-
-        float q = r / smoothingRadius;
-        float gradFactor = 0f;
-
-        if (q < 1f)
-        {
-            gradFactor = gradConstant * (-3f * q + 2.25f * q * q);
-        }
-        else if (q < 2f)
-        {
-            float term = 2f - q;
-            gradFactor = gradConstant * (-0.75f * term * term);
-        }
-
-        return offset * gradFactor / r;
-    }
-
     int SolverSteps(Solver solver)
     {
-        if (solver == Solver.WCSPH) return Constants.stableWCSPHStep;
-        if (solver == Solver.IISPH) return Constants.stableIISPHStep;
-        if (solver == Solver.PCISPH) return Constants.stablePCISPHStep;
+        if (solver == Solver.WCSPH) return Utils.Constants.stableWCSPHStep;
+        if (solver == Solver.IISPH) return Utils.Constants.stableIISPHStep;
+        if (solver == Solver.PCISPH) return Utils.Constants.stablePCISPHStep;
 
-        return Constants.stableWCSPHStep;
+        return Utils.Constants.stableWCSPHStep;
     }
 
     public void ValidateInspectorProperties()
@@ -572,8 +539,6 @@ public class Simulate : MonoBehaviour
         maxVelocity = Mathf.Max(0.01f, maxVelocity);
         iisphSolverIterations = Mathf.Max(0, iisphSolverIterations);
         binNumber = indexHash ? CalculateCellNumber() : Mathf.Max(1, binNumber);
-
-        if (started) UpdateVariables();
     }
 
     void HandleKeyPresses()
@@ -637,7 +602,7 @@ public class Simulate : MonoBehaviour
 
     void UpdateDensityTexture()
     {
-        if (shader == null) return;
+        if (simCompute == null) return;
 
         Vector3 bounds = GetComponentInChildren<Container>().Boundary;
         float maxAxis = Mathf.Max(bounds.x, bounds.y, bounds.z);
@@ -649,9 +614,9 @@ public class Simulate : MonoBehaviour
         {
             if (densityTex != null) densityTex.Release();
 
-            densityTex = CreateDensityTexture(width, height, depth);
-            shader.SetTexture(kernels.WriteDensities, "DensityTex", densityTex);
-            shader.SetInts("densityTexDims", width, height, depth);
+            densityTex = Utils.CreateDensityTexture(width, height, depth);
+            simCompute.SetTexture(WriteDensities, "DensityTex", densityTex);
+            simCompute.SetInts("densityTexDims", width, height, depth);
         }
     }
 
@@ -661,42 +626,24 @@ public class Simulate : MonoBehaviour
         int dispatchY = Mathf.CeilToInt(densityTex.height / 8f);
         int dispatchZ = Mathf.CeilToInt(densityTex.volumeDepth / 8f);
 
-        shader.Dispatch(kernels.WriteDensities, dispatchX, dispatchY, dispatchZ);
+        simCompute.Dispatch(WriteDensities, dispatchX, dispatchY, dispatchZ);
     }
-
-	public static RenderTexture CreateDensityTexture(int width, int height, int depth)
-		{
-            RenderTexture texture = new RenderTexture(width, height, 0);
-            texture.graphicsFormat = GraphicsFormat.R16_SFloat;
-            texture.volumeDepth = depth;
-            texture.enableRandomWrite = true;
-            texture.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
-            texture.useMipMap = false;
-            texture.autoGenerateMips = false;
-            texture.Create();
-
-			texture.wrapMode = TextureWrapMode.Clamp;
-			texture.filterMode = FilterMode.Bilinear;
-			texture.name = "DensityMap";
-
-            return texture;
-		}
 
     public void UpdateMouseForce(Vector3 origin, float radius, float power)
     {
-        if (shader == null) return;
+        if (simCompute == null) return;
 
-        shader.SetValues(new object[]
+        Utils.SetValues(new object[]
         {
             "mousePos", origin,
             "mouseRadius", radius,
             "power", power
-        });
+        }, wcsphCompute, iisphCompute, pcisphCompute);
     }
 
     public void UpdateBoundary()
     {
-        if (shader == null) return;
+        if (simCompute == null || spawner == null) return;
 
         float cellSize = 2f * smoothingRadius;
 
@@ -706,13 +653,14 @@ public class Simulate : MonoBehaviour
         int maxY = Mathf.CeilToInt(container.Boundary.y / cellSize) - 1;
         int maxZ = Mathf.CeilToInt(container.Boundary.z / cellSize) - 1;
 
-        shader.SetValues(new object[]
-        {
+        object[] values = {
             "containerSize", container.Boundary,
             "maxCornerX", maxX,
             "maxCornerY", maxY,
             "maxCornerZ", maxZ
-        });
+        };
+        
+        Utils.SetValues(values, spatialCompute, simCompute, wcsphCompute, iisphCompute, pcisphCompute);
 
         drawer.UpdateContainerSize(container.Boundary);
     }
