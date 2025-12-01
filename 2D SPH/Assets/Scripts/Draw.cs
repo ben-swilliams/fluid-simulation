@@ -9,6 +9,7 @@ public class Draw : MonoBehaviour
     Inspector properties
     */
     [Header("Shaders")]
+    [SerializeField] ComputeShader simCompute;
     [SerializeField] ComputeShader cubesCompute;
     [SerializeField] ComputeShader renderArgsCompute;
     [SerializeField] Shader particleShader;
@@ -44,7 +45,6 @@ public class Draw : MonoBehaviour
 
     float lowHue;
     float highHue;
-    ShaderHelper simShader;
 
     MarchingCubes marchingCubes;
 
@@ -180,14 +180,14 @@ public class Draw : MonoBehaviour
 
     void SetColourValues()
     {
-        simShader.SetValues(new object[]
+        Utils.SetValues(new object[]
         {
             "lowHue", lowHue,
             "highHue", highHue,
             "maxSpeed", maxSpeed,
             "maxDensityFluctuation", maxDensityFluctuation,
             "maxPressure", maxPressure
-        });
+        }, simCompute);
     }
 
     void DrawMesh(ComputeBuffer triangles)
@@ -209,11 +209,6 @@ public class Draw : MonoBehaviour
         renderArgsCompute.Dispatch(0, 1, 1, 1);
         
         Graphics.DrawProceduralIndirect(cubesMaterial, bounds, MeshTopology.Triangles, cubesArgsBuffer);
-    }
-
-    public void SetComputeShader(ShaderHelper shader)
-    {
-        simShader = shader;
     }
 
     public void DrawFrame(RenderTexture densityTex, bool started)
