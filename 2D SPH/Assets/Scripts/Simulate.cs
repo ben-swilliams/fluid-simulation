@@ -472,6 +472,8 @@ public class Simulate : MonoBehaviour
         UpdateMouseForce(Vector3.zero, 0, 0);
         UpdateVariables();
         UpdateBoundary();
+
+        drawer.BindTexture(densityTex);
     }
 
     void UpdateVariables()

@@ -276,4 +276,9 @@ public class Draw : MonoBehaviour
         BindPositions(positionBuffer);
         BindColours(colourBuffer);
     }
+
+    public void BindTexture(RenderTexture densityTex)
+    {
+        rays.BindTexture(densityTex);
+    }
 }
