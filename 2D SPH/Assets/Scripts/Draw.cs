@@ -34,6 +34,9 @@ public class Draw : MonoBehaviour
 
     [Header("Volumetric rays")]
     [SerializeField] GameObject raysCube;
+    [SerializeField] float densityMultiplier;
+    [SerializeField] float depthMultiplier;
+    [SerializeField] Color deepColour = Color.darkBlue;
 
     /*
     Private properties
@@ -112,6 +115,10 @@ public class Draw : MonoBehaviour
 
         marchingCubes = new MarchingCubes(cubesCompute);
         rays = new Rays(raysShader, raysCube);
+        rays.Mat.SetFloat("densityMultiplier", densityMultiplier);
+        rays.Mat.SetFloat("depthMultiplier", depthMultiplier);
+        rays.Mat.SetColor("fluidColour", fluidColour);
+        rays.Mat.SetColor("deepColour", deepColour);
     }
 
     void OnValidate()
@@ -131,6 +138,11 @@ public class Draw : MonoBehaviour
 
         if (!billboard) mesh = MeshGenerator.GenerateSphere(sphereResolution);
         else mesh = MeshGenerator.GenerateQuad();
+
+        rays.Mat.SetFloat("densityMultiplier", densityMultiplier);
+        rays.Mat.SetFloat("depthMultiplier", depthMultiplier);
+        rays.Mat.SetColor("fluidColour", fluidColour);
+        rays.Mat.SetColor("deepColour", deepColour);
     }
 
     void OnDestroy()
