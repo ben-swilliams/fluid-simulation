@@ -67,4 +67,47 @@ static class Utils
 
             return texture;
 		}
+
+    public static float ComputeDelta(float particleSpacing, float beta, float gradConstant, float smoothingRadius)
+    {
+        Vector3 gradSum = Vector3.zero;
+        float dotGradSum = 0f;
+
+        Vector3 prototypePos = Vector3.zero;
+
+        int range = Mathf.CeilToInt(2 * smoothingRadius / particleSpacing);
+
+        for (int x = -range; x <= range; x++)
+        {
+            for (int y = -range; y <= range; y++)
+            {
+                for (int z = -range; z <= range; z++)
+                {
+                    if (x == 0 && y == 0 && z == 0) continue;
+
+                    Vector3 neighborPos = new Vector3(x, y, z) * particleSpacing;
+                    Vector3 offset = prototypePos - neighborPos;
+                    float r = offset.magnitude;
+
+                    if (r >= 2 * smoothingRadius) continue;
+
+                    Vector3 grad = Utils.CubicSplineGrad(offset, r, gradConstant, smoothingRadius);
+
+                    gradSum += grad;
+                    dotGradSum += Vector3.Dot(grad, grad);
+                }
+            }
+        }
+
+        float denominator = beta * (-Vector3.Dot(gradSum, gradSum) - dotGradSum);
+
+        if (Mathf.Abs(denominator) < 1e-12)
+        {
+            return 0f;
+        }
+
+        return -1f / denominator;
+    }
+
+
 }

@@ -68,8 +68,6 @@ public class Simulate : MonoBehaviour
     /*
     Private properties
     */
-    ShaderHelper shader;
-
     Spawn spawner;
     Draw drawer;
     bool started;
@@ -78,8 +76,6 @@ public class Simulate : MonoBehaviour
     int maxStepsPerFrame = 3;
 
     int instanceCount;
-
-    KernelSet kernels;
 
     float simulationTime = 0;
 
@@ -96,7 +92,6 @@ public class Simulate : MonoBehaviour
     */
     public bool Started => started;
     public float SmoothingRadius => smoothingRadius;
-    public ShaderHelper Shader => shader;
 
     public RenderTexture DensityTex => densityTex;
 
@@ -209,9 +204,6 @@ public class Simulate : MonoBehaviour
     {
         spawner = GetComponent<Spawn>();
         drawer = GetComponent<Draw>();
-
-        shader = new ShaderHelper(simCompute);
-        drawer.SetComputeShader(shader);
 
         physicsTimeStep = 1f / SolverSteps(pressureSolver);
     }
@@ -491,7 +483,7 @@ public class Simulate : MonoBehaviour
         float speedOfSound = maxVelocity / Mathf.Sqrt(densityError);
         float B = restDensity * speedOfSound * speedOfSound / stiffness;
         float beta = deltaTime * deltaTime * particleMass * particleMass * 2 / (restDensity * restDensity);
-        float delta = ComputeDelta(particleSpacing, beta, gradConstant) * deltaScale;
+        float delta = Utils.ComputeDelta(particleSpacing, beta, gradConstant, smoothingRadius) * deltaScale;
 
         object[] keyValues =
         {
@@ -514,53 +506,13 @@ public class Simulate : MonoBehaviour
             "beta", beta,
             "delta", delta,
             "tableSize", binNumber,
-            "useIndex", indexHash ? 1 : 0
+            "useIndex", indexHash ? 1 : 0,
+            "size", spawner.Size
         };
 
         Utils.SetValues(keyValues, simCompute, spatialCompute, wcsphCompute, iisphCompute, pcisphCompute);
 
         UpdateDensityTexture();
-    }
-
-    float ComputeDelta(float particleSpacing, float beta, float gradConstant)
-    {
-        Vector3 gradSum = Vector3.zero;
-        float dotGradSum = 0f;
-
-        Vector3 prototypePos = Vector3.zero;
-
-        int range = Mathf.CeilToInt(2 * smoothingRadius / particleSpacing);
-
-        for (int x = -range; x <= range; x++)
-        {
-            for (int y = -range; y <= range; y++)
-            {
-                for (int z = -range; z <= range; z++)
-                {
-                    if (x == 0 && y == 0 && z == 0) continue;
-
-                    Vector3 neighborPos = new Vector3(x, y, z) * particleSpacing;
-                    Vector3 offset = prototypePos - neighborPos;
-                    float r = offset.magnitude;
-
-                    if (r >= 2 * smoothingRadius) continue;
-
-                    Vector3 grad = Utils.CubicSplineGrad(offset, r, gradConstant, smoothingRadius);
-
-                    gradSum += grad;
-                    dotGradSum += Vector3.Dot(grad, grad);
-                }
-            }
-        }
-
-        float denominator = beta * (-Vector3.Dot(gradSum, gradSum) - dotGradSum);
-
-        if (Mathf.Abs(denominator) < 1e-12)
-        {
-            return 0f;
-        }
-
-        return -1f / denominator;
     }
 
     int SolverSteps(Solver solver)
@@ -676,7 +628,7 @@ public class Simulate : MonoBehaviour
 
     public void UpdateMouseForce(Vector3 origin, float radius, float power)
     {
-        if (shader == null) return;
+        if (simCompute == null) return;
 
         Utils.SetValues(new object[]
         {
@@ -688,7 +640,7 @@ public class Simulate : MonoBehaviour
 
     public void UpdateBoundary()
     {
-        if (shader == null) return;
+        if (simCompute == null || spawner == null) return;
 
         float cellSize = 2f * smoothingRadius;
 
