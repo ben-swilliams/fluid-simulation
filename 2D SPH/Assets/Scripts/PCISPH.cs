@@ -41,17 +41,18 @@ public class PCISPHManager
 
     void FindKernels()
     {
-        InitialisePressures =
+        InitialisePressures = shader.FindKernel("InitialisePressures");
+        CalculateNonPressureAcceleration = shader.FindKernel("CalculateNonPressureAcceleration");
+        PredictPosition = shader.FindKernel("PredictPosition");
+        CalculateNextPCISPHPressure = shader.FindKernel("CalculateNextPCISPHPressure");
+        UpdatePCISPHVelocities = shader.FindKernel("UpdatePCISPHVelocities");
     }
 
     Dictionary<string, BufferInfo> GenerateBufferInfo(int instanceCount)
     {
         Dictionary<string, BufferInfo> bufferInfo = new Dictionary<string, BufferInfo>
         {
-            { "Aii", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) } },
-            { "IterPressures", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) } },
-            { "Dii", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) * 3 } },
-            { "DPSum", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) * 3 } },
+            { "PredictedPositions", new BufferInfo { Length = instanceCount, ElementSize = sizeof(float) * 3 } },
         };
         
         return bufferInfo;
@@ -59,20 +60,20 @@ public class PCISPHManager
 
     public void SolvePressure(int iterations)
     {
-        foreach (int k in IISPHPrePressureKernels)
+        foreach (int k in PCISPHPrePressureKernels)
         {
             shader.Dispatch(k, threadCount, 1, 1);
         }
 
         for (int _ = 0; _ < iterations; _++)
         {
-            foreach (int k in IISPHPressureKernels)
+            foreach (int k in PCISPHPressureKernels)
             {
                 shader.Dispatch(k, threadCount, 1, 1);
             }
         }
 
-        foreach (int k in IISPHPostPressureKernels)
+        foreach (int k in PCISPHPostPressureKernels)
         {
             shader.Dispatch(k, threadCount, 1, 1);
         }

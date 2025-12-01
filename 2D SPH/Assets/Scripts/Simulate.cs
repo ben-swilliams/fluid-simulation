@@ -15,6 +15,7 @@ public class Simulate : MonoBehaviour
     [SerializeField] ComputeShader simCompute;
     [SerializeField] ComputeShader wcsphCompute;
     [SerializeField] ComputeShader iisphCompute;
+    [SerializeField] ComputeShader pcisphCompute;
 
     [Header("Simulation Settings")]
     [SerializeField] float simulationSpeed = 1f;
@@ -88,6 +89,7 @@ public class Simulate : MonoBehaviour
     SpatialHashManager hashManager;
     WCSPHManager wcsphManager;
     IISPHManager iisphManager;
+    PCISPHManager pcisphManager;
 
     /*
     Public getters
@@ -243,7 +245,7 @@ public class Simulate : MonoBehaviour
         float angle = wavePeriod * simulationTime;
         Vector3 gravityForce = new Vector3(waveStrength * Mathf.Cos(angle), gravity, waveStrength * Mathf.Sin(angle));
 
-        Utils.SetValues(new object[] { "gravity", gravityForce }, wcsphCompute, iisphCompute);
+        Utils.SetValues(new object[] { "gravity", gravityForce }, wcsphCompute, iisphCompute, pcisphCompute);
     }
 
     void AdvanceFrame()
@@ -279,7 +281,7 @@ public class Simulate : MonoBehaviour
             wcsphManager.SolvePressure();
         }
         if (pressureSolver == Solver.PCISPH)
-            return;
+            pcisphManager.SolvePressure(pcisphSolverIterations);
 
         simCompute.Dispatch(UpdatePositions, Utils.Constants.threadGroupSize, 1, 1);
 
@@ -341,6 +343,7 @@ public class Simulate : MonoBehaviour
         hashManager?.Destroy();
         commonBufferHelper?.Destroy();
         iisphManager?.Destroy();
+        pcisphManager?.Destroy();
     }
 
     void StartSimulation()
@@ -413,6 +416,18 @@ public class Simulate : MonoBehaviour
         };
 
         iisphManager = new IISPHManager(iisphCompute, iisphDependencies, instanceCount);
+
+        Dictionary<string, ComputeBuffer> pcisphDependencies = new Dictionary<string, ComputeBuffer>
+        {
+            { "Offsets", hashManager.Buffers.RetrieveBuffer("Offsets") },
+            { "Densities", commonBufferHelper.RetrieveBuffer("Densities") },
+            { "Pressures", commonBufferHelper.RetrieveBuffer("Pressures") },
+            { "IntermediateAccelerations", commonBufferHelper.RetrieveBuffer("IntermediateAccelerations") },
+            { "Velocities", commonBufferHelper.RetrieveBuffer("Velocities") },
+            { "Positions", commonBufferHelper.RetrieveBuffer("Positions") }
+        };
+
+        pcisphManager = new PCISPHManager(pcisphCompute, pcisphDependencies, instanceCount);
     }
 
     Dictionary<string, BufferInfo> GenerateBufferInfo(int instanceCount)
@@ -437,12 +452,12 @@ public class Simulate : MonoBehaviour
     {
         object[] halfStep = new object[] { "deltaTime", physicsTimeStep * 0.5f };
         // Set half timestep for initialization
-        Utils.SetValues(halfStep, spatialCompute, simCompute, wcsphCompute, iisphCompute);
+        Utils.SetValues(halfStep, spatialCompute, simCompute, wcsphCompute, iisphCompute, pcisphCompute);
 
         RunPhysicsStep();
 
         object[] fullStep = new object[] { "deltaTime", physicsTimeStep };
-        Utils.SetValues(fullStep, spatialCompute, simCompute, wcsphCompute, iisphCompute);
+        Utils.SetValues(fullStep, spatialCompute, simCompute, wcsphCompute, iisphCompute, pcisphCompute);
     }
 
     void BindExternalBuffers()
@@ -482,7 +497,7 @@ public class Simulate : MonoBehaviour
             "size", spawner.Size,
             "instanceCount", instanceCount
         };
-        Utils.SetValues(keyValues, spatialCompute, simCompute, wcsphCompute, iisphCompute);
+        Utils.SetValues(keyValues, spatialCompute, simCompute, wcsphCompute, iisphCompute, pcisphCompute);
 
         UpdateMouseForce(Vector3.zero, 0, 0);
         UpdateVariables();
@@ -525,7 +540,7 @@ public class Simulate : MonoBehaviour
             "useIndex", indexHash ? 1 : 0
         };
 
-        Utils.SetValues(keyValues, simCompute, spatialCompute, wcsphCompute, iisphCompute);
+        Utils.SetValues(keyValues, simCompute, spatialCompute, wcsphCompute, iisphCompute, pcisphCompute);
 
         // UpdateDensityTexture();
     }
@@ -731,7 +746,7 @@ public class Simulate : MonoBehaviour
             "mousePos", origin,
             "mouseRadius", radius,
             "power", power
-        }, wcsphCompute, iisphCompute);
+        }, wcsphCompute, iisphCompute, pcisphCompute);
     }
 
     public void UpdateBoundary()
@@ -757,7 +772,7 @@ public class Simulate : MonoBehaviour
             "maxCornerZ", maxZ
         };
         
-        Utils.SetValues(values, spatialCompute, simCompute, wcsphCompute, iisphCompute);
+        Utils.SetValues(values, spatialCompute, simCompute, wcsphCompute, iisphCompute, pcisphCompute);
 
         drawer.UpdateContainerSize(container.Boundary);
     }
