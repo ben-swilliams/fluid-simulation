@@ -31,7 +31,9 @@ public class Draw : MonoBehaviour
     
     [Header("Marching cubes")]
     [SerializeField] float isoLevel = 5;
-    [SerializeField] bool useMarchingCubes = false;
+
+    [Header("Volumetric rays")]
+    [SerializeField] GameObject raysCube;
 
     /*
     Private properties
@@ -50,12 +52,13 @@ public class Draw : MonoBehaviour
     float highHue;
 
     MarchingCubes marchingCubes;
+    Rays rays;
 
     /*
     Public getters
     */
     public Property ColourProperty => colourProperty;
-    public bool UseMarchingCubes => useMarchingCubes;
+    public DrawMethod DrawTarget => drawMethod;
 
     public float MaxSpeed
     {
@@ -108,6 +111,7 @@ public class Draw : MonoBehaviour
         Color.RGBToHSV(fastColour, out highHue, out _, out _);
 
         marchingCubes = new MarchingCubes(cubesCompute);
+        rays = new Rays(raysShader, raysCube);
     }
 
     void OnValidate()
@@ -220,6 +224,8 @@ public class Draw : MonoBehaviour
 
         if (!started || (drawMethod == DrawMethod.Particles))
         {
+            rays.DisableRays();
+
             Graphics.DrawMeshInstancedIndirect(
                 mesh,
                 0,
@@ -233,6 +239,8 @@ public class Draw : MonoBehaviour
 
         if (drawMethod == DrawMethod.Cubes)
         {
+            rays.DisableRays();
+
             ComputeBuffer triangles = marchingCubes.Run(densityTex, isoLevel);
             DrawMesh(triangles);
             return;
@@ -240,7 +248,7 @@ public class Draw : MonoBehaviour
 
         if (drawMethod == DrawMethod.Rays)
         {
-            return;
+            rays.RenderToCube();
         }
     }
 
