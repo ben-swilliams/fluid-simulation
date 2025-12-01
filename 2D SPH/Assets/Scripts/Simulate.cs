@@ -216,7 +216,7 @@ public class Simulate : MonoBehaviour
         if (started)
         {
             AdvanceFrame();
-            if (drawer.DrawTarget == Draw.DrawMethod.Cubes) DispatchTextureWrite();
+            if (drawer.DrawTarget != Draw.DrawMethod.Particles) DispatchTextureWrite();
         }
 
         drawer.DrawFrame(densityTex, started);
