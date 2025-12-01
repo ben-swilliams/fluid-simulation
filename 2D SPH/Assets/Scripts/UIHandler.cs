@@ -3,6 +3,7 @@ using UnityEngine.UI;
 
 public class UIHandler : MonoBehaviour
 {
+    [SerializeField] Simulate sim;
     [SerializeField] Color selectedColour;
     [SerializeField] Button[] tabButtons;
     [SerializeField] GameObject[] settings;

@@ -102,7 +102,6 @@ public class Simulate : MonoBehaviour
 
     public float SimulationSpeed
     {
-        get => simulationSpeed;
         set
         {
             simulationSpeed = value;
@@ -112,7 +111,6 @@ public class Simulate : MonoBehaviour
 
     public float Gravity
     {
-        get => gravity;
         set
         {
             gravity = value;
@@ -122,7 +120,6 @@ public class Simulate : MonoBehaviour
 
     public float DampingFactor
     {
-        get => dampingFactor;
         set
         {
             dampingFactor = value;
@@ -132,7 +129,6 @@ public class Simulate : MonoBehaviour
 
     public float WaveStrength
     {
-        get => waveStrength;
         set
         {
             waveStrength = value;
@@ -142,7 +138,6 @@ public class Simulate : MonoBehaviour
 
     public float WavePeriod
     {
-        get => wavePeriod;
         set
         {
             wavePeriod = value;
@@ -152,7 +147,6 @@ public class Simulate : MonoBehaviour
 
     public float DensityFluctuation
     {
-        get => densityError;
         set
         {
             densityError = value;
@@ -162,7 +156,6 @@ public class Simulate : MonoBehaviour
 
     public float Stiffness
     {
-        get => stiffness;
         set
         {
             stiffness = value;
@@ -172,7 +165,6 @@ public class Simulate : MonoBehaviour
 
     public float IISPHSolverIterations
     {
-        get => iisphSolverIterations;
         set
         {
             iisphSolverIterations = Mathf.FloorToInt(value);
@@ -182,7 +174,6 @@ public class Simulate : MonoBehaviour
 
     public float PCISPHSolverIterations
     {
-        get => pcisphSolverIterations;
         set
         {
             pcisphSolverIterations = Mathf.FloorToInt(value);
@@ -192,7 +183,6 @@ public class Simulate : MonoBehaviour
 
     public float RestDensity
     {
-        get => restDensity;
         set
         {
             restDensity = value;
@@ -202,7 +192,6 @@ public class Simulate : MonoBehaviour
 
     public float DeltaScale
     {
-        get => deltaScale;
         set
         {
             deltaScale = value;
@@ -304,34 +293,6 @@ public class Simulate : MonoBehaviour
         pcisphManager.Buffers.UpdateBuffer("Offsets", newBuffer);
     }
 
-    void RunIISPHStep()
-    {
-        shader.Dispatch(kernels.IISPHPrePressureKernels);
-
-        for (int l = 0; l < iisphSolverIterations; l++)
-        {
-            shader.Dispatch(kernels.IISPHPressureKernels);
-        }
-
-        shader.Dispatch(kernels.IISPHPostPressureKernels);
-    }
-
-    void RunWCSPHStep()
-    {
-        wcsphManager.SolvePressure();
-    }
-
-    void RunPCISPHStep()
-    {
-        shader.Dispatch(kernels.PCISPHPrePressureKernels);
-        
-        for (int i = 0; i < pcisphSolverIterations; i++)
-        {
-            shader.Dispatch(kernels.PCISPHPressureKernels);
-        }
-        shader.Dispatch(kernels.PCISPHPostPressureKernels);
-    }
-
     void UpdateColours()
     {
         if (drawer.UseMarchingCubes) return; 
@@ -392,7 +353,7 @@ public class Simulate : MonoBehaviour
         {
             { CalculateDensity, new string[] { "Densities", "Positions", "Offsets"} },
             { UpdatePositions, new string[] { "Velocities", "Positions" } },
-            { WriteDensities, new string[] { "Densities" } },
+            { WriteDensities, new string[] { "Densities", "Positions", "Offsets" } },
             { CalculateVelocityColour, new[] {"Colours", "Velocities"}},
             { CalculateDensityColour, new[] {"Colours", "Densities"}},
             { CalculatePressureColour, new[] {"Colours", "Pressures"}}
@@ -401,7 +362,7 @@ public class Simulate : MonoBehaviour
         Dictionary<string, BufferInfo> bufferInfo = GenerateBufferInfo(instanceCount);
         Dictionary<string, ComputeBuffer> commonDependencies = new Dictionary<string, ComputeBuffer>
         {
-            { "Offsets", hashManager.Buffers.RetrieveBuffer("Offsets") },
+            { "Offsets", hashManager.Buffers.RetrieveBuffer("Offsets") }
         };
 
         commonBufferHelper = new BufferHelper(simCompute, dependencies, bufferInfo, commonDependencies);
@@ -558,7 +519,7 @@ public class Simulate : MonoBehaviour
 
         Utils.SetValues(keyValues, simCompute, spatialCompute, wcsphCompute, iisphCompute, pcisphCompute);
 
-        // UpdateDensityTexture();
+        UpdateDensityTexture();
     }
 
     float ComputeDelta(float particleSpacing, float beta, float gradConstant)
@@ -706,7 +667,7 @@ public class Simulate : MonoBehaviour
 
     void UpdateDensityTexture()
     {
-        if (shader == null) return;
+        if (simCompute == null) return;
 
         Vector3 bounds = GetComponentInChildren<Container>().Boundary;
         float maxAxis = Mathf.Max(bounds.x, bounds.y, bounds.z);
@@ -719,8 +680,8 @@ public class Simulate : MonoBehaviour
             if (densityTex != null) densityTex.Release();
 
             densityTex = CreateDensityTexture(width, height, depth);
-            shader.SetTexture(kernels.WriteDensities, "DensityTex", densityTex);
-            shader.SetInts("densityTexDims", width, height, depth);
+            simCompute.SetTexture(WriteDensities, "DensityTex", densityTex);
+            simCompute.SetInts("densityTexDims", width, height, depth);
         }
     }
 
@@ -730,7 +691,7 @@ public class Simulate : MonoBehaviour
         int dispatchY = Mathf.CeilToInt(densityTex.height / 8f);
         int dispatchZ = Mathf.CeilToInt(densityTex.volumeDepth / 8f);
 
-        shader.Dispatch(kernels.WriteDensities, dispatchX, dispatchY, dispatchZ);
+        simCompute.Dispatch(WriteDensities, dispatchX, dispatchY, dispatchZ);
     }
 
 	public static RenderTexture CreateDensityTexture(int width, int height, int depth)
