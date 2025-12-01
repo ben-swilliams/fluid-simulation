@@ -233,6 +233,8 @@ public class Draw : MonoBehaviour
 
     public void UpdateSize(float size)
     {
+        if (particleMaterial == null) return;
+
         particleMaterial.SetFloat("size", size);
     }
 

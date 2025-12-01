@@ -76,6 +76,7 @@ public class Simulate : MonoBehaviour
     int maxStepsPerFrame = 3;
 
     int instanceCount;
+    float size;
 
     float simulationTime = 0;
 
@@ -317,6 +318,7 @@ public class Simulate : MonoBehaviour
     void StartSimulation()
     {
         instanceCount = spawner.InstanceCount;
+        size = spawner.Size;
 
         if (indexHash)
             binNumber = CalculateCellNumber();
@@ -507,7 +509,6 @@ public class Simulate : MonoBehaviour
             "delta", delta,
             "tableSize", binNumber,
             "useIndex", indexHash ? 1 : 0,
-            "size", spawner.Size
         };
 
         Utils.SetValues(keyValues, simCompute, spatialCompute, wcsphCompute, iisphCompute, pcisphCompute);
@@ -566,8 +567,7 @@ public class Simulate : MonoBehaviour
     {
         Vector3 containerSize = GetComponentInChildren<Container>().Boundary;
         float cellSize = 2f * smoothingRadius;
-        float particleSize = GetComponent<Spawn>().Size;
-        Vector3 effectiveBoundary = containerSize - Vector3.one * particleSize;
+        Vector3 effectiveBoundary = containerSize - Vector3.one * size;
 
         int maxX = Mathf.FloorToInt(effectiveBoundary.x / cellSize);
         int maxY = Mathf.FloorToInt(effectiveBoundary.y / cellSize);

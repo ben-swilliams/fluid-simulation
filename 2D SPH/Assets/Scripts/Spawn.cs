@@ -32,6 +32,9 @@ public class Spawn : MonoBehaviour
         {
             size = value;    
             sizeWithSpacing = size + spacing;
+
+            GetComponent<Draw>().UpdateSize(size);
+
             if (asGrid)
                 instanceCount = CalculateMaxInGrid();
             RecreatePositions();
@@ -66,13 +69,17 @@ public class Spawn : MonoBehaviour
 
     void OnValidate()
     {
+        Simulate sim = GetComponent<Simulate>();
         ValidateInspectorProperties();
-        GetComponent<Simulate>().ValidateInspectorProperties();
+        sim.ValidateInspectorProperties();
 
         if (!Application.isPlaying) return;
-        RecreatePositions();
 
         prevGridMode = asGrid;
+
+        if (!sim.Started) RecreatePositions();
+
+        GetComponent<Draw>().UpdateSize(size);
     }
 
     void OnDrawGizmos()
