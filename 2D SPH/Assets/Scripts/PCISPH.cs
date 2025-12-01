@@ -18,6 +18,8 @@ public class PCISPHManager
     BufferHelper bufferHelper;
 
     int threadCount;
+
+    public BufferHelper Buffers => bufferHelper;
     public PCISPHManager(ComputeShader iisphShader, Dictionary<string, ComputeBuffer> externalBuffers, int instanceCount)
     {
        shader = iisphShader; 

@@ -270,7 +270,10 @@ public class Simulate : MonoBehaviour
 
     void RunPhysicsStep()
     {
-        hashManager.ScanAndScatter(binNumber);
+        // True if binNumber has changed
+        bool rebindBuffers = hashManager.ScanAndScatter(binNumber);
+
+        if (rebindBuffers) UpdateOffsets();
 
         simCompute.Dispatch(CalculateDensity, Utils.Constants.threadGroupSize, 1, 1);
 
@@ -288,6 +291,17 @@ public class Simulate : MonoBehaviour
         UpdateColours();
 
         simulationTime += physicsTimeStep * simulationSpeed;
+    }
+
+    void UpdateOffsets()
+    {
+        ComputeBuffer newBuffer = hashManager.Buffers.RetrieveBuffer("Offsets");
+        simCompute.SetBuffer(CalculateDensity, "Offsets", newBuffer);
+        simCompute.SetBuffer(WriteDensities, "Offsets", newBuffer);
+
+        wcsphManager.Buffers.UpdateBuffer("Offsets", newBuffer);
+        iisphManager.Buffers.UpdateBuffer("Offsets", newBuffer);
+        pcisphManager.Buffers.UpdateBuffer("Offsets", newBuffer);
     }
 
     void RunIISPHStep()
@@ -336,6 +350,7 @@ public class Simulate : MonoBehaviour
         if (!Application.isPlaying || !started) return;
 
         UpdateVariables();
+        UpdateBoundary();
     }
 
     void OnDestroy()
@@ -501,6 +516,7 @@ public class Simulate : MonoBehaviour
 
         UpdateMouseForce(Vector3.zero, 0, 0);
         UpdateVariables();
+        UpdateBoundary();
     }
 
     void UpdateVariables()
@@ -628,8 +644,6 @@ public class Simulate : MonoBehaviour
         maxVelocity = Mathf.Max(0.01f, maxVelocity);
         iisphSolverIterations = Mathf.Max(0, iisphSolverIterations);
         binNumber = indexHash ? CalculateCellNumber() : Mathf.Max(1, binNumber);
-
-        if (started) UpdateVariables();
     }
 
     void HandleKeyPresses()

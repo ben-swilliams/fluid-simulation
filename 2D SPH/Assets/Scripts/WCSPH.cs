@@ -11,6 +11,8 @@ public class WCSPHManager
     int CalculateWCSPHPressure;
     int UpdateWCSPHVelocities;
 
+    public BufferHelper Buffers => bufferHelper;
+
     public WCSPHManager(ComputeShader wcsphShader, Dictionary<string, ComputeBuffer> externalBuffers, int instanceCount)
     {
         shader = wcsphShader;

@@ -10338,20 +10338,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
   spatialCompute: {fileID: 7200000, guid: d47f4318ac5bd4e9f8022f5eb9d0f83a, type: 3}
   simCompute: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
+  wcsphCompute: {fileID: 7200000, guid: 4e4dc8800ceef4244a4534937cb85599, type: 3}
+  iisphCompute: {fileID: 7200000, guid: 48efe4550ac3a40e89423a36aceaa63a, type: 3}
+  pcisphCompute: {fileID: 7200000, guid: 3ede64c1e9c46417fbc253629a0628a4, type: 3}
   simulationSpeed: 1
   smoothingRadius: 0.05
   velocitySmoothing: 0.01
   stepSize: 10
   maxVelocity: 5
   binNumber: 27000
-  indexHash: 1
+  indexHash: 0
   densityTextureRes: 100
   initSpeed: 0
   gravity: -9.8
   dampingFactor: 0.95
   wavePeriod: 1
   waveStrength: 3
-  pressureSolver: 2
+  pressureSolver: 1
   restDensity: 5
   nearPressureMultiplier: 0
   relaxationFactor: 0.5

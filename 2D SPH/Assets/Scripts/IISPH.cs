@@ -19,8 +19,10 @@ public class IISPHManager
     int[] IISPHPostPressureKernels => new int[] { UpdateIISPHVelocities };
 
     BufferHelper bufferHelper;
+    public BufferHelper Buffers => bufferHelper;
 
     int threadCount;
+
     public IISPHManager(ComputeShader iisphShader, Dictionary<string, ComputeBuffer> externalBuffers, int instanceCount)
     {
        shader = iisphShader; 

@@ -141,11 +141,14 @@ public class SpatialHashManager
         shader.Dispatch(FinalizeScan, 1, 1, 1);
     }
 
-    public void ScanAndScatter(int binNumber)
+    public bool ScanAndScatter(int binNumber)
     {
+        bool binCountChanged = false;
+
         if (this.binNumber != binNumber) {
             shader.SetInt("tableSize", binNumber);
             bufferHelper.UpdateBuffers(GenerateBinDependentBufferInfo(binNumber));
+            binCountChanged = true;
 
             this.binNumber = binNumber;
         }
@@ -159,6 +162,8 @@ public class SpatialHashManager
 
         shader.Dispatch(Scatter, threadCount, 1, 1);
         shader.Dispatch(CopyBack, threadCount, 1, 1);
+
+        return binCountChanged;
     }
 
     public void Destroy()
