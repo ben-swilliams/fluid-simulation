@@ -1,4 +1,5 @@
 using System;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class Draw : MonoBehaviour
@@ -37,6 +38,7 @@ public class Draw : MonoBehaviour
     [SerializeField] float densityMultiplier;
     [SerializeField] float depthMultiplier;
     [SerializeField] Color deepColour = Color.darkBlue;
+    [SerializeField] Vector3 scatterCoeffs = new Vector3(1, 1, 1);
 
     /*
     Private properties
@@ -119,6 +121,7 @@ public class Draw : MonoBehaviour
         rays.Mat.SetFloat("depthMultiplier", depthMultiplier);
         rays.Mat.SetColor("fluidColour", fluidColour);
         rays.Mat.SetColor("deepColour", deepColour);
+        rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
     }
 
     void OnValidate()
@@ -143,6 +146,7 @@ public class Draw : MonoBehaviour
         rays.Mat.SetFloat("depthMultiplier", depthMultiplier);
         rays.Mat.SetColor("fluidColour", fluidColour);
         rays.Mat.SetColor("deepColour", deepColour);
+        rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
     }
 
     void OnDestroy()
