@@ -23,7 +23,6 @@ public class Draw : MonoBehaviour
     [SerializeField, Range(0, 4)] int sphereResolution = 2;
     [SerializeField] Color fastColour;
     [SerializeField] Color slowColour;
-    [SerializeField] Color fluidColour;
     [SerializeField] float maxSpeed = 10f;
     [SerializeField] float maxDensityFluctuation = 0.1f;
     [SerializeField] float maxPressure = 5000f;
@@ -32,6 +31,7 @@ public class Draw : MonoBehaviour
     
     [Header("Marching cubes")]
     [SerializeField] float isoLevel = 5;
+    [SerializeField] Color fluidColour;
 
     [Header("Volumetric rays")]
     [SerializeField] GameObject raysCube;
@@ -116,7 +116,6 @@ public class Draw : MonoBehaviour
         marchingCubes = new MarchingCubes(cubesCompute);
         rays = new Rays(raysShader, raysCube);
         rays.Mat.SetFloat("densityMultiplier", densityMultiplier);
-        rays.Mat.SetColor("fluidColour", fluidColour);
         rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
     }
 

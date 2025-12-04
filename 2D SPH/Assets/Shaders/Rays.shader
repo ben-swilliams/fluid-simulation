@@ -22,13 +22,9 @@
               Texture3D<float4> DensityTex;
               SamplerState samplerDensityTex;
 
-              float4 fluidColour;
-              float4 deepColour;
-
               float3 scatterCoeffs;
 
               float densityMultiplier;
-              float depthMultiplier;
 
               static const float stepSize = 0.01;
               static const int maxSteps = 256;
