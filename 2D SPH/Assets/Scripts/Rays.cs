@@ -8,6 +8,8 @@ public class Rays
 
     Material mat;
 
+    public Material Mat => mat;
+
     public Rays(Shader raysShader, GameObject cube)
     {
         shader = raysShader;

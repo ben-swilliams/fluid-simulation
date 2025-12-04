@@ -7,7 +7,7 @@
       SubShader
       {
           Tags { "RenderType"="Transparent" }
-          Cull Off ZWrite Off
+          Cull Back ZWrite Off
           Blend SrcAlpha OneMinusSrcAlpha
 
           Pass
@@ -22,8 +22,13 @@
               Texture3D<float4> DensityTex;
               SamplerState samplerDensityTex;
 
+              float4 fluidColour;
+              float4 deepColour;
+              float densityMultiplier;
+              float depthMultiplier;
+
               static const float stepSize = 0.01;
-              static const int maxSteps = 128;
+              static const int maxSteps = 256;
 
               struct v2f
               {
@@ -49,6 +54,7 @@
               float4 frag (v2f i) : SV_Target
               {
                 float transmittance = 1.0;
+                float depth = 0;
 
                 float3 rayLoc = i.uvwEntry;
                 float3 rayDir = normalize(i.uvwRayDir);
@@ -58,16 +64,18 @@
                     if (any(rayLoc < 0) || any(rayLoc > 1)) break;
                     if (transmittance < 0.01) break;
 
-                    float density = DensityTex.Sample(samplerDensityTex, rayLoc).r;
+                    float density = DensityTex.Sample(samplerDensityTex, rayLoc).r * stepSize * densityMultiplier;
                     
-                    transmittance *= exp(-density * stepSize);
+                    transmittance *= exp(-density);
+                    depth += density * stepSize;
 
                     rayLoc += rayDir * stepSize;
                 }
 
                 float opacity = 1 - transmittance;
+                float3 colour = lerp(fluidColour, deepColour, saturate(depth * depthMultiplier));
                 
-                return float4(1, 1, 1, opacity);
+                return float4(colour.rgb, opacity);
               }
               ENDCG
           }
