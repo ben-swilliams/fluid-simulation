@@ -1,4 +1,5 @@
 using System;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class Draw : MonoBehaviour
@@ -35,8 +36,7 @@ public class Draw : MonoBehaviour
     [Header("Volumetric rays")]
     [SerializeField] GameObject raysCube;
     [SerializeField] float densityMultiplier;
-    [SerializeField] float depthMultiplier;
-    [SerializeField] Color deepColour = Color.darkBlue;
+    [SerializeField] Vector3 scatterCoeffs = new Vector3(1, 1, 1);
 
     /*
     Private properties
@@ -116,9 +116,8 @@ public class Draw : MonoBehaviour
         marchingCubes = new MarchingCubes(cubesCompute);
         rays = new Rays(raysShader, raysCube);
         rays.Mat.SetFloat("densityMultiplier", densityMultiplier);
-        rays.Mat.SetFloat("depthMultiplier", depthMultiplier);
         rays.Mat.SetColor("fluidColour", fluidColour);
-        rays.Mat.SetColor("deepColour", deepColour);
+        rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
     }
 
     void OnValidate()
@@ -140,9 +139,8 @@ public class Draw : MonoBehaviour
         else mesh = MeshGenerator.GenerateQuad();
 
         rays.Mat.SetFloat("densityMultiplier", densityMultiplier);
-        rays.Mat.SetFloat("depthMultiplier", depthMultiplier);
         rays.Mat.SetColor("fluidColour", fluidColour);
-        rays.Mat.SetColor("deepColour", deepColour);
+        rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
     }
 
     void OnDestroy()
