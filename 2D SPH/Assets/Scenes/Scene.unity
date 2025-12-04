@@ -10543,7 +10543,8 @@ MonoBehaviour:
   fluidColour: {r: 0, g: 0.21010661, b: 1, a: 1}
   raysCube: {fileID: 1873203844}
   densityMultiplier: 1
-  sunIntensity: 5
+  sunIntensity: 2.75
+  sampleScale: 0.96
   scatterCoeffs: {x: 2, y: 0.85, z: 0.7}
 --- !u!114 &1274155415
 MonoBehaviour:
