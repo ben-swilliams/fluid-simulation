@@ -25,6 +25,7 @@
               float3 scatterCoeffs;
 
               float densityMultiplier;
+              float sunIntensity;
 
               static const float stepSize = 0.01;
               static const int maxSteps = 256;
@@ -92,7 +93,7 @@
                   totalDensity += density; 
 
                   float sunRayDensity = DensityOnRay(rayLoc, sunDir, 0.2);
-                  float3 sunlight = exp(-sunRayDensity * scatterCoeffs);
+                  float3 sunlight = exp(-sunRayDensity * scatterCoeffs) * sunIntensity;
                   float3 scatteredLight = density * scatterCoeffs * sunlight;
                   float3 transmittance = exp(-totalDensity * scatterCoeffs);
 

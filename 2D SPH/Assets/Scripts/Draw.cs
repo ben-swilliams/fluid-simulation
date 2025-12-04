@@ -36,6 +36,7 @@ public class Draw : MonoBehaviour
     [Header("Volumetric rays")]
     [SerializeField] GameObject raysCube;
     [SerializeField] float densityMultiplier;
+    [SerializeField] float sunIntensity;
     [SerializeField] Vector3 scatterCoeffs = new Vector3(1, 1, 1);
 
     /*
@@ -116,6 +117,7 @@ public class Draw : MonoBehaviour
         marchingCubes = new MarchingCubes(cubesCompute);
         rays = new Rays(raysShader, raysCube);
         rays.Mat.SetFloat("densityMultiplier", densityMultiplier);
+        rays.Mat.SetFloat("sunIntensity", sunIntensity);
         rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
     }
 
@@ -138,6 +140,7 @@ public class Draw : MonoBehaviour
         else mesh = MeshGenerator.GenerateQuad();
 
         rays.Mat.SetFloat("densityMultiplier", densityMultiplier);
+        rays.Mat.SetFloat("sunIntensity", sunIntensity);
         rays.Mat.SetColor("fluidColour", fluidColour);
         rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
     }
