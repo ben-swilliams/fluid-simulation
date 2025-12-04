@@ -36,8 +36,9 @@
               struct v2f
               {
                 float4 vertex : SV_POSITION;
-                float3 uvwEntry : TEX_COORD0;
+                float3 uvwEntry : TEXCOORD0;
                 float3 uvwRayDir : TEXCOORD1;
+                float3 uvwSunRayDir : TEXCOORD2;
               };
 
             v2f vert(appdata_full v)
@@ -51,36 +52,60 @@
                 float3 worldRayDir = normalize(worldPos - _WorldSpaceCameraPos);
                 o.uvwRayDir = mul(unity_WorldToObject, float4(worldRayDir, 0)).xyz;
 
+                // point to light
+                float3 lightRayDir = normalize(_WorldSpaceLightPos0.xyz);
+                o.uvwSunRayDir = mul(unity_WorldToObject, float4(lightRayDir, 0)).xyz;
+
                 return o;
             }
 
-              float4 frag (v2f i) : SV_Target
-              {
+            float DensityOnRay(float3 rayOrigin, float3 rayDir, float rayStepSize) {
                 float totalDensity = 0;
 
-                float3 rayLoc = i.uvwEntry;
-                float3 rayDir = normalize(i.uvwRayDir);
+                float3 rayLoc = rayOrigin;
 
-                float3 totalLight = 0;
-
-                [loop]
                 for (int _ = 0; _ < maxSteps; _++) {
                     if (any(rayLoc < 0) || any(rayLoc > 1)) break;
 
-                    float density = DensityTex.Sample(samplerDensityTex, rayLoc).r * stepSize * densityMultiplier;
+                    float density = DensityTex.Sample(samplerDensityTex, rayLoc).r * rayStepSize * densityMultiplier;
                     totalDensity += density; 
 
-                    float3 scatteredLight = density * scatterCoeffs * float3(1, 1, 1);
-                    float transmittance = exp(-totalDensity * scatterCoeffs);
-
-                    totalLight += scatteredLight * transmittance;
-
-                    rayLoc += rayDir * stepSize;
+                    rayLoc += rayDir * rayStepSize;
                 }
-                
-                return float4(totalLight.xyz, 1);
+
+                return totalDensity;
+            }
+
+            float4 frag (v2f i) : SV_Target
+            {
+              float totalDensity = 0;
+
+              float3 rayLoc = i.uvwEntry;
+              float3 rayDir = normalize(i.uvwRayDir);
+              float3 sunDir = normalize(i.uvwSunRayDir);
+
+              float3 totalLight = 0;
+
+              [loop]
+              for (int _ = 0; _ < maxSteps; _++) {
+                  if (any(rayLoc < 0) || any(rayLoc > 1)) break;
+
+                  float density = DensityTex.Sample(samplerDensityTex, rayLoc).r * stepSize * densityMultiplier;
+                  totalDensity += density; 
+
+                  float sunRayDensity = DensityOnRay(rayLoc, sunDir, 0.2);
+                  float3 sunlight = exp(-sunRayDensity * scatterCoeffs);
+                  float3 scatteredLight = density * scatterCoeffs * sunlight;
+                  float transmittance = exp(-totalDensity * scatterCoeffs);
+
+                  totalLight += scatteredLight * transmittance;
+
+                  rayLoc += rayDir * stepSize;
               }
-              ENDCG
+              
+              return float4(totalLight.xyz, 1);
+            }
+            ENDCG
           }
       }
   }
