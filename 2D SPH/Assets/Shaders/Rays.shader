@@ -94,7 +94,7 @@
                   float sunRayDensity = DensityOnRay(rayLoc, sunDir, 0.2);
                   float3 sunlight = exp(-sunRayDensity * scatterCoeffs);
                   float3 scatteredLight = density * scatterCoeffs * sunlight;
-                  float transmittance = exp(-totalDensity * scatterCoeffs);
+                  float3 transmittance = exp(-totalDensity * scatterCoeffs);
 
                   totalLight += scatteredLight * transmittance;
                   finalT *= transmittance;
