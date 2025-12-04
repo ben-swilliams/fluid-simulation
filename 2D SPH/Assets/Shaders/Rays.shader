@@ -26,6 +26,7 @@
 
               float densityMultiplier;
               float sunIntensity;
+              float sampleScale;
 
               static const float stepSize = 0.01;
               static const int maxSteps = 256;
@@ -89,7 +90,7 @@
               for (int _ = 0; _ < maxSteps; _++) {
                   if (any(rayLoc < 0) || any(rayLoc > 1)) break;
 
-                  float density = DensityTex.Sample(samplerDensityTex, rayLoc).r * stepSize * densityMultiplier;
+                  float density = DensityTex.Sample(samplerDensityTex, rayLoc * sampleScale).r * stepSize * densityMultiplier;
                   totalDensity += density; 
 
                   float sunRayDensity = DensityOnRay(rayLoc, sunDir, 0.2);
