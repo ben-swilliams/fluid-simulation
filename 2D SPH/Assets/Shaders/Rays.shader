@@ -31,7 +31,7 @@
               float depthMultiplier;
 
               static const float stepSize = 0.01;
-              static const int maxSteps = 128;
+              static const int maxSteps = 256;
 
               struct v2f
               {
@@ -86,6 +86,8 @@
 
               float3 totalLight = 0;
 
+              float3 finalT = float3(1, 1, 1);
+
               [loop]
               for (int _ = 0; _ < maxSteps; _++) {
                   if (any(rayLoc < 0) || any(rayLoc > 1)) break;
@@ -99,11 +101,13 @@
                   float transmittance = exp(-totalDensity * scatterCoeffs);
 
                   totalLight += scatteredLight * transmittance;
+                  finalT *= transmittance;
 
                   rayLoc += rayDir * stepSize;
               }
               
-              return float4(totalLight.xyz, 1);
+              float opacity = 1 - (finalT.r + finalT.g + finalT.b) / 3.0;
+              return float4(totalLight.xyz, opacity);
             }
             ENDCG
           }
