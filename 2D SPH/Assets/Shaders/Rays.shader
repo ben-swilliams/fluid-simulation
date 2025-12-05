@@ -99,6 +99,8 @@
 
                 for (int _ = 0; _ < maxSteps; _++) {
                     if (any(rayLoc < 0) || any(rayLoc > 1)) {
+                        // Still set density if we have done fluid -> box
+                        sp.densityEnRoute = totalDensity;
                         sp.isSurface = false;
                         break;
                     }
@@ -126,71 +128,33 @@
                 return sp;
             }
 
-            float3 FindNextFluidPoint(float3 rayOrigin, float3 rayDir, float rayStepSize) {
-                float3 rayLoc = rayOrigin;
-
-                for (int i = 0; i < maxSteps; i++) {
-                    if (any(rayLoc < 0) || any(rayLoc > 1)) break;
-
-                    if (IsInFluid(rayLoc)) return rayLoc;
-
-                    rayLoc += rayDir * rayStepSize;
-                }
-
-                // OOB position will auto terminate loop
-                return float3(2, 2, 2);
-            }
-
-            float DensityOnRay(float3 rayOrigin, float3 rayDir, float rayStepSize) {
-                float totalDensity = 0;
-
-                float3 rayLoc = IsInFluid(rayOrigin) ? rayOrigin : FindNextFluidPoint(rayOrigin, rayDir, rayStepSize);
-
-                for (int _ = 0; _ < maxSteps; _++) {
-                    if (any(rayLoc < 0) || any(rayLoc > 1)) break;
-
-                    float density = SampleDensity(rayLoc) * rayStepSize * densityMultiplier;
-                    totalDensity += density; 
-
-                    rayLoc += rayDir * rayStepSize;
-
-                    if (!IsInFluid(rayLoc)) rayLoc = FindNextFluidPoint(rayLoc, rayDir, rayStepSize);
-                }
-
-                return totalDensity;
-            }
-
             float4 frag (v2f i) : SV_Target
             {
-              float totalDensity = 0;
-
               float3 rayLoc = i.uvwEntry;
               float3 rayDir = normalize(i.uvwRayDir);
 
-              float3 totalLight = 0;
+              bool inFluid = IsInFluid(rayLoc);
 
-              float3 finalT = float3(1, 1, 1);
+              SurfacePoint sp;
 
-              [loop]
-              for (int _ = 0; _ < maxSteps; _++) {
-                  if (any(rayLoc < 0) || any(rayLoc > 1)) break;
+              if (!inFluid) {
+                sp = FindSurfaceAlongRay(rayLoc, rayDir, fluidStepSize, true);
+                if (!sp.isSurface) return float4(1, 1, 1, 0);
 
-                  float density = SampleDensity(rayLoc) * fluidStepSize * densityMultiplier;
-                  totalDensity += density; 
-
-                  float sunRayDensity = DensityOnRay(rayLoc, sunDir, lightStepSize);
-                  float3 sunlight = exp(-sunRayDensity * scatterCoeffs) * sunIntensity;
-                  float3 scatteredLight = density * scatterCoeffs * sunlight;
-                  float3 transmittance = exp(-totalDensity * scatterCoeffs);
-
-                  totalLight += scatteredLight * transmittance;
-                  finalT *= transmittance;
-
-                  rayLoc += rayDir * fluidStepSize;
+                rayLoc = sp.uvw;
               }
-              
-              float opacity = 1 - (finalT.r + finalT.g + finalT.b) / 3.0;
-              return float4(totalLight.xyz, opacity);
+
+              // At this point, we have either not found any fluid and returned see-through colour
+              // Or we have a surface on the fluid
+
+              sp = FindSurfaceAlongRay(rayLoc, rayDir, fluidStepSize, false);
+              float totalDensity = sp.densityEnRoute;
+              float3 transmittance = exp(-totalDensity * scatterCoeffs);
+              float3 light = float3(1, 1, 1);
+
+              float opacity = 1 - (transmittance.r + transmittance.g + transmittance.b) / 3.0;
+
+              return float4(light * transmittance, opacity);
             }
             ENDCG
           }
