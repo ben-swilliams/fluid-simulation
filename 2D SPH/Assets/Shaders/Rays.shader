@@ -29,7 +29,7 @@
               float sunIntensity;
               float densityThreshold;
 
-              static const float fluidStepSize = 0.01;
+              static const float fluidStepSize = 0.005;
               static const float lightStepSize = 0.2;
               static const int maxSteps = 256;
 
@@ -95,7 +95,7 @@
                 for (int _ = 0; _ < maxSteps; _++) {
                     if (any(rayLoc < 0) || any(rayLoc > 1)) break;
 
-                    totalDensity += SampleDensity(rayLoc);
+                    totalDensity += SampleDensity(rayLoc) * rayStepSize * densityMultiplier;
 
                     rayLoc += rayDir * rayStepSize;
                 }
