@@ -88,6 +88,21 @@
                 bool isSurface;
             };
 
+            float DensityAlongRay(float3 rayOrigin, float3 rayDir, float rayStepSize) {
+                float3 rayLoc = rayOrigin;
+                float totalDensity = 0;
+
+                for (int _ = 0; _ < maxSteps; _++) {
+                    if (any(rayLoc < 0) || any(rayLoc > 1)) break;
+
+                    totalDensity += SampleDensity(rayLoc);
+
+                    rayLoc += rayDir * rayStepSize;
+                }
+
+                return totalDensity;
+            }
+
             SurfacePoint FindSurfaceAlongRay(float3 rayOrigin, float3 rayDir, float rayStepSize, bool findEntry) {
                 SurfacePoint sp;
                 sp.isSurface = false;
@@ -151,6 +166,10 @@
               float totalDensity = sp.densityEnRoute;
               float3 transmittance = exp(-totalDensity * scatterCoeffs);
               float3 light = float3(1, 1, 1);
+
+              float sunDensity = DensityAlongRay(rayLoc, sunDir, lightStepSize);
+              float3 sunContribution = exp(-sunDensity * scatterCoeffs) * sunIntensity;
+              light *= sunContribution;
 
               float opacity = 1 - (transmittance.r + transmittance.g + transmittance.b) / 3.0;
 
