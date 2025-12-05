@@ -42,7 +42,7 @@ float CalculateDensityAtWorld(float3 pos) {
         for (uint j = startIndex; j < endIndex; j++) {
             float3 offset = pos - Positions[j];
             float r = length(offset);
-            density += particleMass * CubicSplineKernel(r);
+            density += particleMass * CubicSplineKernel(r, smoothingRadius * 1.2);
         }
     }
 

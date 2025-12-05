@@ -121,6 +121,10 @@ public class Draw : MonoBehaviour
         rays.Mat.SetFloat("sunIntensity", sunIntensity);
         rays.Mat.SetFloat("densityThreshold", densityThreshold);
         rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
+
+        Vector3 worldSunDir = RenderSettings.sun.transform.forward;
+        Vector3 uvwSunDir = raysCube.transform.worldToLocalMatrix.MultiplyVector(worldSunDir).normalized;
+        rays.Mat.SetVector("sunDir", -uvwSunDir);
     }
 
     void OnValidate()

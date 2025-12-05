@@ -16,6 +16,21 @@ float CubicSplineKernel(float r) {
     return kernelConstant * result;
 }
 
+float CubicSplineKernel(float r, float smoothingRadius) {
+    float q = r / smoothingRadius;
+
+    if (isnan(q) || q >= 2 || r < Epsilon) return 0;
+
+    float result;
+    if (q >= 1) {
+        result = 0.25 * pow(2 - q, 3);
+    } else {
+        result = (1 - 1.5 * q * q + 0.75 * q * q * q);
+    }
+
+    return kernelConstant * result;
+}
+
 float3 CubicSplineGrad(float3 offset, float r) {
     float q = r / smoothingRadius;
     if (q >= 2 || isnan(q) || r < Epsilon) return float3(0, 0, 0);
