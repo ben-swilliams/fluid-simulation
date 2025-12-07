@@ -29,6 +29,8 @@
               float sunIntensity;
               float densityThreshold;
 
+              int maxRefractions;
+
               static const float fluidStepSize = 0.005;
               static const float lightStepSize = 0.2;
               static const int maxSteps = 256;
@@ -157,23 +159,46 @@
                 if (!sp.isSurface) return float4(1, 1, 1, 0);
 
                 rayLoc = sp.uvw;
+                inFluid = true;
               }
 
               // At this point, we have either not found any fluid and returned see-through colour
               // Or we have a surface on the fluid
 
-              sp = FindSurfaceAlongRay(rayLoc, rayDir, fluidStepSize, false);
-              float totalDensity = sp.densityEnRoute;
-              float3 transmittance = exp(-totalDensity * scatterCoeffs);
-              float3 light = float3(1, 1, 1);
+              float3 totalLight = float3(0, 0, 0);
+              float totalDensity = 0;
+              float3 transmittance = 1;
 
-              float sunDensity = DensityAlongRay(rayLoc, sunDir, lightStepSize);
-              float3 sunContribution = exp(-sunDensity * scatterCoeffs) * sunIntensity;
-              light *= sunContribution;
+                for (int _ = 0; _ < maxRefractions; _++) {
+                    if (inFluid) {
+                        sp = FindSurfaceAlongRay(rayLoc, rayDir, fluidStepSize, false);
 
-              float opacity = 1 - (transmittance.r + transmittance.g + transmittance.b) / 3.0;
+                        totalDensity += sp.densityEnRoute;
+                        transmittance = exp(-totalDensity * scatterCoeffs);
 
-              return float4(light * transmittance, opacity);
+                        if (!sp.isSurface) break;
+
+                        rayLoc = sp.uvw;
+                        inFluid = false;
+                    } else {
+                        sp = FindSurfaceAlongRay(rayLoc, rayDir, fluidStepSize, true);
+                        if (!sp.isSurface) break;
+
+                        rayLoc = sp.uvw;
+                        inFluid = true;
+                    }
+                }
+
+                  float3 light = float3(1, 1, 1);
+
+                float sunDensity = DensityAlongRay(i.uvwEntry, sunDir, lightStepSize);
+                float3 sunContribution = exp(-sunDensity * scatterCoeffs) * sunIntensity;
+                light *= sunContribution;
+
+                totalLight = light * transmittance;
+
+                float opacity = 1 - (transmittance.r + transmittance.g + transmittance.b) / 3.0;
+                return float4(totalLight, opacity);
             }
             ENDCG
           }
