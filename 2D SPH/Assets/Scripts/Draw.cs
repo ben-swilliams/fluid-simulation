@@ -129,6 +129,9 @@ public class Draw : MonoBehaviour
         rays.Mat.SetFloat("densityThreshold", densityThreshold);
         rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
         rays.Mat.SetInt("maxRefractions", maxRefractions);
+        rays.Mat.SetFloat("checkerFrequency", checkerFrequency);
+        
+        rays.Mat.SetVector("floorSize", floor.transform.localScale * 5); // 10 is size of plane mesh
 
         Vector3 worldSunDir = RenderSettings.sun.transform.forward;
         Vector3 uvwSunDir = raysCube.transform.worldToLocalMatrix.MultiplyVector(worldSunDir).normalized;
@@ -159,6 +162,7 @@ public class Draw : MonoBehaviour
         rays.Mat.SetColor("fluidColour", fluidColour);
         rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
         rays.Mat.SetInt("maxRefractions", maxRefractions);
+        rays.Mat.SetFloat("checkerFrequency", checkerFrequency);
 
         floor.GetComponent<Renderer>().material.SetFloat("frequency", checkerFrequency);
     }
