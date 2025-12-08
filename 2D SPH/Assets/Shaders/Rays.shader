@@ -66,7 +66,7 @@
             }
 
             bool IsInFluid(float3 uvw) {
-                return SampleDensity(uvw) > densityThreshold;
+                return SampleDensity(uvw) > 0;
             }
 
             float3 CalculateNormal(float3 uvw) {
