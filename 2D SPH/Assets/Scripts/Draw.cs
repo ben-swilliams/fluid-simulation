@@ -39,6 +39,7 @@ public class Draw : MonoBehaviour
     [SerializeField] float densityThreshold;
     [SerializeField] float sunIntensity;
     [SerializeField] Vector3 scatterCoeffs = new Vector3(1, 1, 1);
+    [SerializeField] int maxRefractions = 1;
 
     /*
     Private properties
@@ -121,6 +122,7 @@ public class Draw : MonoBehaviour
         rays.Mat.SetFloat("sunIntensity", sunIntensity);
         rays.Mat.SetFloat("densityThreshold", densityThreshold);
         rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
+        rays.Mat.SetInt("maxRefractions", maxRefractions);
 
         Vector3 worldSunDir = RenderSettings.sun.transform.forward;
         Vector3 uvwSunDir = raysCube.transform.worldToLocalMatrix.MultiplyVector(worldSunDir).normalized;
@@ -150,6 +152,7 @@ public class Draw : MonoBehaviour
         rays.Mat.SetFloat("densityThreshold", densityThreshold);
         rays.Mat.SetColor("fluidColour", fluidColour);
         rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
+        rays.Mat.SetInt("maxRefractions", maxRefractions);
     }
 
     void OnDestroy()
