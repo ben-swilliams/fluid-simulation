@@ -18,6 +18,7 @@ public class Draw : MonoBehaviour
     [SerializeField] Shader particleShader;
     [SerializeField] Shader cubesShader;
     [SerializeField] Shader raysShader;
+    [SerializeField] Shader floorShader;
 
     [Header("Appearance Settings")]
     [SerializeField, Range(0, 4)] int sphereResolution = 2;
@@ -28,6 +29,8 @@ public class Draw : MonoBehaviour
     [SerializeField] float maxPressure = 5000f;
     [SerializeField] Property colourProperty;
     [SerializeField, InspectorName("Billboard?")] bool billboard = false;
+    [SerializeField] GameObject floor;
+    [SerializeField] float checkerFrequency;
     
     [Header("Marching cubes")]
     [SerializeField] float isoLevel = 5;
@@ -113,6 +116,9 @@ public class Draw : MonoBehaviour
         if (!billboard) mesh = MeshGenerator.GenerateSphere(sphereResolution);
         else mesh = MeshGenerator.GenerateQuad();
 
+        floor.GetComponent<Renderer>().material = new Material(floorShader);
+        floor.GetComponent<Renderer>().material.SetFloat("frequency", checkerFrequency);
+
         Color.RGBToHSV(slowColour, out lowHue, out _, out _);
         Color.RGBToHSV(fastColour, out highHue, out _, out _);
 
@@ -153,6 +159,8 @@ public class Draw : MonoBehaviour
         rays.Mat.SetColor("fluidColour", fluidColour);
         rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
         rays.Mat.SetInt("maxRefractions", maxRefractions);
+
+        floor.GetComponent<Renderer>().material.SetFloat("frequency", checkerFrequency);
     }
 
     void OnDestroy()
