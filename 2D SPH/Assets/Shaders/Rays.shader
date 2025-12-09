@@ -30,6 +30,8 @@
               float sunIntensity;
               float densityThreshold;
 
+              float refractionIndex;
+
               int maxRefractions;
 
               float checkerFrequency;
@@ -159,6 +161,16 @@
                 return lerp(colorA, colorB, checker);
             }
 
+            float3 RefractRay(float3 fluidUVW, float3 rayDir, bool isEntry) {
+                float3 normal = CalculateNormal(fluidUVW);
+                if (dot(rayDir, normal) > 0)
+                    normal = -normal;
+
+                float ior = isEntry ? 1 / refractionIndex : refractionIndex;
+                
+                return refract(rayDir, normal, ior);
+            }
+
             float4 frag (v2f i) : SV_Target
             {
               float3 rayLoc = i.uvwEntry;
@@ -184,6 +196,7 @@
               float3 transmittance = 1;
 
                 for (int _ = 0; _ < maxRefractions; _++) {
+                    // Exiting
                     if (inFluid) {
                         sp = FindSurfaceAlongRay(rayLoc, rayDir, fluidStepSize, false);
 
@@ -194,6 +207,7 @@
 
                         rayLoc = sp.uvw;
                         inFluid = false;
+                    // Entering
                     } else {
                         sp = FindSurfaceAlongRay(rayLoc, rayDir, fluidStepSize, true);
                         if (!sp.isSurface) break;
