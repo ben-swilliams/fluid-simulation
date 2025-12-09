@@ -6632,7 +6632,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: -1.5, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.3, y: 1, z: 0.3}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -10531,6 +10531,7 @@ MonoBehaviour:
   particleShader: {fileID: 4800000, guid: 86f6b5b4233e64ce79e43b45f3e9e726, type: 3}
   cubesShader: {fileID: 4800000, guid: be28bf623796248b5a5887ad5c4ecf54, type: 3}
   raysShader: {fileID: 4800000, guid: 76eb14923fd4e43d497e28066559c8e1, type: 3}
+  floorShader: {fileID: 4800000, guid: df34f46184a284a4fb09819c7772dede, type: 3}
   sphereResolution: 0
   fastColour: {r: 1, g: 0.14044955, b: 0, a: 1}
   slowColour: {r: 0, g: 0.69803923, b: 1, a: 1}
@@ -10539,13 +10540,16 @@ MonoBehaviour:
   maxPressure: 300
   colourProperty: 0
   billboard: 0
+  floor: {fileID: 890746195}
+  checkerFrequency: 0.5
   isoLevel: 5
   fluidColour: {r: 0, g: 0.21010661, b: 1, a: 1}
   raysCube: {fileID: 1873203844}
   densityMultiplier: 1
+  densityThreshold: 0
   sunIntensity: 2.75
-  sampleScale: 0.96
   scatterCoeffs: {x: 2, y: 0.85, z: 0.7}
+  maxRefractions: 10
 --- !u!114 &1274155415
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11611,7 +11615,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1433972751
 Transform:
   m_ObjectHideFlags: 0
