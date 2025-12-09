@@ -167,8 +167,13 @@
                     normal = -normal;
 
                 float ior = isEntry ? 1 / refractionIndex : refractionIndex;
+
+                float3 refractedDir = refract(rayDir, normal, ior);
+
+                if (dot(refractedDir, refractedDir) == 0)
+                    return reflect(rayDir, normal);
                 
-                return refract(rayDir, normal, ior);
+                return refractedDir;
             }
 
             float4 frag (v2f i) : SV_Target
