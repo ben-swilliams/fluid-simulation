@@ -211,6 +211,7 @@
                         if (!sp.isSurface) break;
 
                         rayLoc = sp.uvw;
+                        rayDir = RefractRay(sp.uvw, rayDir, false);
                         inFluid = false;
                     // Entering
                     } else {
@@ -218,6 +219,7 @@
                         if (!sp.isSurface) break;
 
                         rayLoc = sp.uvw;
+                        rayDir = RefractRay(sp.uvw, rayDir, true);
                         inFluid = true;
                     }
                 }
