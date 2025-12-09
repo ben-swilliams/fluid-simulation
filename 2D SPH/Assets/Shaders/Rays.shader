@@ -185,13 +185,14 @@
 
               SurfacePoint sp;
 
-              if (!inFluid) {
+            if (!inFluid) {
                 sp = FindSurfaceAlongRay(rayLoc, rayDir, fluidStepSize, true);
                 if (!sp.isSurface) return float4(1, 1, 1, 0);
 
                 rayLoc = sp.uvw;
+                rayDir = RefractRay(sp.uvw, rayDir, true);
                 inFluid = true;
-              }
+            }
 
               // At this point, we have either not found any fluid and returned see-through colour
               // Or we have a surface on the fluid
