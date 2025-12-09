@@ -75,7 +75,7 @@
             }
 
             float3 CalculateNormal(float3 uvw) {
-                const float offsetSize = 0.05;
+                const float offsetSize = 0.1;
                 float3 offsetX = float3(1, 0, 0) * offsetSize;
                 float3 offsetY = float3(0, 1, 0) * offsetSize;
                 float3 offsetZ = float3(0, 0, 1) * offsetSize;
