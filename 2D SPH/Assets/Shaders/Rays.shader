@@ -36,9 +36,9 @@
 
               float checkerFrequency;
 
-              static const float fluidStepSize = 0.005;
+              static const float fluidStepSize = 0.002;
               static const float lightStepSize = 0.2;
-              static const int maxSteps = 256;
+              static const int maxSteps = 1024;
 
               struct v2f
               {
@@ -75,7 +75,7 @@
             }
 
             float3 CalculateNormal(float3 uvw) {
-                const float offsetSize = 0.1;
+                const float offsetSize = 0.01;
                 float3 offsetX = float3(1, 0, 0) * offsetSize;
                 float3 offsetY = float3(0, 1, 0) * offsetSize;
                 float3 offsetZ = float3(0, 0, 1) * offsetSize;
