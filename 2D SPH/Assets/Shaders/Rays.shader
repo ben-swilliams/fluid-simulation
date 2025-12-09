@@ -30,7 +30,7 @@
               float sunIntensity;
               float densityThreshold;
 
-              float refractionIndex;
+              float fluidIOR;
 
               int maxRefractions;
 
@@ -166,7 +166,7 @@
                 if (dot(rayDir, normal) > 0)
                     normal = -normal;
 
-                float ior = isEntry ? 1 / refractionIndex : refractionIndex;
+                float ior = isEntry ? 1 / fluidIOR : fluidIOR;
 
                 float3 refractedDir = refract(rayDir, normal, ior);
 

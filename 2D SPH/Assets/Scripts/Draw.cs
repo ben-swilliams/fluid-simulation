@@ -43,6 +43,7 @@ public class Draw : MonoBehaviour
     [SerializeField] float sunIntensity;
     [SerializeField] Vector3 scatterCoeffs = new Vector3(1, 1, 1);
     [SerializeField] int maxRefractions = 1;
+    [SerializeField] float fluidIOR = 1f;
 
     /*
     Private properties
@@ -130,6 +131,7 @@ public class Draw : MonoBehaviour
         rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
         rays.Mat.SetInt("maxRefractions", maxRefractions);
         rays.Mat.SetFloat("checkerFrequency", checkerFrequency);
+        rays.Mat.SetFloat("fluidIOR", fluidIOR);
         
         rays.Mat.SetVector("floorSize", floor.transform.localScale * 5); // 10 is size of plane mesh
 
@@ -163,6 +165,7 @@ public class Draw : MonoBehaviour
         rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
         rays.Mat.SetInt("maxRefractions", maxRefractions);
         rays.Mat.SetFloat("checkerFrequency", checkerFrequency);
+        rays.Mat.SetFloat("fluidIOR", fluidIOR);
 
         floor.GetComponent<Renderer>().material.SetFloat("frequency", checkerFrequency);
     }
