@@ -36,8 +36,8 @@
 
               float checkerFrequency;
 
-              static const float fluidStepSize = 0.002;
-              static const float lightStepSize = 0.2;
+              static const float fluidStepSize = 0.005;
+              static const float lightStepSize = 0.4;
               static const int maxSteps = 1024;
 
               struct v2f
@@ -134,6 +134,7 @@
                 sp.isSurface = false;
 
                 // Assume we know that ray origin is part of our current phase
+                float3 lastLoc = rayOrigin;
                 float3 rayLoc = rayOrigin + rayDir * rayStepSize;
 
                 float totalDensity = 0;
@@ -154,15 +155,17 @@
                         sp.isSurface = true;
                         break;
                     } else if (isInside) {
+                        lastLoc = rayLoc;
                         totalDensity += SampleDensity(rayLoc) * rayStepSize * densityMultiplier;
                     } else if (!findEntry) {
-                        sp.uvw = rayLoc;
-                        sp.norm = CalculateNormal(rayLoc);
+                        sp.uvw = lastLoc;
+                        sp.norm = CalculateNormal(lastLoc);
                         sp.densityEnRoute = totalDensity;
                         sp.isSurface = true;
                         break;
                     }
 
+                    lastLoc = rayLoc;
                     rayLoc += rayDir * rayStepSize;
                 }
 
