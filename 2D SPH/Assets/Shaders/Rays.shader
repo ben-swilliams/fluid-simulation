@@ -36,8 +36,8 @@
 
               float checkerFrequency;
 
-              static const float fluidStepSize = 0.002;
-              static const float lightStepSize = 0.2;
+              static const float fluidStepSize = 0.005;
+              static const float lightStepSize = 0.4;
               static const int maxSteps = 1024;
 
               struct v2f
