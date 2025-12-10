@@ -84,7 +84,26 @@
                 float dy = SampleDensity(uvw - offsetY) - SampleDensity(uvw + offsetY);
                 float dz = SampleDensity(uvw - offsetZ) - SampleDensity(uvw + offsetZ);
 
-                return normalize(float3(dx, dy, dz));
+                float3 surfaceNormal = normalize(float3(dx, dy, dz));
+
+                // Blend normal at edges of container
+                float3 centred = uvw - 0.5;
+                float3 distances = 0.5 - abs(centred);
+                float closestDistance = min(distances.x, min(distances.y, distances.z));
+
+                // Normal of the face we are closest to
+                float3 faceNormal = (distances.x < distances.y && distances.x < distances.z) ? float3(sign(centred.x), 0, 0) :
+                    (distances.y < distances.z) ? float3(0, sign(centred.y), 0) :
+                    float3(0, 0, sign(centred.z));
+
+                const float smoothDistance = 0.05;
+                const float smoothPow = 5;
+
+                float faceWeight = closestDistance;
+                faceWeight = (1 - smoothstep(0, smoothDistance, faceWeight)) *
+                            (1 - pow(saturate(surfaceNormal.y), smoothPow));
+
+                return normalize(surfaceNormal * (1 - faceWeight) + faceNormal * faceWeight);
             }
 
             struct SurfacePoint {
