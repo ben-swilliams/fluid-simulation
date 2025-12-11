@@ -36,7 +36,7 @@
 
               float checkerFrequency;
 
-              static const float fluidStepSize = 0.005;
+              static const float fluidStepSize = 0.02;
               static const float lightStepSize = 0.4;
               static const int maxSteps = 1024;
 
@@ -292,10 +292,11 @@
               // At this point, we have either not found any fluid and returned see-through colour
               // Or we have a surface on the fluid
 
-                for (int _ = 0; _ < maxRefractions; _++) {
+                for (int ref = 0; ref < maxRefractions; ref++) {
+                    float stepSize = fluidStepSize * (ref + 1);
                     // Exiting
                     if (inFluid) {
-                        sp = FindSurfaceAlongRay(rayLoc, rayDir, fluidStepSize, false);
+                        sp = FindSurfaceAlongRay(rayLoc, rayDir, stepSize, false);
 
                         totalDensity += sp.densityEnRoute;
                         transmittance = exp(-totalDensity * scatterCoeffs);
@@ -305,8 +306,8 @@
                         rayLoc = sp.uvw;
                         RaysInfo raysInfo = CalculateOutputRays(rayLoc, rayDir, fluidIOR);
 
-                        float refractDensity = DensityAlongRay(rayLoc, raysInfo.refractDir, fluidStepSize);
-                        float reflectDensity = DensityAlongRay(rayLoc, raysInfo.reflectDir, fluidStepSize);
+                        float refractDensity = DensityAlongRay(rayLoc, raysInfo.refractDir, stepSize);
+                        float reflectDensity = DensityAlongRay(rayLoc, raysInfo.reflectDir, stepSize);
 
                         bool traceReflection = reflectDensity * raysInfo.reflectCoeff > refractDensity * raysInfo.refractCoeff;
                         float3 boringLight = traceReflection ?
@@ -318,14 +319,14 @@
                         totalLight += boringLight * transmittance;
                         // Entering
                     } else {
-                        sp = FindSurfaceAlongRay(rayLoc, rayDir, fluidStepSize, true);
+                        sp = FindSurfaceAlongRay(rayLoc, rayDir, stepSize, true);
                         if (!sp.isSurface) break;
 
                         rayLoc = sp.uvw;
                         RaysInfo raysInfo = CalculateOutputRays(rayLoc, rayDir, 1 / fluidIOR);
 
-                        float refractDensity = DensityAlongRay(rayLoc, raysInfo.refractDir, fluidStepSize);
-                        float reflectDensity = DensityAlongRay(rayLoc, raysInfo.reflectDir, fluidStepSize);
+                        float refractDensity = DensityAlongRay(rayLoc, raysInfo.refractDir, stepSize);
+                        float reflectDensity = DensityAlongRay(rayLoc, raysInfo.reflectDir, stepSize);
 
                         bool traceReflection = reflectDensity * raysInfo.reflectCoeff > refractDensity * raysInfo.refractCoeff;
                         float3 boringLight = traceReflection ?
