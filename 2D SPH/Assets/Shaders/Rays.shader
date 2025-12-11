@@ -196,6 +196,13 @@
                 return refractedDir;
             }
 
+            float CalculateReflectionCoefficient(float3 rayDir, float3 normal, float ior) {
+                float f0 = pow((ior - 1) / (ior + 1), 2);
+                float cosTheta = abs(dot(normal, rayDir));
+
+                return f0 + (1 - f0) * pow(1 - cosTheta, 5);
+            }
+
             float4 frag (v2f i) : SV_Target
             {
               float3 rayLoc = i.uvwEntry;
