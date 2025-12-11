@@ -182,6 +182,30 @@
 
                 return lerp(colorA, colorB, checker);
             }
+            
+            float3 SampleEnvironment(float3 rayLoc, float3 rayDir) {
+                float3 light;
+                if (rayDir.y >= 0) {
+                    // Ray going up, hits sky
+                    light = float3(1, 1, 1);
+                } else {
+                    float t = rayLoc.y / -rayDir.y;
+                    if (t >= 0) {
+                        // Hit the floor
+                        float3 floorLocUVW = rayLoc + t * rayDir;
+                        float3 floorLocWorld = mul(unity_ObjectToWorld, float4(floorLocUVW - 0.5, 1)).xyz;
+
+                        if (abs(floorLocWorld.x) < floorSize.x && abs(floorLocWorld.z) < floorSize.z)
+                            light = SampleFloor(floorLocWorld);
+                        else
+                            light = float3(1, 1, 1);
+                    } else {
+                        light = float3(1, 1, 1);
+                    }
+                }
+
+                return light;
+            }
 
             float3 RefractRay(float3 fluidUVW, float3 rayDir, float ior) {
                 float3 normal = CalculateNormal(fluidUVW);
@@ -203,6 +227,34 @@
                 return f0 + (1 - f0) * pow(1 - cosTheta, 5);
             }
 
+            struct RaysInfo {
+                float3 refractDir;
+                float3 reflectDir;
+                float refractCoeff;
+                float reflectCoeff;
+            };
+
+            RaysInfo CalculateOutputRays(float3 rayUVW, float3 rayDir, float ior) {
+                RaysInfo ri;
+
+                float3 normal = CalculateNormal(rayUVW);
+
+                ri.refractDir = refract(rayDir, normal, ior);
+                ri.reflectDir = reflect(rayDir, normal);
+
+                float reflectCoeff = CalculateReflectionCoefficient(rayDir, normal, ior);
+                ri.reflectCoeff = reflectCoeff;
+                ri.refractCoeff = 1 - reflectCoeff;
+
+                // Total internal reflection
+                if (!any(ri.refractDir)) {
+                    ri.reflectCoeff = 1;
+                    ri.refractCoeff = 0;
+                }
+
+                return ri;
+            }
+
             float4 frag (v2f i) : SV_Target
             {
               float3 rayLoc = i.uvwEntry;
@@ -212,22 +264,33 @@
 
               SurfacePoint sp;
 
+              float3 totalLight = float3(0, 0, 0);
+              float totalDensity = 0;
+              float3 transmittance = 1;
+
             if (!inFluid) {
                 sp = FindSurfaceAlongRay(rayLoc, rayDir, fluidStepSize, true);
                 if (!sp.isSurface) return float4(1, 1, 1, 0);
 
                 rayLoc = sp.uvw;
 
-                rayDir = RefractRay(sp.uvw, rayDir, 1 / fluidIOR);
-                inFluid = true;
+                RaysInfo raysInfo = CalculateOutputRays(rayLoc, rayDir, 1 / fluidIOR);
+
+                float refractDensity = DensityAlongRay(rayLoc, raysInfo.refractDir, fluidStepSize);
+                float reflectDensity = DensityAlongRay(rayLoc, raysInfo.reflectDir, fluidStepSize);
+
+                bool traceReflection = reflectDensity * raysInfo.reflectCoeff > refractDensity * raysInfo.refractCoeff;
+                float3 boringLight = traceReflection ?
+                    SampleEnvironment(rayLoc, raysInfo.refractDir) * raysInfo.refractCoeff
+                    : SampleEnvironment(rayLoc, raysInfo.reflectDir) * raysInfo.reflectCoeff;
+                
+                rayDir = traceReflection ? raysInfo.reflectDir : raysInfo.refractDir;
+                inFluid = !traceReflection;
+                totalLight += boringLight * transmittance;
             }
 
               // At this point, we have either not found any fluid and returned see-through colour
               // Or we have a surface on the fluid
-
-              float3 totalLight = float3(0, 0, 0);
-              float totalDensity = 0;
-              float3 transmittance = 1;
 
                 for (int _ = 0; _ < maxRefractions; _++) {
                     // Exiting
@@ -240,45 +303,48 @@
                         if (!sp.isSurface) break;
 
                         rayLoc = sp.uvw;
-                        rayDir = RefractRay(sp.uvw, rayDir, fluidIOR);
-                        inFluid = false;
-                    // Entering
+                        RaysInfo raysInfo = CalculateOutputRays(rayLoc, rayDir, fluidIOR);
+
+                        float refractDensity = DensityAlongRay(rayLoc, raysInfo.refractDir, fluidStepSize);
+                        float reflectDensity = DensityAlongRay(rayLoc, raysInfo.reflectDir, fluidStepSize);
+
+                        bool traceReflection = reflectDensity * raysInfo.reflectCoeff > refractDensity * raysInfo.refractCoeff;
+                        float3 boringLight = traceReflection ?
+                            SampleEnvironment(rayLoc, raysInfo.refractDir) * raysInfo.refractCoeff
+                            : SampleEnvironment(rayLoc, raysInfo.reflectDir) * raysInfo.reflectCoeff;
+                        
+                        rayDir = traceReflection ? raysInfo.reflectDir : raysInfo.refractDir;
+                        inFluid = traceReflection;
+                        totalLight += boringLight * transmittance;
+                        // Entering
                     } else {
                         sp = FindSurfaceAlongRay(rayLoc, rayDir, fluidStepSize, true);
                         if (!sp.isSurface) break;
 
                         rayLoc = sp.uvw;
-                        rayDir = RefractRay(sp.uvw, rayDir, 1 / fluidIOR);
-                        inFluid = true;
+                        RaysInfo raysInfo = CalculateOutputRays(rayLoc, rayDir, 1 / fluidIOR);
+
+                        float refractDensity = DensityAlongRay(rayLoc, raysInfo.refractDir, fluidStepSize);
+                        float reflectDensity = DensityAlongRay(rayLoc, raysInfo.reflectDir, fluidStepSize);
+
+                        bool traceReflection = reflectDensity * raysInfo.reflectCoeff > refractDensity * raysInfo.refractCoeff;
+                        float3 boringLight = traceReflection ?
+                            SampleEnvironment(rayLoc, raysInfo.refractDir) * raysInfo.refractCoeff
+                            : SampleEnvironment(rayLoc, raysInfo.reflectDir) * raysInfo.reflectCoeff;
+                        
+                        rayDir = traceReflection ? raysInfo.reflectDir : raysInfo.refractDir;
+                        inFluid = !traceReflection;
+                        totalLight += boringLight * transmittance;
                     }
                 }
 
-                float3 light;
-
-                if (rayDir.y >= 0) {
-                    // Ray going up, hits sky
-                    light = float3(1, 1, 1);
-                } else {
-                    float t = rayLoc.y / -rayDir.y;
-                    if (t >= 0) {
-                        // Hit the floor
-                        float3 floorLocUVW = rayLoc + t * rayDir;
-                        float3 floorLocWorld = mul(unity_ObjectToWorld, float4(floorLocUVW - 0.5, 1)).xyz;
-
-                        if (abs(floorLocWorld.x) < floorSize.x && abs(floorLocWorld.z) < floorSize.z)
-                            light = SampleFloor(floorLocWorld);
-                        else
-                            light = float3(1, 1, 1);
-                    } else {
-                        light = float3(1, 1, 1);
-                    }
-                }
+                float3 light = SampleEnvironment(rayLoc, rayDir);
 
                 float sunDensity = DensityAlongRay(i.uvwEntry, sunDir, lightStepSize);
                 float3 sunContribution = exp(-sunDensity * scatterCoeffs) * sunIntensity;
                 light *= sunContribution;
 
-                totalLight = light * transmittance;
+                totalLight += light * transmittance;
 
                 float opacity = 1 - (transmittance.r + transmittance.g + transmittance.b) / 3.0;
                 return float4(totalLight, opacity);
