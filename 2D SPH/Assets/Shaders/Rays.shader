@@ -36,9 +36,10 @@
 
               float checkerFrequency;
 
-              static const float fluidStepSize = 0.02;
-              static const float lightStepSize = 0.4;
+              static const float fluidStepSize = 0.005;
+              static const float lightStepSize = 0.1;
               static const int maxSteps = 1024;
+              static const float3 skyColour = float3(1, 1, 1);
 
               struct v2f
               {
@@ -187,7 +188,7 @@
                 float3 light;
                 if (rayDir.y >= 0) {
                     // Ray going up, hits sky
-                    light = float3(1, 1, 1);
+                    light = skyColour;
                 } else {
                     float t = rayLoc.y / -rayDir.y;
                     if (t >= 0) {
@@ -198,9 +199,9 @@
                         if (abs(floorLocWorld.x) < floorSize.x && abs(floorLocWorld.z) < floorSize.z)
                             light = SampleFloor(floorLocWorld);
                         else
-                            light = float3(1, 1, 1);
+                            light = skyColour;
                     } else {
-                        light = float3(1, 1, 1);
+                        light = skyColour;
                     }
                 }
 
@@ -276,10 +277,7 @@
 
                 RaysInfo raysInfo = CalculateOutputRays(rayLoc, rayDir, 1 / fluidIOR);
 
-                float refractDensity = DensityAlongRay(rayLoc, raysInfo.refractDir, fluidStepSize);
-                float reflectDensity = DensityAlongRay(rayLoc, raysInfo.reflectDir, fluidStepSize);
-
-                bool traceReflection = reflectDensity * raysInfo.reflectCoeff > refractDensity * raysInfo.refractCoeff;
+                bool traceReflection = raysInfo.reflectCoeff > raysInfo.refractCoeff;
                 float3 boringLight = traceReflection ?
                     SampleEnvironment(rayLoc, raysInfo.refractDir) * raysInfo.refractCoeff
                     : SampleEnvironment(rayLoc, raysInfo.reflectDir) * raysInfo.reflectCoeff;
@@ -293,10 +291,10 @@
               // Or we have a surface on the fluid
 
                 for (int ref = 0; ref < maxRefractions; ref++) {
-                    float stepSize = fluidStepSize * (ref + 1);
+                    float stepSize = lightStepSize * (ref + 1);
                     // Exiting
                     if (inFluid) {
-                        sp = FindSurfaceAlongRay(rayLoc, rayDir, stepSize, false);
+                        sp = FindSurfaceAlongRay(rayLoc, rayDir, fluidStepSize, false);
 
                         totalDensity += sp.densityEnRoute;
                         transmittance = exp(-totalDensity * scatterCoeffs);
