@@ -239,6 +239,8 @@
                 RaysInfo ri;
 
                 float3 normal = CalculateNormal(rayUVW);
+                if (dot(rayDir, normal) > 0)
+                    normal = -normal;
 
                 ri.refractDir = refract(rayDir, normal, ior);
                 ri.reflectDir = reflect(rayDir, normal);
