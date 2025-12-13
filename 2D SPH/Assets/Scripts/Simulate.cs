@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.SceneManagement;
@@ -76,9 +77,10 @@ public class Simulate : MonoBehaviour
     int maxStepsPerFrame = 3;
 
     int instanceCount;
-    float size;
 
     float simulationTime = 0;
+
+    int groupCount;
 
     RenderTexture densityTex;
 
@@ -257,7 +259,7 @@ public class Simulate : MonoBehaviour
 
         if (rebindBuffers) UpdateOffsets();
 
-        simCompute.Dispatch(CalculateDensity, Utils.Constants.threadGroupSize, 1, 1);
+        simCompute.Dispatch(CalculateDensity, groupCount, 1, 1);
 
         if (pressureSolver == Solver.IISPH)
             iisphManager.SolvePressure(iisphSolverIterations);
@@ -268,7 +270,7 @@ public class Simulate : MonoBehaviour
         if (pressureSolver == Solver.PCISPH)
             pcisphManager.SolvePressure(pcisphSolverIterations);
 
-        simCompute.Dispatch(UpdatePositions, Utils.Constants.threadGroupSize, 1, 1);
+        simCompute.Dispatch(UpdatePositions, groupCount, 1, 1);
 
         UpdateColours();
 
@@ -292,9 +294,9 @@ public class Simulate : MonoBehaviour
 
         Draw.Property propChoice = drawer.ColourProperty;
 
-        if (propChoice == Draw.Property.Velocity) simCompute.Dispatch(CalculateVelocityColour, Utils.Constants.threadGroupSize, 1, 1);
-        if (propChoice == Draw.Property.Density) simCompute.Dispatch(CalculateDensityColour, Utils.Constants.threadGroupSize, 1, 1);
-        if (propChoice == Draw.Property.Pressure) simCompute.Dispatch(CalculatePressureColour, Utils.Constants.threadGroupSize, 1, 1);
+        if (propChoice == Draw.Property.Velocity) simCompute.Dispatch(CalculateVelocityColour, groupCount, 1, 1);
+        if (propChoice == Draw.Property.Density) simCompute.Dispatch(CalculateDensityColour, groupCount, 1, 1);
+        if (propChoice == Draw.Property.Pressure) simCompute.Dispatch(CalculatePressureColour, groupCount, 1, 1);
     }
 
     void OnValidate()
@@ -318,7 +320,7 @@ public class Simulate : MonoBehaviour
     void StartSimulation()
     {
         instanceCount = spawner.InstanceCount;
-        size = spawner.Size;
+        groupCount = Mathf.CeilToInt(instanceCount / (float)Utils.Constants.threadGroupSize);
 
         if (indexHash)
             binNumber = CalculateCellNumber();
