@@ -6,63 +6,68 @@
 
       SubShader
       {
-          Tags { "RenderType"="Transparent" "Queue"="Transparent" }
+          Tags {
+            "RenderPipeline" = "UniversalPipeline"
+            "RenderType"="Transparent"
+            "Queue"="Transparent"
+        }
           Cull Back ZWrite Off
           Blend SrcAlpha OneMinusSrcAlpha
 
           Pass
           {
-              CGPROGRAM
-              #pragma vertex vert
-              #pragma fragment frag
-              #pragma target 5.0
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma target 5.0
 
-              #include "UnityCG.cginc"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
-              Texture3D<float4> DensityTex;
-              SamplerState samplerDensityTex;
+            Texture3D<float4> DensityTex;
+            SamplerState samplerDensityTex;
 
-              float3 sunDir;
-              float3 scatterCoeffs;
-              float3 floorSize;
+            float3 sunDir;
+            float3 scatterCoeffs;
+            float3 floorSize;
 
-              float densityMultiplier;
-              float sunIntensity;
-              float densityThreshold;
+            float densityMultiplier;
+            float sunIntensity;
+            float densityThreshold;
 
-              float fluidIOR;
+            float fluidIOR;
 
-              int maxRefractions;
+            int maxRefractions;
 
-              float checkerFrequency;
+            float checkerFrequency;
 
-              static const float fluidStepSize = 0.005;
-              static const float lightStepSize = 0.1;
-              static const int maxSteps = 1024;
-              static const float3 skyColour = float3(1, 1, 1);
+            static const float fluidStepSize = 0.005;
+            static const float lightStepSize = 0.1;
+            static const int maxSteps = 1024;
+            static const float3 skyColour = float3(1, 1, 1);
 
-              struct v2f
-              {
-                float4 vertex : SV_POSITION;
+            struct Attributes {
+                float4 vertex : POSITION;
+            };
+
+            struct Varyings
+            {
+                float4 pos : SV_POSITION;
                 float3 uvwEntry : TEXCOORD0;
                 float3 uvwRayDir : TEXCOORD1;
-              };
+            };
 
-            v2f vert(appdata_full v)
+            Varyings vert(Attributes IN)
             {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
+                Varyings OUT;
+                OUT.pos = TransformObjectToHClip(IN.vertex.xyz);
+                OUT.uvwEntry = IN.vertex.xyz + 0.5;
 
-                o.uvwEntry = v.vertex.xyz + 0.5;
+                float3 worldPos = TransformObjectToWorld(IN.vertex.xyz);
+                float3 worldRayDir = normalize(worldPos - GetCameraPositionWS());
+                OUT.uvwRayDir = mul((float3x3)unity_WorldToObject, worldRayDir);
 
-                float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
-                float3 worldRayDir = normalize(worldPos - _WorldSpaceCameraPos);
-                o.uvwRayDir = mul(unity_WorldToObject, float4(worldRayDir, 0)).xyz;
-
-                // point to light
-                float3 lightRayDir = normalize(_WorldSpaceLightPos0.xyz);
-
-                return o;
+                return OUT;
             }
 
             float SampleDensity(float3 uvw) {
@@ -194,7 +199,7 @@
                     if (t >= 0) {
                         // Hit the floor
                         float3 floorLocUVW = rayLoc + t * rayDir;
-                        float3 floorLocWorld = mul(unity_ObjectToWorld, float4(floorLocUVW - 0.5, 1)).xyz;
+                        float3 floorLocWorld = TransformObjectToWorld(floorLocUVW - 0.5);
 
                         if (abs(floorLocWorld.x) < floorSize.x && abs(floorLocWorld.z) < floorSize.z)
                             light = SampleFloor(floorLocWorld);
@@ -258,10 +263,10 @@
                 return ri;
             }
 
-            float4 frag (v2f i) : SV_Target
+            float4 frag (Varyings IN) : SV_Target
             {
-              float3 rayLoc = i.uvwEntry;
-              float3 rayDir = normalize(i.uvwRayDir);
+              float3 rayLoc = IN.uvwEntry;
+              float3 rayDir = normalize(IN.uvwRayDir);
 
               bool inFluid = IsInFluid(rayLoc);
 
@@ -341,7 +346,7 @@
 
                 float3 light = SampleEnvironment(rayLoc, rayDir);
 
-                float sunDensity = DensityAlongRay(i.uvwEntry, sunDir, lightStepSize);
+                float sunDensity = DensityAlongRay(IN.uvwEntry, sunDir, lightStepSize);
                 float3 sunContribution = exp(-sunDensity * scatterCoeffs) * sunIntensity;
                 light *= sunContribution;
 
@@ -350,7 +355,7 @@
                 float opacity = 1 - (transmittance.r + transmittance.g + transmittance.b) / 3.0;
                 return float4(totalLight, opacity);
             }
-            ENDCG
+            ENDHLSL
           }
       }
   }
