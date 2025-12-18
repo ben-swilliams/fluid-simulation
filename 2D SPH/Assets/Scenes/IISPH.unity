@@ -10455,7 +10455,7 @@ MonoBehaviour:
   pcisphCompute: {fileID: 7200000, guid: 3ede64c1e9c46417fbc253629a0628a4, type: 3}
   simulationSpeed: 1
   smoothingRadius: 0.1
-  velocitySmoothing: 0.01
+  velocitySmoothing: 0
   stepSize: 10
   maxVelocity: 5
   binNumber: 37500
