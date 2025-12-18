@@ -65,7 +65,7 @@
 
                 float3 worldPos = TransformObjectToWorld(IN.vertex.xyz);
                 float3 worldRayDir = normalize(worldPos - GetCameraPositionWS());
-                OUT.uvwRayDir = TransformWorldToObject(worldRayDir);
+                OUT.uvwRayDir = mul((float3x3)unity_WorldToObject, worldRayDir);
 
                 return OUT;
             }
@@ -199,7 +199,7 @@
                     if (t >= 0) {
                         // Hit the floor
                         float3 floorLocUVW = rayLoc + t * rayDir;
-                        float3 floorLocWorld = mul(unity_ObjectToWorld, float4(floorLocUVW - 0.5, 1)).xyz;
+                        float3 floorLocWorld = TransformObjectToWorld(floorLocUVW - 0.5);
 
                         if (abs(floorLocWorld.x) < floorSize.x && abs(floorLocWorld.z) < floorSize.z)
                             light = SampleFloor(floorLocWorld);
