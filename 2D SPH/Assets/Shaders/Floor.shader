@@ -4,40 +4,46 @@ Shader "Custom/Floor" {
 
     SubShader {
         Tags {
+            "RenderPipeline" = "UniversalPipeline"
             "Queue"="Geometry"
         }
 
         Pass {
-            CGPROGRAM
+            HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
             #pragma target 4.5
 
-            #include "UnityCG.cginc"
-            #include "Lighting.cginc"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
             float frequency;
 
-            struct v2f {
+            struct Attributes {
+                float4 vertex : POSITION;
+                float3 normal : NORMAL;
+            };
+
+            struct Varyings {
                 float4 pos : SV_POSITION;
                 float3 worldPos : TEXCOORD0;
                 float3 normal : TEXCOORD1;
             };
 
-            v2f vert(appdata_full v, uint id : SV_InstanceID) {
-                v2f o;
-                o.pos = UnityObjectToClipPos(v.vertex);
-                o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
-                o.normal = UnityObjectToWorldNormal(v.normal);
-                return o;
+            Varyings vert(Attributes IN) {
+                Varyings OUT;
+                OUT.pos = TransformObjectToHClip(IN.vertex.xyz);
+                OUT.worldPos = TransformObjectToWorld(IN.vertex.xyz);
+                OUT.normal = TransformObjectToWorldNormal(IN.normal);
+                return OUT;
             }
 
-            float4 frag (v2f i) : SV_Target
+            float4 frag (Varyings IN) : SV_Target
             {
-                float3 lightDir = normalize(_WorldSpaceLightPos0.xyz);
-                float nDotL = max(0, dot(i.normal, lightDir));
+                float3 lightDir = normalize(GetMainLight().direction.xyz);
+                float nDotL = max(0, dot(IN.normal, lightDir));
 
-                float2 cell = floor(i.worldPos.xz / frequency);
+                float2 cell = floor(IN.worldPos.xz / frequency);
                 int2 cellInt = int2(cell);
                 float checker = (cellInt.x & 1) ^ (cellInt.y & 1);
 
@@ -48,7 +54,7 @@ Shader "Custom/Floor" {
 
                 return float4(finalColor * nDotL, 1.0);
             }
-            ENDCG
+            ENDHLSL
         }
     }
 }
