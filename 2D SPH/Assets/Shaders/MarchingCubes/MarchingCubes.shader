@@ -6,64 +6,67 @@
 
       SubShader
       {
-          Tags { "RenderType"="Opaque" }
+          Tags {
+            "RenderPipeline" = "UniversalPipeline"
+            "RenderType"="Opaque"
+        }
 
           Pass
           {
-              CGPROGRAM
-              #pragma vertex vert
-              #pragma fragment frag
-              #pragma target 5.0
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma target 5.0
 
-              #include "UnityCG.cginc"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
-              struct Vertex {
-                  float3 position;
-                  float3 normal;
-              };
+            struct Varyings {
+                float4 pos : SV_POSITION;
+                float3 normal : TEXCOORD0;
+            };
 
-              struct Triangle {
-                  Vertex a;
-                  Vertex b;
-                  Vertex c;
-              };
+            struct Vertex {
+                float3 position;
+                float3 normal;
+            };
 
-              StructuredBuffer<Triangle> VertexBuffer;
-              float4 col;
+            struct Triangle {
+                Vertex a;
+                Vertex b;
+                Vertex c;
+            };
 
-              struct v2f
-              {
-                  float4 pos : SV_POSITION;
-                  float3 normal : NORMAL;
-              };
+            StructuredBuffer<Triangle> VertexBuffer;
+            float4 col;
 
-              v2f vert (uint vertex_id: SV_VertexID)
-              {
-                  // Each triangle has 3 vertices
-                  int triIndex = vertex_id / 3;
-                  int vertIndex = vertex_id % 3;
+            Varyings vert (uint vertex_id : SV_VertexID)
+            {
+                // Each triangle has 3 vertices
+                int triIndex = vertex_id / 3;
+                int vertIndex = vertex_id % 3;
 
-                  Triangle tri = VertexBuffer[triIndex];
+                Triangle tri = VertexBuffer[triIndex];
 
-                  Vertex v;
-                  if (vertIndex == 0) v = tri.a;
-                  else if (vertIndex == 1) v = tri.b;
-                  else v = tri.c;
+                Vertex v;
+                if (vertIndex == 0) v = tri.a;
+                else if (vertIndex == 1) v = tri.b;
+                else v = tri.c;
 
-                  v2f o;
-                  o.pos = UnityObjectToClipPos(float4(v.position, 1.0));
-                  o.normal = UnityObjectToWorldNormal(v.normal);
-                  return o;
-              }
+                Varyings OUT;
+                OUT.pos = TransformObjectToHClip(v.position);
+                OUT.normal = TransformObjectToWorldNormal(v.normal);
+                return OUT;
+            }
 
-              float4 frag (v2f i) : SV_Target
-              {
-                    float shading = saturate(dot(_WorldSpaceLightPos0.xyz, i.normal));
-					shading = shading * 0.7 + 0.3;
+            float4 frag (Varyings IN) : SV_Target
+            {
+                float shading = saturate(dot(GetMainLight().direction, IN.normal));
+                shading = shading * 0.7 + 0.3;
 
-                    return float4(col.rgb * shading, col.a);
-              }
-              ENDCG
+                return float4(col.rgb * shading, col.a);
+            }
+            ENDHLSL
           }
       }
   }
