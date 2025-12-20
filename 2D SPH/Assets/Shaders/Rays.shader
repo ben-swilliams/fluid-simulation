@@ -227,10 +227,14 @@
             }
 
             float CalculateReflectionCoefficient(float3 rayDir, float3 normal, float ior) {
-                float f0 = pow((ior - 1) / (ior + 1), 2);
-                float cosTheta = abs(dot(normal, rayDir));
+                float innerF0 = (ior - 1) / (ior + 1);
+                float f0 = innerF0 * innerF0;
 
-                return f0 + (1 - f0) * pow(1 - cosTheta, 5);
+                float innerFinal = 1 - abs(dot(normal, rayDir));
+                float innerFinalSq = innerFinal * innerFinal;
+                float innerFinal4 = innerFinalSq * innerFinalSq;
+
+                return f0 + (1 - f0) * innerFinal4 * innerFinal;
             }
 
             struct RaysInfo {
@@ -250,15 +254,16 @@
                 ri.refractDir = refract(rayDir, normal, ior);
                 ri.reflectDir = reflect(rayDir, normal);
 
-                float reflectCoeff = CalculateReflectionCoefficient(rayDir, normal, ior);
-                ri.reflectCoeff = reflectCoeff;
-                ri.refractCoeff = 1 - reflectCoeff;
-
                 // Total internal reflection
                 if (!any(ri.refractDir)) {
                     ri.reflectCoeff = 1;
                     ri.refractCoeff = 0;
+                    return ri;
                 }
+
+                float reflectCoeff = CalculateReflectionCoefficient(rayDir, normal, ior);
+                ri.reflectCoeff = reflectCoeff;
+                ri.refractCoeff = 1 - reflectCoeff;
 
                 return ri;
             }
