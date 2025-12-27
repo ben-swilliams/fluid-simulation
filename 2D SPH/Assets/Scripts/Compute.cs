@@ -1,9 +1,47 @@
 using System;
 using System.Collections.Generic;
+using Common;
 using UnityEngine;
 
-public class Compute
+public class Compute : MonoBehaviour
 {
+    // Shaders
+    [SerializeField] ComputeShader spatialCompute;
+    [SerializeField] ComputeShader simCompute;
+    [SerializeField] ComputeShader wcsphCompute;
+    [SerializeField] ComputeShader iisphCompute;
+    [SerializeField] ComputeShader pcisphCompute;
+
+    [Header("External forces")]
+    [SerializeField] float maxVelocity = 5f;
+    [SerializeField] float gravity = -9.8f;
+    [SerializeField] float dampingFactor = 0.95f;
+    [SerializeField] float wavePeriod = 1f;
+    [SerializeField] float waveStrength = 0f;
+    [SerializeField] float velocitySmoothing = 0.01f;
+
+    [Header("Pressure")]
+    [SerializeField] Solver pressureSolver = Solver.IISPH;
+    [SerializeField] float restDensity = 1f;
+    [SerializeField] float nearPressureMultiplier = 0f;
+    
+    [Header("IISPH Pressure")]
+    [SerializeField] float relaxationFactor = 0.5f;
+    [SerializeField] int iisphSolverIterations = 4;
+
+    [Header("WCSPH Pressure")]
+    [SerializeField, Range(0.001f, 0.1f)] float densityError = 0.1f;
+    [SerializeField] float stiffness = 7f;
+
+    [Header("PCISPH Pressure")]
+    [SerializeField] float deltaScale = 0.01f;
+    [SerializeField] int pcisphSolverIterations = 3;
+
+    [Header("Viscosity")]
+    [SerializeField] float viscosityMultiplier = 0f;
+    [Header("Surface tension")]
+    [SerializeField] float surfaceTensionMultiplier = 0f;
+
     // Common kernels
     int CalculateDensity;
     int UpdatePositions;
@@ -11,13 +49,6 @@ public class Compute
     int CalculateVelocityColour;
     int CalculateDensityColour;
     int CalculatePressureColour;
-
-    // Shaders
-    ComputeShader spatialCompute;
-    ComputeShader simCompute;
-    ComputeShader wcsphCompute;
-    ComputeShader iisphCompute;
-    ComputeShader pcisphCompute;
 
     // Managers
     SpatialHashManager hashManager;
@@ -28,23 +59,18 @@ public class Compute
     // Buffer helper
     BufferHelper commonBufferHelper;
 
-    int binNumber;
+    float simulationTime = 0;
+
     int groupCount;
 
-    float timeStep;
+    [HideInInspector]
+    public float deltaTime;
+    [HideInInspector]
+    public float smoothingRadius;
 
-    public float TimeStep => timeStep;
+    public Solver PressureSolver => pressureSolver;
     public ComputeBuffer Positions => commonBufferHelper.RetrieveBuffer("Positions");
     public ComputeBuffer Colours => commonBufferHelper.RetrieveBuffer("Colours");
-
-    public Compute(ComputeShader spatial, ComputeShader sim, ComputeShader wcsph, ComputeShader iisph, ComputeShader pcisph)
-    {
-        spatialCompute = spatial;
-        simCompute = sim;
-        wcsphCompute = wcsph;
-        iisphCompute = iisph;
-        pcisphCompute = pcisph;
-    }
 
     void InstantiateManagers(int instanceCount, int binNumber, Dictionary<string, BufferInfo> bufferInfo)
         {
@@ -150,6 +176,66 @@ public class Compute
         pcisphManager.Buffers.UpdateBuffer("Offsets", newBuffer);
     }
 
+    void OnValidate()
+    {
+        ValidateInspectorProperties();
+
+        UpdateVariables();
+    }
+
+    void UpdateWaveForce()
+    {
+        float angle = wavePeriod * simulationTime;
+        Vector3 gravityForce = new Vector3(waveStrength * Mathf.Cos(angle), gravity, waveStrength * Mathf.Sin(angle));
+
+        SetPressureValues(new object[] { "gravity", gravityForce });
+    }
+
+    void UpdateVariables()
+    {
+        Spawn spawner = GetComponent<Spawn>();
+
+        float particleSpacing = spawner.Size + spawner.Spacing;
+        float particleMass = particleSpacing * particleSpacing * particleSpacing;
+        float kernelConstant = 8f / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
+        float gradConstant = 6 * kernelConstant / smoothingRadius;
+        float speedOfSound = maxVelocity / Mathf.Sqrt(densityError);
+        float B = restDensity * speedOfSound * speedOfSound / stiffness;
+        float beta = deltaTime * deltaTime * particleMass * particleMass * 2 / (restDensity * restDensity);
+        float delta = Utils.ComputeDelta(particleSpacing, beta, gradConstant, smoothingRadius) * deltaScale;
+
+        object[] keyValues =
+        {
+            "dampingFactor", dampingFactor,
+            "gravity", gravity,
+            "velocitySmoothing", velocitySmoothing,
+            "restDensity", restDensity,
+            "relaxationFactor", relaxationFactor,
+            "particleMass", particleMass,
+            "viscosityMultiplier", viscosityMultiplier,
+            "surfaceTensionMultiplier", surfaceTensionMultiplier,
+            "kernelConstant", kernelConstant,
+            "gradConstant", gradConstant,
+            "maxVelocity", maxVelocity,
+            "stiffness", stiffness,
+            "B", B,
+            "nearPressureMultiplier", nearPressureMultiplier,
+            "beta", beta,
+            "delta", delta,
+        };
+
+        SetValues(keyValues);
+    }
+
+    public void ValidateInspectorProperties()
+    {
+        dampingFactor = Mathf.Max(0, dampingFactor);
+        restDensity = Mathf.Max(0.01f, restDensity);
+        relaxationFactor = Mathf.Clamp01(relaxationFactor);
+        viscosityMultiplier = Mathf.Max(0, viscosityMultiplier);
+        iisphSolverIterations = Mathf.Max(0, iisphSolverIterations);
+    }
+
     public void WriteToDensityTexture(int x, int y, int z)
     {
         simCompute.Dispatch(WriteDensities, x, y, z);
@@ -164,16 +250,21 @@ public class Compute
     public void Initialise(int binNumber, Array positions, Array velocities)
     {
         Dictionary<string, BufferInfo> bufferInfo = GenerateBufferInfo(positions, velocities);
-        groupCount = Mathf.CeilToInt(positions.Length / (float)Common.Constants.threadGroupSize);
+        groupCount = Mathf.CeilToInt(positions.Length / (float)Constants.threadGroupSize);
 
-        timeStep = Common.Utils.SolverSteps(Common.Solver.WCSPH);
         InstantiateManagers(positions.Length, binNumber, bufferInfo);
     }
 
 
-    public void SetValues(object[] values, params ComputeShader[] shaders)
+    public void SetPressureValues(object[] values)
     {
-        Common.Utils.SetValues(values, shaders);
+        Utils.SetValues(values, wcsphCompute, iisphCompute, pcisphCompute);
+    }
+
+    public void SetValues(object[] values)
+    {
+        Utils.SetValues(values, spatialCompute, simCompute);
+        SetPressureValues(values);
     }
 
     public void UpdateColours(Draw.Property prop)
@@ -184,8 +275,10 @@ public class Compute
     }
 
 
-    public void RunPhysicsStep(int binNumber, Common.Solver pressureSolver, int iterations)
+    public void RunPhysicsStep(int binNumber)
     {
+        UpdateWaveForce();
+
         // True if binNumber has changed
         bool rebindBuffers = hashManager.ScanAndScatter(binNumber);
 
@@ -193,19 +286,23 @@ public class Compute
 
         simCompute.Dispatch(CalculateDensity, groupCount, 1, 1);
 
-        if (pressureSolver == Common.Solver.IISPH)
+        int iterations = pressureSolver == Solver.IISPH ? iisphSolverIterations : pcisphSolverIterations;
+
+        if (pressureSolver == Solver.IISPH)
             iisphManager.SolvePressure(iterations);
-        if (pressureSolver == Common.Solver.WCSPH)
+        if (pressureSolver == Solver.WCSPH)
         {
             wcsphManager.SolvePressure();
         }
-        if (pressureSolver == Common.Solver.PCISPH)
+        if (pressureSolver == Solver.PCISPH)
             pcisphManager.SolvePressure(iterations);
 
         simCompute.Dispatch(UpdatePositions, groupCount, 1, 1);
+
+        simulationTime += deltaTime;
     }
 
-    public void Destroy()
+    void OnDestroy()
     {
         hashManager?.Destroy();
         commonBufferHelper?.Destroy();

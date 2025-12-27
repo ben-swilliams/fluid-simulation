@@ -134,7 +134,7 @@ namespace Common
             return cellCount;
         }
 
-        public static Vector3[] GenerateVelocityData(int instanceCount, float speed)
+        public static Vector3[] GenerateVelocityData(int instanceCount, float speed = 0)
         {
             Vector3[] velocities = new Vector3[instanceCount];
 

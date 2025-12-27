@@ -8,53 +8,15 @@ public class Simulate : MonoBehaviour
     /*
     Inspector properties
     */
-    [Header("Shaders")]
-    [SerializeField] ComputeShader spatialCompute;
-    [SerializeField] ComputeShader simCompute;
-    [SerializeField] ComputeShader wcsphCompute;
-    [SerializeField] ComputeShader iisphCompute;
-    [SerializeField] ComputeShader pcisphCompute;
 
     [Header("Simulation Settings")]
     [SerializeField] float simulationSpeed = 1f;
-    [SerializeField] float smoothingRadius = 1f;
-    [SerializeField] float velocitySmoothing = 0f;
+    [SerializeField] float smoothingRadius = 0.1f;
     [SerializeField] int stepSize = 10;
-    [SerializeField] float maxVelocity = 100f;
     [SerializeField] int binNumber = 200000;
     [SerializeField] bool indexHash = true;
-    
-    [Header("Marching cubes")]
     [SerializeField] int densityTextureRes = 100;
 
-    [Header("External forces")]
-    [SerializeField] float initSpeed = 5f;
-    [SerializeField] float gravity = -9.8f;
-    [SerializeField] float dampingFactor = 0.9f;
-    [SerializeField] float wavePeriod = 0.1f;
-    [SerializeField] float waveStrength = 1f;
-
-    [Header("Pressure")]
-    [SerializeField] Solver pressureSolver = Solver.IISPH;
-    [SerializeField] float restDensity = 1f;
-    [SerializeField] float nearPressureMultiplier = 1f;
-    
-    [Header("IISPH Pressure")]
-    [SerializeField] float relaxationFactor = 0.5f;
-    [SerializeField] int iisphSolverIterations = 4;
-
-    [Header("WCSPH Pressure")]
-    [SerializeField, Range(0.001f, 0.1f)] float densityError = 0.01f;
-    [SerializeField] float stiffness = 7f;
-
-    [Header("PCISPH Pressure")]
-    [SerializeField] float deltaScale = 0.01f;
-    [SerializeField] int pcisphSolverIterations = 3;
-
-    [Header("Viscosity")]
-    [SerializeField] float viscosityMultiplier = 1f;
-    [Header("Surface tension")]
-    [SerializeField] float surfaceTensionMultiplier = 1f;
 
     /*
     Private properties
@@ -69,8 +31,6 @@ public class Simulate : MonoBehaviour
 
     int instanceCount;
 
-    float simulationTime = 0;
-
     RenderTexture densityTex;
 
     /*
@@ -80,111 +40,6 @@ public class Simulate : MonoBehaviour
     public float SmoothingRadius => smoothingRadius;
 
     public RenderTexture DensityTex => densityTex;
-
-    public float SimulationSpeed
-    {
-        set
-        {
-            simulationSpeed = value;
-            UpdateVariables();
-        }
-    }
-
-    public float Gravity
-    {
-        set
-        {
-            gravity = value;
-            UpdateVariables();
-        }
-    }
-
-    public float DampingFactor
-    {
-        set
-        {
-            dampingFactor = value;
-            UpdateVariables();
-        }
-    }
-
-    public float WaveStrength
-    {
-        set
-        {
-            waveStrength = value;
-            UpdateVariables();
-        }
-    }
-
-    public float WavePeriod
-    {
-        set
-        {
-            wavePeriod = value;
-            UpdateVariables();
-        }
-    }
-
-    public float DensityFluctuation
-    {
-        set
-        {
-            densityError = value;
-            UpdateVariables();
-        }
-    }
-
-    public float Stiffness
-    {
-        set
-        {
-            stiffness = value;
-            UpdateVariables();
-        }
-    }
-
-    public float IISPHSolverIterations
-    {
-        set
-        {
-            iisphSolverIterations = Mathf.FloorToInt(value);
-            UpdateVariables();
-        }
-    }
-
-    public float PCISPHSolverIterations
-    {
-        set
-        {
-            pcisphSolverIterations = Mathf.FloorToInt(value);
-            UpdateVariables();
-        }
-    }
-
-    public float RestDensity
-    {
-        set
-        {
-            restDensity = value;
-            UpdateVariables();
-        }
-    }
-
-    public float DeltaScale
-    {
-        set
-        {
-            deltaScale = value;
-            UpdateVariables();
-        }
-    }
-
-    public void SetSolver(int index)
-    {
-        pressureSolver = (Solver)index;
-        UpdateVariables();
-    }
 
     void Start()
     {
@@ -205,26 +60,17 @@ public class Simulate : MonoBehaviour
         drawer.DrawFrame(densityTex, started);
     }
 
-    void UpdateWaveForce()
-    {
-        float angle = wavePeriod * simulationTime;
-        Vector3 gravityForce = new Vector3(waveStrength * Mathf.Cos(angle), gravity, waveStrength * Mathf.Sin(angle));
-
-        compute.SetValues(new object[] { "gravity", gravityForce }, wcsphCompute, iisphCompute, pcisphCompute);
-    }
 
     void AdvanceFrame()
     {
-        UpdateWaveForce();
         accumulator += Time.deltaTime;
 
         int stepsThisFrame = 0;
         while (accumulator >= physicsTimeStep && stepsThisFrame < maxStepsPerFrame)
         {
-            compute.RunPhysicsStep(binNumber, pressureSolver, pressureSolver == Solver.IISPH ? iisphSolverIterations : pcisphSolverIterations);
+            compute.RunPhysicsStep(binNumber);
             compute.UpdateColours(drawer.ColourProperty);
 
-            simulationTime += physicsTimeStep * simulationSpeed;
             accumulator -= physicsTimeStep;
             stepsThisFrame++;
         }
@@ -246,11 +92,6 @@ public class Simulate : MonoBehaviour
         UpdateBoundary();
     }
 
-    void OnDestroy()
-    {
-        compute?.Destroy();
-    }
-
     void StartSimulation()
     {
         instanceCount = spawner.InstanceCount;
@@ -258,8 +99,8 @@ public class Simulate : MonoBehaviour
         if (indexHash)
             binNumber = Utils.CalculateCellNumber(GetComponentInChildren<Container>().Boundary, smoothingRadius);
 
-        compute = new Compute(spatialCompute, simCompute, wcsphCompute, iisphCompute, pcisphCompute);
-        compute.Initialise(binNumber, spawner.ExtractPositions(), Utils.GenerateVelocityData(instanceCount, initSpeed));
+        compute = GetComponent<Compute>();
+        compute.Initialise(binNumber, spawner.ExtractPositions(), Utils.GenerateVelocityData(instanceCount));
 
         InitialiseVariables();
         UpdateBoundary();
@@ -269,18 +110,16 @@ public class Simulate : MonoBehaviour
         started = true;
     }
 
-    
-
     void InitialiseLeapFrogVelocities()
     {
         object[] halfStep = new object[] { "deltaTime", physicsTimeStep * 0.5f };
         // Set half timestep for initialization
-        compute.SetValues(halfStep, spatialCompute, simCompute, wcsphCompute, iisphCompute, pcisphCompute);
+        compute.SetValues(halfStep);
 
-        compute.RunPhysicsStep(binNumber, pressureSolver, pressureSolver == Solver.IISPH ? iisphSolverIterations : pcisphSolverIterations);
+        compute.RunPhysicsStep(binNumber);
 
         object[] fullStep = new object[] { "deltaTime", physicsTimeStep };
-        compute.SetValues(fullStep, spatialCompute, simCompute, wcsphCompute, iisphCompute, pcisphCompute);
+        compute.SetValues(fullStep);
     }
 
     void BindExternalBuffers()
@@ -296,7 +135,7 @@ public class Simulate : MonoBehaviour
             "size", spawner.Size,
             "instanceCount", instanceCount
         };
-        Utils.SetValues(keyValues, spatialCompute, simCompute, wcsphCompute, iisphCompute, pcisphCompute);
+        compute.SetValues(keyValues);
 
         UpdateMouseForce(Vector3.zero, 0, 0);
         UpdateVariables();
@@ -307,42 +146,27 @@ public class Simulate : MonoBehaviour
 
     void UpdateVariables()
     {
-        physicsTimeStep = 1f / Utils.SolverSteps(pressureSolver);
+        physicsTimeStep = 1f / Utils.SolverSteps(compute.PressureSolver);
         float deltaTime = physicsTimeStep * simulationSpeed;
         float particleSpacing = spawner.Size + spawner.Spacing;
         float particleMass = particleSpacing * particleSpacing * particleSpacing;
         float kernelConstant = 8f / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
         float gradConstant = 6 * kernelConstant / smoothingRadius;
-        float speedOfSound = maxVelocity / Mathf.Sqrt(densityError);
-        float B = restDensity * speedOfSound * speedOfSound / stiffness;
-        float beta = deltaTime * deltaTime * particleMass * particleMass * 2 / (restDensity * restDensity);
-        float delta = Utils.ComputeDelta(particleSpacing, beta, gradConstant, smoothingRadius) * deltaScale;
 
         object[] keyValues =
         {
             "deltaTime", deltaTime,
             "smoothingRadius", smoothingRadius,
-            "dampingFactor", dampingFactor,
-            "gravity", gravity,
-            "restDensity", restDensity,
-            "relaxationFactor", relaxationFactor,
             "particleMass", particleMass,
-            "viscosityMultiplier", viscosityMultiplier,
-            "surfaceTensionMultiplier", surfaceTensionMultiplier,
-            "velocitySmoothing", velocitySmoothing,
             "kernelConstant", kernelConstant,
             "gradConstant", gradConstant,
-            "maxVelocity", maxVelocity,
-            "stiffness", stiffness,
-            "B", B,
-            "nearPressureMultiplier", nearPressureMultiplier,
-            "beta", beta,
-            "delta", delta,
             "tableSize", binNumber,
             "useIndex", indexHash ? 1 : 0,
         };
 
-        Utils.SetValues(keyValues, simCompute, spatialCompute, wcsphCompute, iisphCompute, pcisphCompute);
+        compute.deltaTime = deltaTime;
+        compute.smoothingRadius = smoothingRadius;
+        compute.SetValues(keyValues);
 
         UpdateBoundary();
         UpdateDensityTexture();
@@ -351,15 +175,8 @@ public class Simulate : MonoBehaviour
     public void ValidateInspectorProperties()
     {
         simulationSpeed = Mathf.Clamp(simulationSpeed, 0, 1);
-        initSpeed = Mathf.Max(0, initSpeed);
-        dampingFactor = Mathf.Max(0, dampingFactor);
         smoothingRadius = Mathf.Max(0.01f, smoothingRadius);
-        restDensity = Mathf.Max(0.01f, restDensity);
-        relaxationFactor = Mathf.Clamp01(relaxationFactor);
-        viscosityMultiplier = Mathf.Max(0, viscosityMultiplier);
         stepSize = Mathf.Max(0, stepSize);
-        maxVelocity = Mathf.Max(0.01f, maxVelocity);
-        iisphSolverIterations = Mathf.Max(0, iisphSolverIterations);
         binNumber = indexHash ? Utils.CalculateCellNumber(GetComponentInChildren<Container>().Boundary, smoothingRadius) : Mathf.Max(1, binNumber);
     }
 
@@ -439,12 +256,12 @@ public class Simulate : MonoBehaviour
     {
         if (compute == null) return;
 
-        compute.SetValues(new object[]
+        compute.SetPressureValues(new object[]
         {
             "mousePos", origin,
             "mouseRadius", radius,
             "power", power
-        }, wcsphCompute, iisphCompute, pcisphCompute);
+        });
     }
 
     public void UpdateBoundary()
@@ -466,7 +283,7 @@ public class Simulate : MonoBehaviour
             "maxCornerZ", maxZ
         };
         
-        compute.SetValues(values, spatialCompute, simCompute, wcsphCompute, iisphCompute, pcisphCompute);
+        compute.SetValues(values);
 
         drawer.UpdateContainerSize(container.Boundary);
     }
