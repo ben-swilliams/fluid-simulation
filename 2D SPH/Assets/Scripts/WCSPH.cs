@@ -17,7 +17,7 @@ public class WCSPHManager
     {
         shader = wcsphShader;
 
-        threadCount = Mathf.CeilToInt(instanceCount / (float)Utils.Constants.threadGroupSize);
+        threadCount = Mathf.CeilToInt(instanceCount / (float)Common.Constants.threadGroupSize);
 
         FindKernels();
 

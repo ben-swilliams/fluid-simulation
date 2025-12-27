@@ -224,7 +224,7 @@ public class Draw : MonoBehaviour
 
     void SetColourValues()
     {
-        Utils.SetValues(new object[]
+        Common.Utils.SetValues(new object[]
         {
             "lowHue", lowHue,
             "highHue", highHue,

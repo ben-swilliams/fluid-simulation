@@ -27,7 +27,7 @@ public class SpatialHashManager
     public SpatialHashManager(ComputeShader spatialShader, Dictionary<string, ComputeBuffer> externalBuffers, int binNumber, int instanceCount)
     {
         shader = spatialShader;
-        threadCount = Mathf.CeilToInt(instanceCount / (float)Utils.Constants.threadGroupSize);
+        threadCount = Mathf.CeilToInt(instanceCount / (float)Common.Constants.threadGroupSize);
 
         this.binNumber = binNumber;
 
@@ -68,10 +68,10 @@ public class SpatialHashManager
     Dictionary<string, BufferInfo> GenerateBinDependentBufferInfo(int binNumber)
     {
         // Calculate number of blocks needed for hierarchical scan
-        int numBlocks = Mathf.CeilToInt(binNumber / (float)Utils.Constants.scanBlockSize);
+        int numBlocks = Mathf.CeilToInt(binNumber / (float)Common.Constants.scanBlockSize);
 
         // Calculate number of super blocks needed for three-level scan
-        int numSuperBlocks = Mathf.CeilToInt(numBlocks / (float)Utils.Constants.scanBlockSize);
+        int numSuperBlocks = Mathf.CeilToInt(numBlocks / (float)Common.Constants.scanBlockSize);
 
         Dictionary<string, BufferInfo> bufferInfo = new Dictionary<string, BufferInfo>
         {
@@ -101,7 +101,7 @@ public class SpatialHashManager
 
     void HierarchicalScan(int binNumber)
     {
-        int numBlocks = Mathf.CeilToInt(binNumber / (float)Utils.Constants.scanBlockSize);
+        int numBlocks = Mathf.CeilToInt(binNumber / (float)Common.Constants.scanBlockSize);
 
         // Phase 1: Local scan in each block (stores block sums in BlockSums buffer)
         shader.Dispatch(Scan, numBlocks, 1, 1);
@@ -109,7 +109,7 @@ public class SpatialHashManager
         // Phase 2: If we have multiple blocks, scan the block sums themselves
         if (numBlocks > 1)
         {
-            int numSuperBlocks = Mathf.CeilToInt(numBlocks / (float)Utils.Constants.scanBlockSize);
+            int numSuperBlocks = Mathf.CeilToInt(numBlocks / (float)Common.Constants.scanBlockSize);
 
             shader.SetInt("numBlockSums", numBlocks);
             shader.SetInt("numSuperBlocks", numSuperBlocks);
@@ -125,7 +125,7 @@ public class SpatialHashManager
             // Phase 2.75: Add scanned super-block sums to BlockSums
             if (numSuperBlocks > 1)
             {
-                int addSuperThreadGroups = Mathf.CeilToInt(numBlocks / (float)Utils.Constants.threadGroupSize);
+                int addSuperThreadGroups = Mathf.CeilToInt(numBlocks / (float)Common.Constants.threadGroupSize);
                 shader.Dispatch(AddSuperBlockSums, addSuperThreadGroups, 1, 1);
             }
         }
@@ -133,7 +133,7 @@ public class SpatialHashManager
         // Phase 3: Add scanned block sums to each block's elements
         if (numBlocks > 1)
         {
-            int addThreadGroups = Mathf.CeilToInt(binNumber / (float)Utils.Constants.threadGroupSize);
+            int addThreadGroups = Mathf.CeilToInt(binNumber / (float)Common.Constants.threadGroupSize);
             shader.Dispatch(AddBlockSums, addThreadGroups, 1, 1);
         }
 
@@ -153,7 +153,7 @@ public class SpatialHashManager
             this.binNumber = binNumber;
         }
 
-        int clearCountsGroupNum = Mathf.CeilToInt(binNumber / (float)Utils.Constants.threadGroupSize);
+        int clearCountsGroupNum = Mathf.CeilToInt(binNumber / (float)Common.Constants.threadGroupSize);
         shader.Dispatch(ClearCounts, clearCountsGroupNum, 1, 1);
 
         shader.Dispatch(Partition, threadCount, 1, 1);
