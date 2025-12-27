@@ -191,7 +191,7 @@ public class Compute : MonoBehaviour
         SetPressureValues(new object[] { "gravity", gravityForce });
     }
 
-    void UpdateVariables()
+    public void UpdateVariables()
     {
         Spawn spawner = GetComponent<Spawn>();
 

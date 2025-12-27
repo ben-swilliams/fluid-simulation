@@ -167,6 +167,7 @@ public class Simulate : MonoBehaviour
         compute.deltaTime = deltaTime;
         compute.smoothingRadius = smoothingRadius;
         compute.SetValues(keyValues);
+        compute.UpdateVariables();
 
         UpdateBoundary();
         UpdateDensityTexture();

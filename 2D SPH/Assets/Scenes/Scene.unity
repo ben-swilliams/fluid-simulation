@@ -10677,14 +10677,14 @@ MonoBehaviour:
   wavePeriod: 0.1
   waveStrength: 1
   velocitySmoothing: 0
-  pressureSolver: 1
-  restDensity: 20
+  pressureSolver: 2
+  restDensity: 5
   nearPressureMultiplier: 0
   relaxationFactor: 0.5
   iisphSolverIterations: 4
   densityError: 0.01
   stiffness: 7
-  deltaScale: 0.01
+  deltaScale: 1
   pcisphSolverIterations: 3
   viscosityMultiplier: 0
   surfaceTensionMultiplier: 0
