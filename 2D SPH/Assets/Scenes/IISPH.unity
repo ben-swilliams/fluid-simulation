@@ -10429,6 +10429,7 @@ GameObject:
   - component: {fileID: 1274155415}
   - component: {fileID: 1274155414}
   - component: {fileID: 1274155416}
+  - component: {fileID: 1274155417}
   m_Layer: 0
   m_Name: Simulation
   m_TagString: Untagged
@@ -10448,35 +10449,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5bff678dc30d6f419dcd0ec0451cb4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
-  spatialCompute: {fileID: 7200000, guid: d47f4318ac5bd4e9f8022f5eb9d0f83a, type: 3}
-  simCompute: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
-  wcsphCompute: {fileID: 7200000, guid: 4e4dc8800ceef4244a4534937cb85599, type: 3}
-  iisphCompute: {fileID: 7200000, guid: 48efe4550ac3a40e89423a36aceaa63a, type: 3}
-  pcisphCompute: {fileID: 7200000, guid: 3ede64c1e9c46417fbc253629a0628a4, type: 3}
   simulationSpeed: 1
   smoothingRadius: 0.1
-  velocitySmoothing: 0
   stepSize: 10
-  maxVelocity: 5
   binNumber: 37500
   indexHash: 1
   densityTextureRes: 100
-  initSpeed: 0
-  gravity: -9.8
-  dampingFactor: 0.95
-  wavePeriod: 1
-  waveStrength: 0
-  pressureSolver: 1
-  restDensity: 1
-  nearPressureMultiplier: 0
-  relaxationFactor: 0.5
-  iisphSolverIterations: 4
-  densityError: 0.1
-  stiffness: 7
-  deltaScale: 10
-  pcisphSolverIterations: 3
-  viscosityMultiplier: 0
-  surfaceTensionMultiplier: 0
 --- !u!4 &1274155412
 Transform:
   m_ObjectHideFlags: 0
@@ -10675,6 +10653,42 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 1
   m_ApplyActiveColorSpace: 1
+--- !u!114 &1274155417
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1274155410}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e907d7671833d4d20b0ac475578826f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Compute
+  spatialCompute: {fileID: 7200000, guid: d47f4318ac5bd4e9f8022f5eb9d0f83a, type: 3}
+  simCompute: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
+  wcsphCompute: {fileID: 7200000, guid: 4e4dc8800ceef4244a4534937cb85599, type: 3}
+  iisphCompute: {fileID: 7200000, guid: 48efe4550ac3a40e89423a36aceaa63a, type: 3}
+  pcisphCompute: {fileID: 7200000, guid: 3ede64c1e9c46417fbc253629a0628a4, type: 3}
+  maxVelocity: 5
+  gravity: -9.8
+  dampingFactor: 0.95
+  wavePeriod: 1
+  waveStrength: 0
+  velocitySmoothing: 0
+  pressureSolver: 1
+  restDensity: 1
+  nearPressureMultiplier: 0
+  relaxationFactor: 0.5
+  iisphSolverIterations: 4
+  densityError: 0.1
+  stiffness: 7
+  deltaScale: 0.01
+  pcisphSolverIterations: 3
+  viscosityMultiplier: 0
+  surfaceTensionMultiplier: 0
+  deltaTime: 0
+  smoothingRadius: 0
 --- !u!1 &1280510355
 GameObject:
   m_ObjectHideFlags: 0
