@@ -10,7 +10,6 @@ public class Simulate : MonoBehaviour
     */
 
     [Header("Simulation Settings")]
-    [SerializeField] float simulationSpeed = 1f;
     [SerializeField] float smoothingRadius = 0.1f;
     [SerializeField] int stepSize = 10;
     [SerializeField] int binNumber = 200000;
@@ -25,7 +24,6 @@ public class Simulate : MonoBehaviour
     Draw drawer;
     Compute compute;
     bool started;
-    float physicsTimeStep;
     float accumulator = 0f;
     int maxStepsPerFrame = 3;
 
@@ -66,17 +64,17 @@ public class Simulate : MonoBehaviour
         accumulator += Time.deltaTime;
 
         int stepsThisFrame = 0;
-        while (accumulator >= physicsTimeStep && stepsThisFrame < maxStepsPerFrame)
+        while (accumulator >= compute.PhysicsTimeStep && stepsThisFrame < maxStepsPerFrame)
         {
             compute.RunPhysicsStep(binNumber);
             compute.UpdateColours(drawer.ColourProperty);
 
-            accumulator -= physicsTimeStep;
+            accumulator -= compute.PhysicsTimeStep;
             stepsThisFrame++;
         }
 
         // Prevent spiral of death - if we're too far behind, reset accumulator
-        if (accumulator > physicsTimeStep * maxStepsPerFrame)
+        if (accumulator > compute.PhysicsTimeStep * maxStepsPerFrame)
         {
             accumulator = 0f;
         }
@@ -112,13 +110,13 @@ public class Simulate : MonoBehaviour
 
     void InitialiseLeapFrogVelocities()
     {
-        object[] halfStep = new object[] { "deltaTime", physicsTimeStep * 0.5f };
+        object[] halfStep = new object[] { "deltaTime", compute.PhysicsTimeStep * 0.5f };
         // Set half timestep for initialization
         compute.SetValues(halfStep);
 
         compute.RunPhysicsStep(binNumber);
 
-        object[] fullStep = new object[] { "deltaTime", physicsTimeStep };
+        object[] fullStep = new object[] { "deltaTime", compute.PhysicsTimeStep };
         compute.SetValues(fullStep);
     }
 
@@ -146,8 +144,6 @@ public class Simulate : MonoBehaviour
 
     void UpdateVariables()
     {
-        physicsTimeStep = 1f / Utils.SolverSteps(compute.PressureSolver);
-        float deltaTime = physicsTimeStep * simulationSpeed;
         float particleSpacing = spawner.Size + spawner.Spacing;
         float particleMass = particleSpacing * particleSpacing * particleSpacing;
         float kernelConstant = 8f / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
@@ -155,7 +151,6 @@ public class Simulate : MonoBehaviour
 
         object[] keyValues =
         {
-            "deltaTime", deltaTime,
             "smoothingRadius", smoothingRadius,
             "particleMass", particleMass,
             "kernelConstant", kernelConstant,
@@ -164,7 +159,6 @@ public class Simulate : MonoBehaviour
             "useIndex", indexHash ? 1 : 0,
         };
 
-        compute.deltaTime = deltaTime;
         compute.smoothingRadius = smoothingRadius;
         compute.SetValues(keyValues);
         compute.UpdateVariables();
@@ -175,7 +169,6 @@ public class Simulate : MonoBehaviour
 
     public void ValidateInspectorProperties()
     {
-        simulationSpeed = Mathf.Clamp(simulationSpeed, 0, 1);
         smoothingRadius = Mathf.Max(0.01f, smoothingRadius);
         stepSize = Mathf.Max(0, stepSize);
         binNumber = indexHash ? Utils.CalculateCellNumber(GetComponentInChildren<Container>().Boundary, smoothingRadius) : Mathf.Max(1, binNumber);
@@ -193,11 +186,11 @@ public class Simulate : MonoBehaviour
 
         if (UnityEngine.InputSystem.Keyboard.current.rightArrowKey.wasPressedThisFrame)
         {
-            if (simulationSpeed != 0) return;
-            simulationSpeed = 1;
+            if (compute.SimulationSpeed != 0) return;
+            compute.SetSimSpeed(1);
             UpdateVariables();
             for (int _ = 0; _ < stepSize; _++) AdvanceFrame();
-            simulationSpeed = 0;
+            compute.SetSimSpeed(0);
             UpdateVariables();
         }
 
@@ -208,19 +201,19 @@ public class Simulate : MonoBehaviour
     {
         if (UnityEngine.InputSystem.Keyboard.current.downArrowKey.wasPressedThisFrame)
         {
-            simulationSpeed = Mathf.Max(0, simulationSpeed - 0.1f);
+            compute.SetSimSpeed(compute.SimulationSpeed - 0.1f);
             UpdateVariables();
         }
 
         if (UnityEngine.InputSystem.Keyboard.current.upArrowKey.wasPressedThisFrame)
         {
-            simulationSpeed = Mathf.Min(1, simulationSpeed + 0.1f);
+            compute.SetSimSpeed(compute.SimulationSpeed + 0.1f);
             UpdateVariables();
         }
 
         if (UnityEngine.InputSystem.Keyboard.current.enterKey.wasPressedThisFrame)
         {
-            simulationSpeed = simulationSpeed == 1 ? 0 : 1;
+            compute.SetSimSpeed(compute.SimulationSpeed == 1 ? 0 : 1);
             UpdateVariables();
         }
     }

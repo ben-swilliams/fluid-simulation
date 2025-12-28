@@ -12,6 +12,8 @@ public class Compute : MonoBehaviour
     [SerializeField] ComputeShader iisphCompute;
     [SerializeField] ComputeShader pcisphCompute;
 
+    [Header("Time")]
+    [SerializeField] float simulationSpeed = 1;
     [Header("External forces")]
     [SerializeField] float maxVelocity = 5f;
     [SerializeField] float gravity = -9.8f;
@@ -60,14 +62,15 @@ public class Compute : MonoBehaviour
     BufferHelper commonBufferHelper;
 
     float simulationTime = 0;
+    float physicsTimeStep;
 
     int groupCount;
 
     [HideInInspector]
-    public float deltaTime;
-    [HideInInspector]
     public float smoothingRadius;
 
+    public float SimulationSpeed => simulationSpeed;
+    public float PhysicsTimeStep => physicsTimeStep;
     public Solver PressureSolver => pressureSolver;
     public ComputeBuffer Positions => commonBufferHelper.RetrieveBuffer("Positions");
     public ComputeBuffer Colours => commonBufferHelper.RetrieveBuffer("Colours");
@@ -191,10 +194,18 @@ public class Compute : MonoBehaviour
         SetPressureValues(new object[] { "gravity", gravityForce });
     }
 
+    public void SetSimSpeed(float newSpeed)
+    {
+        simulationSpeed = Mathf.Clamp01(newSpeed);
+    }
+
     public void UpdateVariables()
     {
+        physicsTimeStep = 1f / Utils.SolverSteps(pressureSolver);
+
         Spawn spawner = GetComponent<Spawn>();
 
+        float deltaTime = physicsTimeStep * simulationSpeed;
         float particleSpacing = spawner.Size + spawner.Spacing;
         float particleMass = particleSpacing * particleSpacing * particleSpacing;
         float kernelConstant = 8f / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
@@ -229,6 +240,7 @@ public class Compute : MonoBehaviour
 
     public void ValidateInspectorProperties()
     {
+        simulationSpeed = Mathf.Clamp01(simulationSpeed);
         dampingFactor = Mathf.Max(0, dampingFactor);
         restDensity = Mathf.Max(0.01f, restDensity);
         relaxationFactor = Mathf.Clamp01(relaxationFactor);
@@ -299,7 +311,7 @@ public class Compute : MonoBehaviour
 
         simCompute.Dispatch(UpdatePositions, groupCount, 1, 1);
 
-        simulationTime += deltaTime;
+        simulationTime += physicsTimeStep * simulationSpeed;
     }
 
     void OnDestroy()
