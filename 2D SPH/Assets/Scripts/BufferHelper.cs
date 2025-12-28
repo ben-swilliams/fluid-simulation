@@ -15,8 +15,6 @@ public class BufferHelper
 {
     ComputeShader shader;
 
-    HashSet<string> managedBuffers;
-    HashSet<string> externalDependencies;
     Dictionary<string, HashSet<int>> bufferToKernelDependencies;
     Dictionary<string, ComputeBuffer> buffers;
 
@@ -26,9 +24,6 @@ public class BufferHelper
                         Dictionary<string, ComputeBuffer> externalBuffers)
     {
         this.shader = shader;
-
-        managedBuffers = new HashSet<string>(bufferInfo.Keys);
-        externalDependencies = new HashSet<string>(externalBuffers.Keys);
 
         bufferToKernelDependencies = new Dictionary<string, HashSet<int>>();
 
