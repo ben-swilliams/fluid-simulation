@@ -1,5 +1,4 @@
 using System;
-using Unity.Mathematics;
 using UnityEngine;
 
 public class Draw : MonoBehaviour
@@ -125,13 +124,7 @@ public class Draw : MonoBehaviour
 
         marchingCubes = new MarchingCubes(cubesCompute);
         rays = new Rays(raysShader, raysCube);
-        rays.Mat.SetFloat("densityMultiplier", densityMultiplier);
-        rays.Mat.SetFloat("sunIntensity", sunIntensity);
-        rays.Mat.SetFloat("densityThreshold", densityThreshold);
-        rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
-        rays.Mat.SetInt("maxRefractions", maxRefractions);
-        rays.Mat.SetFloat("checkerFrequency", checkerFrequency);
-        rays.Mat.SetFloat("fluidIOR", fluidIOR);
+        SetValues();
         
         rays.Mat.SetVector("floorSize", floor.transform.localScale * 5); // 10 is size of plane mesh
 
@@ -158,14 +151,7 @@ public class Draw : MonoBehaviour
         if (!billboard) mesh = MeshGenerator.GenerateSphere(sphereResolution);
         else mesh = MeshGenerator.GenerateQuad();
 
-        rays.Mat.SetFloat("densityMultiplier", densityMultiplier);
-        rays.Mat.SetFloat("sunIntensity", sunIntensity);
-        rays.Mat.SetFloat("densityThreshold", densityThreshold);
-        rays.Mat.SetColor("fluidColour", fluidColour);
-        rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
-        rays.Mat.SetInt("maxRefractions", maxRefractions);
-        rays.Mat.SetFloat("checkerFrequency", checkerFrequency);
-        rays.Mat.SetFloat("fluidIOR", fluidIOR);
+        SetValues();
 
         floor.GetComponent<Renderer>().material.SetFloat("frequency", checkerFrequency);
     }
@@ -188,18 +174,6 @@ public class Draw : MonoBehaviour
         particleArgsBuffer.SetData(args);
     }
 
-    void CleanupBuffers()
-    {
-        if (particleArgsBuffer != null)
-            particleArgsBuffer.Release();
-        if (cubesArgsBuffer != null)
-            cubesArgsBuffer.Release();
-        if (initialColourBuffer != null)
-            initialColourBuffer.Release();
-
-        marchingCubes.CleanupBuffers();
-    }
-
     void InitialiseColoursBuffer()
     {
         if (initialColourBuffer != null) initialColourBuffer.Release();
@@ -217,9 +191,34 @@ public class Draw : MonoBehaviour
         SetColourValues();
     }
 
+    void CleanupBuffers()
+    {
+        if (particleArgsBuffer != null)
+            particleArgsBuffer.Release();
+        if (cubesArgsBuffer != null)
+            cubesArgsBuffer.Release();
+        if (initialColourBuffer != null)
+            initialColourBuffer.Release();
+
+        marchingCubes.CleanupBuffers();
+    }
+
+
     void BindColours(ComputeBuffer colourBuffer)
     {
         particleMaterial.SetBuffer("colours", colourBuffer);
+    }
+
+    void SetValues()
+    {
+        rays.Mat.SetFloat("densityMultiplier", densityMultiplier);
+        rays.Mat.SetFloat("sunIntensity", sunIntensity);
+        rays.Mat.SetFloat("densityThreshold", densityThreshold);
+        rays.Mat.SetColor("fluidColour", fluidColour);
+        rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
+        rays.Mat.SetInt("maxRefractions", maxRefractions);
+        rays.Mat.SetFloat("checkerFrequency", checkerFrequency);
+        rays.Mat.SetFloat("fluidIOR", fluidIOR);
     }
 
     void SetColourValues()
