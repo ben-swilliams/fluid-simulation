@@ -217,6 +217,7 @@ public class Compute : MonoBehaviour
 
         object[] keyValues =
         {
+            "deltaTime", deltaTime,
             "dampingFactor", dampingFactor,
             "gravity", gravity,
             "velocitySmoothing", velocitySmoothing,
@@ -285,7 +286,6 @@ public class Compute : MonoBehaviour
         if (prop == Draw.Property.Density) simCompute.Dispatch(CalculateDensityColour, groupCount, 1, 1);
         if (prop == Draw.Property.Pressure) simCompute.Dispatch(CalculatePressureColour, groupCount, 1, 1);
     }
-
 
     public void RunPhysicsStep(int binNumber)
     {
