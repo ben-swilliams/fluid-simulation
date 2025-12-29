@@ -1,5 +1,5 @@
 #pragma kernel ClearCounts
-#pragma kernel Partition
+#pragma kernel Count
 #pragma kernel Scan
 #pragma kernel ScanBlockSums
 #pragma kernel ScanSuperBlockSums
@@ -32,7 +32,7 @@ void ClearCounts(uint id : SV_DispatchThreadID) {
 }
 
 [numthreads(NumThreads, 1, 1)]
-void Partition(uint3 id : SV_DispatchThreadID) {
+void Count(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
     
     InterlockedAdd(CellCounts[CalculateHash(Positions[id.x])], 1);

@@ -6,7 +6,7 @@ using UnityEngine;
 public class SpatialHashManager
 {
     int ClearCounts;
-    int Partition;
+    int Count;
     int Scatter;
     int CopyBack;
     int Scan;
@@ -39,7 +39,7 @@ public class SpatialHashManager
         Dictionary<int, string[]> dependencies = new Dictionary<int, string[]>
         {
             { ClearCounts, new[] { "CellCounts", "LocalOffsets" } },
-            { Partition, new[] { "CellCounts", "Positions" } },
+            { Count, new[] { "CellCounts", "Positions" } },
             { Scan, new[] { "Offsets", "CellCounts", "BlockSums" } },
             { ScanBlockSums, new[] { "BlockSums", "SuperBlockSums" } },
             { ScanSuperBlockSums, new[] { "SuperBlockSums" } },
@@ -88,7 +88,7 @@ public class SpatialHashManager
     void FindKernels()
     {
         ClearCounts = shader.FindKernel("ClearCounts");
-        Partition = shader.FindKernel("Partition");
+        Count = shader.FindKernel("Count");
         Scatter = shader.FindKernel("Scatter");
         CopyBack = shader.FindKernel("CopyBack");
         Scan = shader.FindKernel("Scan");
@@ -156,7 +156,7 @@ public class SpatialHashManager
         int clearCountsGroupNum = Mathf.CeilToInt(binNumber / (float)Common.Constants.threadGroupSize);
         shader.Dispatch(ClearCounts, clearCountsGroupNum, 1, 1);
 
-        shader.Dispatch(Partition, threadCount, 1, 1);
+        shader.Dispatch(Count, threadCount, 1, 1);
 
         HierarchicalScan(binNumber);
 
