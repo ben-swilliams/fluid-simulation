@@ -105,8 +105,7 @@ public class Compute : MonoBehaviour
             hashManager.Buffers.UpdateBuffer("Velocities", commonBufferHelper.RetrieveBuffer("Velocities"));
             hashManager.Buffers.UpdateBuffer("Positions", commonBufferHelper.RetrieveBuffer("Positions"));
 
-            
-            Dictionary<string, ComputeBuffer> wcsphDependencies = new Dictionary<string, ComputeBuffer>
+            Dictionary<string, ComputeBuffer> pressureDependencies = new Dictionary<string, ComputeBuffer>
             {
                 { "Offsets", hashManager.Buffers.RetrieveBuffer("Offsets") },
                 { "Densities", commonBufferHelper.RetrieveBuffer("Densities") },
@@ -114,31 +113,12 @@ public class Compute : MonoBehaviour
                 { "Velocities", commonBufferHelper.RetrieveBuffer("Velocities") },
                 { "Positions", commonBufferHelper.RetrieveBuffer("Positions") }
             };
-            wcsphManager = new WCSPHManager(wcsphCompute, wcsphDependencies, instanceCount);
+            wcsphManager = new WCSPHManager(wcsphCompute, pressureDependencies, instanceCount);
 
-            Dictionary<string, ComputeBuffer> iisphDependencies = new Dictionary<string, ComputeBuffer>
-            {
-                { "Offsets", hashManager.Buffers.RetrieveBuffer("Offsets") },
-                { "Densities", commonBufferHelper.RetrieveBuffer("Densities") },
-                { "Pressures", commonBufferHelper.RetrieveBuffer("Pressures") },
-                { "IntermediateAccelerations", commonBufferHelper.RetrieveBuffer("IntermediateAccelerations") },
-                { "Velocities", commonBufferHelper.RetrieveBuffer("Velocities") },
-                { "Positions", commonBufferHelper.RetrieveBuffer("Positions") }
-            };
+            pressureDependencies.Add("IntermediateAccelerations", commonBufferHelper.RetrieveBuffer("IntermediateAccelerations"));
 
-            iisphManager = new IISPHManager(iisphCompute, iisphDependencies, instanceCount);
-
-            Dictionary<string, ComputeBuffer> pcisphDependencies = new Dictionary<string, ComputeBuffer>
-            {
-                { "Offsets", hashManager.Buffers.RetrieveBuffer("Offsets") },
-                { "Densities", commonBufferHelper.RetrieveBuffer("Densities") },
-                { "Pressures", commonBufferHelper.RetrieveBuffer("Pressures") },
-                { "IntermediateAccelerations", commonBufferHelper.RetrieveBuffer("IntermediateAccelerations") },
-                { "Velocities", commonBufferHelper.RetrieveBuffer("Velocities") },
-                { "Positions", commonBufferHelper.RetrieveBuffer("Positions") }
-            };
-
-            pcisphManager = new PCISPHManager(pcisphCompute, pcisphDependencies, instanceCount);
+            iisphManager = new IISPHManager(iisphCompute, pressureDependencies, instanceCount);
+            pcisphManager = new PCISPHManager(pcisphCompute, pressureDependencies, instanceCount);
         }
 
     void FindKernels()
