@@ -174,6 +174,22 @@ public class Compute : MonoBehaviour
         SetPressureValues(new object[] { "gravity", gravityForce });
     }
 
+    void UpdateKernelConstants()
+    {
+        float cubicKernelConstant = 8f / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
+        float spikyKernelConstant = 15f / (Mathf.PI * Mathf.Pow(smoothingRadius, 6));
+        float poly6KernelConstant = 315f / (64 * Mathf.PI * Mathf.Pow(smoothingRadius, 9));
+
+        object[] keyValues =
+        {
+            "cubicKernelConstant", cubicKernelConstant,
+            "spikyKernelConstant", spikyKernelConstant,
+            "poly6KernelConstant", poly6KernelConstant
+        };
+
+        SetValues(keyValues);
+    }
+
     public void SetSimSpeed(float newSpeed)
     {
         simulationSpeed = Mathf.Clamp01(newSpeed);
@@ -188,12 +204,14 @@ public class Compute : MonoBehaviour
         float deltaTime = physicsTimeStep * simulationSpeed;
         float particleSpacing = spawner.Size + spawner.Spacing;
         float particleMass = particleSpacing * particleSpacing * particleSpacing;
-        float kernelConstant = 8f / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
-        float gradConstant = 6 * kernelConstant / smoothingRadius;
         float speedOfSound = maxVelocity / Mathf.Sqrt(densityError);
         float B = restDensity * speedOfSound * speedOfSound / stiffness;
         float beta = deltaTime * deltaTime * particleMass * particleMass * 2 / (restDensity * restDensity);
-        float delta = Utils.ComputeDelta(particleSpacing, beta, gradConstant, smoothingRadius) * deltaScale;
+        
+        // TODO: SORT THIS
+        float cubicKernelConstant = 8f / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
+        float cubicGradConstant = 6 * cubicKernelConstant / smoothingRadius;
+        float delta = Utils.ComputeDelta(particleSpacing, beta, cubicGradConstant, smoothingRadius) * deltaScale;
 
         object[] keyValues =
         {
@@ -206,8 +224,6 @@ public class Compute : MonoBehaviour
             "particleMass", particleMass,
             "viscosityMultiplier", viscosityMultiplier,
             "surfaceTensionMultiplier", surfaceTensionMultiplier,
-            "kernelConstant", kernelConstant,
-            "gradConstant", gradConstant,
             "maxVelocity", maxVelocity,
             "stiffness", stiffness,
             "B", B,
@@ -217,6 +233,7 @@ public class Compute : MonoBehaviour
         };
 
         SetValues(keyValues);
+        UpdateKernelConstants();
     }
 
     public void ValidateInspectorProperties()

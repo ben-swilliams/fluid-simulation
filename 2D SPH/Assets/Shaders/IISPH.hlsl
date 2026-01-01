@@ -166,12 +166,9 @@ void CalculateIISPHComponents(uint i, float densityI, out float3 viscosity, out 
 
             float3 velOffset = velI - Velocities[j];
 
-            float kernel = CubicSplineKernel(r);
-            float3 grad = CubicSplineGrad(posOffset, r);
-
-            viscosity += CalculateViscosityContribution(posOffset, velOffset, grad, densityI, densityJ);
-            surfaceTension += -surfaceTensionMultiplier * kernel * (posOffset / r);
-            D += CalculateDContribution(grad, max(densityI * densityI, Epsilon));
+            viscosity += CalculateViscosityContribution(posOffset, velOffset, ViscosityGrad(posOffset, r), densityI, densityJ);
+            surfaceTension += -surfaceTensionMultiplier * SurfaceTensionKernel(r) * (posOffset / r);
+            D += CalculateDContribution(PressureGrad(posOffset, r), max(densityI * densityI, Epsilon));
         }
     }
 }
@@ -226,13 +223,10 @@ float3 CalculateXSPHPressureForce(uint i) {
 
             float r = length(posOffset);
 
-            float kernel = CubicSplineKernel(r);
-            float3 grad = CubicSplineGrad(posOffset, r);
-
-            pressureForce += CalculatePressureContribution(posOffset, grad, i, j, densityI, Densities[3 * j], nearDensityI, Densities[3 * j + 1]);
+            pressureForce += CalculatePressureContribution(posOffset, PressureGrad(posOffset, r), i, j, densityI, Densities[3 * j], nearDensityI, Densities[3 * j + 1]);
 
             float massOverDensity = particleMass / Densities[3 * j];
-            xsphCorrection += velocitySmoothing * massOverDensity * kernel * -velOffset;
+            xsphCorrection += velocitySmoothing * massOverDensity * XSPHKernel(r) * -velOffset;
         }
     }
 
