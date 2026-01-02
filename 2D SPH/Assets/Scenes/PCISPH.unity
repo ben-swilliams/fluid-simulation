@@ -10561,8 +10561,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5bff678dc30d6f419dcd0ec0451cb4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GPUInstancing2D
-  simulationSpeed: 1
-  smoothingRadius: 0.05
+  smoothingRadius: 0.1
   stepSize: 10
   binNumber: 300000
   indexHash: 1
@@ -10613,7 +10612,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22d3b29815ac44b1ea1b236981483eee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Draw
-  drawMethod: 2
+  drawMethod: 0
   simCompute: {fileID: 7200000, guid: 0de87ed92baf74a22b44f3a0edd89afd, type: 3}
   cubesCompute: {fileID: 7200000, guid: 1d31a9d15b3f74e14898637718254f0a, type: 3}
   renderArgsCompute: {fileID: 7200000, guid: 0e305fad541c7403cbf0289fe8f0120a, type: 3}
@@ -10782,13 +10781,21 @@ MonoBehaviour:
   wcsphCompute: {fileID: 7200000, guid: 4e4dc8800ceef4244a4534937cb85599, type: 3}
   iisphCompute: {fileID: 7200000, guid: 48efe4550ac3a40e89423a36aceaa63a, type: 3}
   pcisphCompute: {fileID: 7200000, guid: 3ede64c1e9c46417fbc253629a0628a4, type: 3}
+  pressureKernel: 0
+  nearPressureKernel: 1
+  densityKernel: 0
+  nearDensityKernel: 1
+  surfaceTensionKernel: 0
+  viscosityKernel: 0
+  xsphKernel: 0
+  simulationSpeed: 1
   maxVelocity: 5
   gravity: -9.8
   dampingFactor: 0.95
   wavePeriod: 1
   waveStrength: 0
   velocitySmoothing: 0.01
-  pressureSolver: 1
+  pressureSolver: 2
   restDensity: 1
   nearPressureMultiplier: 0
   relaxationFactor: 0.5
@@ -10799,7 +10806,6 @@ MonoBehaviour:
   pcisphSolverIterations: 3
   viscosityMultiplier: 0
   surfaceTensionMultiplier: 0
-  deltaTime: 0
   smoothingRadius: 0
 --- !u!1 &1280510355
 GameObject:

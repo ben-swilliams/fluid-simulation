@@ -41,7 +41,7 @@ public class Compute : MonoBehaviour
     [SerializeField] int iisphSolverIterations = 4;
 
     [Header("WCSPH Pressure")]
-    [SerializeField, Range(0.001f, 0.1f)] float densityError = 0.1f;
+    [SerializeField, Range(0.001f, 1f)] float densityError = 0.1f;
     [SerializeField] float stiffness = 7f;
 
     [Header("PCISPH Pressure")]
