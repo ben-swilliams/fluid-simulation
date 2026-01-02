@@ -12,6 +12,15 @@ public class Compute : MonoBehaviour
     [SerializeField] ComputeShader iisphCompute;
     [SerializeField] ComputeShader pcisphCompute;
 
+    [Header("Kernels")]
+    [SerializeField] Kernel pressureKernel;
+    [SerializeField] Kernel nearPressureKernel;
+    [SerializeField] Kernel densityKernel;
+    [SerializeField] Kernel nearDensityKernel;
+    [SerializeField] Kernel surfaceTensionKernel;
+    [SerializeField] Kernel viscosityKernel;
+    [SerializeField] Kernel xsphKernel;
+
     [Header("Time")]
     [SerializeField] float simulationSpeed = 1;
     [Header("External forces")]
@@ -32,7 +41,7 @@ public class Compute : MonoBehaviour
     [SerializeField] int iisphSolverIterations = 4;
 
     [Header("WCSPH Pressure")]
-    [SerializeField, Range(0.001f, 0.1f)] float densityError = 0.1f;
+    [SerializeField, Range(0.001f, 1f)] float densityError = 0.1f;
     [SerializeField] float stiffness = 7f;
 
     [Header("PCISPH Pressure")]
@@ -174,6 +183,18 @@ public class Compute : MonoBehaviour
         SetPressureValues(new object[] { "gravity", gravityForce });
     }
 
+    void UpdateKernelConstants()
+    {
+        object[] keyValues =
+        {
+            "cubicKernelConstant", Constants.CubicKernelConstant(smoothingRadius),
+            "spikyKernelConstant", Constants.SpikyKernelConstant(smoothingRadius),
+            "poly6KernelConstant", Constants.Poly6KernelConstant(smoothingRadius)
+        };
+
+        SetValues(keyValues);
+    }
+
     public void SetSimSpeed(float newSpeed)
     {
         simulationSpeed = Mathf.Clamp01(newSpeed);
@@ -188,12 +209,11 @@ public class Compute : MonoBehaviour
         float deltaTime = physicsTimeStep * simulationSpeed;
         float particleSpacing = spawner.Size + spawner.Spacing;
         float particleMass = particleSpacing * particleSpacing * particleSpacing;
-        float kernelConstant = 8f / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
-        float gradConstant = 6 * kernelConstant / smoothingRadius;
         float speedOfSound = maxVelocity / Mathf.Sqrt(densityError);
         float B = restDensity * speedOfSound * speedOfSound / stiffness;
         float beta = deltaTime * deltaTime * particleMass * particleMass * 2 / (restDensity * restDensity);
-        float delta = Utils.ComputeDelta(particleSpacing, beta, gradConstant, smoothingRadius) * deltaScale;
+        
+        float delta = Utils.ComputeDelta(pressureKernel, particleSpacing, beta, smoothingRadius) * deltaScale;
 
         object[] keyValues =
         {
@@ -206,17 +226,23 @@ public class Compute : MonoBehaviour
             "particleMass", particleMass,
             "viscosityMultiplier", viscosityMultiplier,
             "surfaceTensionMultiplier", surfaceTensionMultiplier,
-            "kernelConstant", kernelConstant,
-            "gradConstant", gradConstant,
             "maxVelocity", maxVelocity,
             "stiffness", stiffness,
             "B", B,
             "nearPressureMultiplier", nearPressureMultiplier,
             "beta", beta,
             "delta", delta,
+            "pressureKernel", pressureKernel,
+            "nearPressureKernel", nearPressureKernel,
+            "densityKernel", densityKernel,
+            "nearDensityKernel", nearDensityKernel,
+            "surfaceTensionKernel", surfaceTensionKernel,
+            "viscosityKernel", viscosityKernel,
+            "xsphKernel", xsphKernel,
         };
 
         SetValues(keyValues);
+        UpdateKernelConstants();
     }
 
     public void ValidateInspectorProperties()

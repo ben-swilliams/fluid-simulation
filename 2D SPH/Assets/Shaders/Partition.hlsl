@@ -20,9 +20,9 @@ uint IndexHash(int3 gridPos) {
 
 int3 GetGridPos(float3 pos) {
     float3 offsetPos = pos + containerSize / 2;
-    int3 gridPos = int3(floor(offsetPos.x / (2 * smoothingRadius)),
-                        floor(offsetPos.y / (2 * smoothingRadius)),
-                        floor(offsetPos.z / (2 * smoothingRadius)));
+    int3 gridPos = int3(floor(offsetPos.x / smoothingRadius),
+                        floor(offsetPos.y / smoothingRadius),
+                        floor(offsetPos.z / smoothingRadius));
 
     return gridPos;
 }
