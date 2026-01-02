@@ -5,12 +5,22 @@ using UnityEngine;
 
 public class Compute : MonoBehaviour
 {
+    public enum Kernel {Cubic, Spiky, Poly6};
     // Shaders
     [SerializeField] ComputeShader spatialCompute;
     [SerializeField] ComputeShader simCompute;
     [SerializeField] ComputeShader wcsphCompute;
     [SerializeField] ComputeShader iisphCompute;
     [SerializeField] ComputeShader pcisphCompute;
+
+    [Header("Kernels")]
+    [SerializeField] Kernel pressureKernel;
+    [SerializeField] Kernel nearPressureKernel;
+    [SerializeField] Kernel densityKernel;
+    [SerializeField] Kernel nearDensityKernel;
+    [SerializeField] Kernel surfaceTensionKernel;
+    [SerializeField] Kernel viscosityKernel;
+    [SerializeField] Kernel xsphKernel;
 
     [Header("Time")]
     [SerializeField] float simulationSpeed = 1;
@@ -176,7 +186,7 @@ public class Compute : MonoBehaviour
 
     void UpdateKernelConstants()
     {
-        float cubicKernelConstant = 8f / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
+        float cubicKernelConstant = 8f / (Mathf.PI * Mathf.Pow(0.5f * smoothingRadius, 3));
         float spikyKernelConstant = 15f / (Mathf.PI * Mathf.Pow(smoothingRadius, 6));
         float poly6KernelConstant = 315f / (64 * Mathf.PI * Mathf.Pow(smoothingRadius, 9));
 
@@ -209,8 +219,8 @@ public class Compute : MonoBehaviour
         float beta = deltaTime * deltaTime * particleMass * particleMass * 2 / (restDensity * restDensity);
         
         // TODO: SORT THIS
-        float cubicKernelConstant = 8f / (Mathf.PI * Mathf.Pow(smoothingRadius, 3));
-        float cubicGradConstant = 6 * cubicKernelConstant / smoothingRadius;
+        float cubicKernelConstant = 8f / (Mathf.PI * Mathf.Pow(0.5f * smoothingRadius, 3));
+        float cubicGradConstant = 6 * cubicKernelConstant / (0.5f * smoothingRadius);
         float delta = Utils.ComputeDelta(particleSpacing, beta, cubicGradConstant, smoothingRadius) * deltaScale;
 
         object[] keyValues =
@@ -230,6 +240,13 @@ public class Compute : MonoBehaviour
             "nearPressureMultiplier", nearPressureMultiplier,
             "beta", beta,
             "delta", delta,
+            "pressureKernel", pressureKernel,
+            "nearPressureKernel", nearPressureKernel,
+            "densityKernel", densityKernel,
+            "nearDensityKernel", nearDensityKernel,
+            "surfaceTensionKernel", surfaceTensionKernel,
+            "viscosityKernel", viscosityKernel,
+            "xsphKernel", xsphKernel,
         };
 
         SetValues(keyValues);

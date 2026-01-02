@@ -12,7 +12,7 @@ float spikyKernelConstant;
 float poly6KernelConstant;
 
 float CubicSplineKernel(float r) {
-    float q = r / smoothingRadius;
+    float q = r / (0.5 * smoothingRadius);
 
     if (isnan(q) || q >= 2 || r < Epsilon) return 0;
 
@@ -27,7 +27,7 @@ float CubicSplineKernel(float r) {
 }
 
 float3 CubicSplineGrad(float3 offset, float r) {
-    float q = r / smoothingRadius;
+    float q = r / (0.5 * smoothingRadius);
     if (q >= 2 || isnan(q) || r < Epsilon) return float3(0, 0, 0);
     
     float3 dir = offset / r;
@@ -39,7 +39,7 @@ float3 CubicSplineGrad(float3 offset, float r) {
         coeff = -3 * q + 2.25 * q * q;
     }
 
-    return (6 / smoothingRadius) * cubicKernelConstant * coeff * dir;
+    return (6 / (0.5 * smoothingRadius)) * cubicKernelConstant * coeff * dir;
 }
 
 float SpikyKernel(float r) {
@@ -89,11 +89,11 @@ float PressureKernel(float r) {
 
 float3 PressureGrad(float3 offset, float r) {
     if (pressureKernel == 0)
-        return CubicSplineGrad(r);
+        return CubicSplineGrad(offset, r);
     if (pressureKernel == 1)
-        return SpikyGrad(r);
+        return SpikyGrad(offset, r);
     if (pressureKernel == 2)
-        return Poly6Grad(r);
+        return Poly6Grad(offset, r);
 
     return CubicSplineGrad(offset, r);
 }
@@ -111,13 +111,13 @@ float NearPressureKernel(float r) {
 
 float3 NearPressureGrad(float3 offset, float r) {
     if (nearPressureKernel == 0)
-        return CubicSplineGrad(r);
+        return CubicSplineGrad(offset, r);
     if (nearPressureKernel == 1)
-        return SpikyGrad(r);
+        return SpikyGrad(offset, r);
     if (nearPressureKernel == 2)
-        return Poly6Grad(r);
+        return Poly6Grad(offset, r);
 
-    return SpikyKernelGrad(offset, r);
+    return SpikyGrad(offset, r);
 }
 
 float DensityKernel(float r) {
@@ -133,11 +133,11 @@ float DensityKernel(float r) {
 
 float3 DensityGrad(float3 offset, float r) {
     if (densityKernel == 0)
-        return CubicSplineGrad(r);
+        return CubicSplineGrad(offset, r);
     if (densityKernel == 1)
-        return SpikyGrad(r);
+        return SpikyGrad(offset, r);
     if (densityKernel == 2)
-        return Poly6Grad(r);
+        return Poly6Grad(offset, r);
 
     return CubicSplineGrad(offset, r);
 }
@@ -155,12 +155,12 @@ float NearDensityKernel(float r) {
 
 float3 NearDensityGrad(float3 offset, float r) {
     if (nearDensityKernel == 0)
-        return CubicSplineGrad(r);
+        return CubicSplineGrad(offset, r);
     if (nearDensityKernel == 1)
-        return SpikyGrad(r);
+        return SpikyGrad(offset, r);
     if (nearDensityKernel == 2)
-        return Poly6Grad(r);
-    return SpikyKernelGrad(offset, r);
+        return Poly6Grad(offset, r);
+    return SpikyGrad(offset, r);
 }
 
 float SurfaceTensionKernel(float r) {
@@ -176,11 +176,11 @@ float SurfaceTensionKernel(float r) {
 
 float3 ViscosityGrad(float3 offset, float r) {
     if (viscosityKernel == 0)
-        return CubicSplineGrad(r);
+        return CubicSplineGrad(offset, r);
     if (viscosityKernel == 1)
-        return SpikyGrad(r);
+        return SpikyGrad(offset, r);
     if (viscosityKernel == 2)
-        return Poly6Grad(r);
+        return Poly6Grad(offset, r);
 
     return CubicSplineGrad(offset, r);
 }

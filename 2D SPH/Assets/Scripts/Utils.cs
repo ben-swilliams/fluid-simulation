@@ -24,6 +24,8 @@ namespace Common
 
                     if (pairs[i + 1] is int intVal)
                         shader.SetInt(name, intVal);
+                    if (pairs[i + 1] is uint uintVal)
+                        shader.SetInt(name, (int)uintVal);
                     if (pairs[i + 1] is float floatVal)
                         shader.SetFloat(name, floatVal);
                     if (pairs[i + 1] is Vector3 vecVal)
@@ -36,7 +38,7 @@ namespace Common
         {
             if (r < 1e-12) return Vector3.zero;
 
-            float q = r / smoothingRadius;
+            float q = r / (0.5f * smoothingRadius);
             float gradFactor = 0f;
 
             if (q < 1f)
@@ -77,7 +79,7 @@ namespace Common
 
             Vector3 prototypePos = Vector3.zero;
 
-            int range = Mathf.CeilToInt(2 * smoothingRadius / particleSpacing);
+            int range = Mathf.CeilToInt(smoothingRadius / particleSpacing);
 
             for (int x = -range; x <= range; x++)
             {
@@ -91,7 +93,7 @@ namespace Common
                         Vector3 offset = prototypePos - neighborPos;
                         float r = offset.magnitude;
 
-                        if (r >= 2 * smoothingRadius) continue;
+                        if (r >= smoothingRadius) continue;
 
                         Vector3 grad = Utils.CubicSplineGrad(offset, r, gradConstant, smoothingRadius);
 
@@ -122,7 +124,7 @@ namespace Common
 
         public static int CalculateCellNumber(Vector3 containerSize, float smoothingRadius)
         {
-            float cellSize = 2f * smoothingRadius;
+            float cellSize = smoothingRadius;
 
             // Calculate grid dimensions (number of cells in each axis)
             int gridX = Mathf.CeilToInt(containerSize.x / cellSize);

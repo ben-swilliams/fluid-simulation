@@ -262,7 +262,7 @@ public class Simulate : MonoBehaviour
     {
         if (compute == null || spawner == null) return;
 
-        float cellSize = 2f * smoothingRadius;
+        float cellSize = smoothingRadius;
 
         Container container = GetComponentInChildren<Container>();
 
