@@ -35,7 +35,7 @@ float2 CalculateDeltaDensityAndA(uint i, float densityI) {
 
             float3 velOffset = velI - Velocities[j];
 
-            float3 grad = CubicSplineGrad(posOffset, length(posOffset));
+            float3 grad = PressureGrad(posOffset, length(posOffset));
 
             deltaDensity += particleMass * dot(velOffset, grad);
 
@@ -79,7 +79,7 @@ float3 CalculatePressureSum(uint i) {
             float density = Densities[3 * j];
             float densitySq = max(density * density, Epsilon);
 
-            pressureSum += -particleMass * IterPressures[j] * CubicSplineGrad(offset, r) / densitySq;
+            pressureSum += -particleMass * IterPressures[j] * PressureGrad(offset, r) / densitySq;
         }
     }
 
@@ -116,7 +116,7 @@ float CalculateNextIISPHPressureValue(uint i, float densityI) {
 
             float r = length(offset);
 
-            float3 grad = CubicSplineGrad(offset, r);
+            float3 grad = PressureGrad(offset, r);
 
             float3 d_ji = deltaTime * deltaTime * particleMass * grad / densitySq;
 

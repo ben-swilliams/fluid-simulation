@@ -114,7 +114,7 @@ float3 CalculatePCISPHPressureForce(int i) {
 
             float r = length(offset);
 
-            float3 grad = CubicSplineGrad(offset, r);
+            float3 grad = PressureGrad(offset, r);
             
             pressureForce += CalculatePressureContribution(offset, grad, i, j, densityI, Densities[3 * j], nearDensityI, Densities[3 * j + 1]);
         }

@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class Compute : MonoBehaviour
 {
-    public enum Kernel {Cubic, Spiky, Poly6};
     // Shaders
     [SerializeField] ComputeShader spatialCompute;
     [SerializeField] ComputeShader simCompute;
@@ -186,15 +185,11 @@ public class Compute : MonoBehaviour
 
     void UpdateKernelConstants()
     {
-        float cubicKernelConstant = 8f / (Mathf.PI * Mathf.Pow(0.5f * smoothingRadius, 3));
-        float spikyKernelConstant = 15f / (Mathf.PI * Mathf.Pow(smoothingRadius, 6));
-        float poly6KernelConstant = 315f / (64 * Mathf.PI * Mathf.Pow(smoothingRadius, 9));
-
         object[] keyValues =
         {
-            "cubicKernelConstant", cubicKernelConstant,
-            "spikyKernelConstant", spikyKernelConstant,
-            "poly6KernelConstant", poly6KernelConstant
+            "cubicKernelConstant", Constants.CubicKernelConstant(smoothingRadius),
+            "spikyKernelConstant", Constants.SpikyKernelConstant(smoothingRadius),
+            "poly6KernelConstant", Constants.Poly6KernelConstant(smoothingRadius)
         };
 
         SetValues(keyValues);
@@ -218,10 +213,7 @@ public class Compute : MonoBehaviour
         float B = restDensity * speedOfSound * speedOfSound / stiffness;
         float beta = deltaTime * deltaTime * particleMass * particleMass * 2 / (restDensity * restDensity);
         
-        // TODO: SORT THIS
-        float cubicKernelConstant = 8f / (Mathf.PI * Mathf.Pow(0.5f * smoothingRadius, 3));
-        float cubicGradConstant = 6 * cubicKernelConstant / (0.5f * smoothingRadius);
-        float delta = Utils.ComputeDelta(particleSpacing, beta, cubicGradConstant, smoothingRadius) * deltaScale;
+        float delta = Utils.ComputeDelta(pressureKernel, particleSpacing, beta, smoothingRadius) * deltaScale;
 
         object[] keyValues =
         {

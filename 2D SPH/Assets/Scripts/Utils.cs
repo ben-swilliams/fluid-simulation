@@ -4,6 +4,7 @@ using UnityEngine.Experimental.Rendering;
 namespace Common
 {
     public enum Solver { WCSPH, IISPH, PCISPH };
+    public enum Kernel {Cubic, Spiky, Poly6};
     public class Constants
     {
         public static int threadGroupSize = 256;
@@ -11,6 +12,36 @@ namespace Common
         public static int stableWCSPHStep = 1000;
         public static int stableIISPHStep = 150;
         public static int stablePCISPHStep = 150;
+
+        public static float CubicKernelConstant(float smoothingRadius)
+        {
+           return 8f / (Mathf.PI * Mathf.Pow(0.5f * smoothingRadius, 3)); 
+        }
+
+        public static float CubicGradConstant(float smoothingRadius)
+        {
+            return 6 * CubicKernelConstant(smoothingRadius) / (0.5f * smoothingRadius);
+        }
+
+        public static float SpikyKernelConstant(float smoothingRadius)
+        {
+            return 15f / (Mathf.PI * Mathf.Pow(smoothingRadius, 6));
+        }
+
+        public static float SpikyGradConstant(float smoothingRadius)
+        {
+            return 3 * SpikyKernelConstant(smoothingRadius);
+        }
+
+        public static float Poly6KernelConstant(float smoothingRadius)
+        {
+            return 315f / (64 * Mathf.PI * Mathf.Pow(smoothingRadius, 9));
+        }
+
+        public static float Poly6GradConstant(float smoothingRadius)
+        {
+            return -6 * Poly6KernelConstant(smoothingRadius);
+        }
     };
 
     public static class Utils {
@@ -26,6 +57,8 @@ namespace Common
                         shader.SetInt(name, intVal);
                     if (pairs[i + 1] is uint uintVal)
                         shader.SetInt(name, (int)uintVal);
+                    if (pairs[i + 1] is Kernel enumVal)
+                        shader.SetInt(name, (int)(object)enumVal);
                     if (pairs[i + 1] is float floatVal)
                         shader.SetFloat(name, floatVal);
                     if (pairs[i + 1] is Vector3 vecVal)
@@ -34,12 +67,28 @@ namespace Common
             }
         }
 
-        public static Vector3 CubicSplineGrad(Vector3 offset, float r, float gradConstant, float smoothingRadius)
+        public static Vector3 Grad(Kernel k, Vector3 offset, float r, float smoothingRadius)
+        {
+            switch (k)
+            {
+                case Kernel.Cubic:
+                    return CubicSplineGrad(offset, r, smoothingRadius);
+                case Kernel.Spiky:
+                    return SpikyGrad(offset, r, smoothingRadius);
+                case Kernel.Poly6:
+                    return Poly6Grad(offset, r, smoothingRadius);
+            }
+
+            return Vector3.zero;
+        }
+
+        public static Vector3 CubicSplineGrad(Vector3 offset, float r, float smoothingRadius)
         {
             if (r < 1e-12) return Vector3.zero;
 
             float q = r / (0.5f * smoothingRadius);
             float gradFactor = 0f;
+            float gradConstant = Constants.CubicGradConstant(smoothingRadius);
 
             if (q < 1f)
             {
@@ -53,6 +102,29 @@ namespace Common
 
             return offset * gradFactor / r;
         }
+
+        public static Vector3 SpikyGrad(Vector3 offset, float r, float smoothingRadius)
+        {
+            if (r < 1e-12 || r > smoothingRadius) return Vector3.zero;
+
+            Vector3 dir = offset / r;
+
+            float coeff = (smoothingRadius - r) * (smoothingRadius - r);
+
+            return Constants.SpikyGradConstant(smoothingRadius) * coeff * dir;
+        }
+
+        public static Vector3 Poly6Grad(Vector3 offset, float r, float smoothingRadius)
+        {
+            if (r < 1e-12 || r > smoothingRadius) return Vector3.zero;
+
+            Vector3 dir = offset / r;
+
+            float diff = smoothingRadius * smoothingRadius - r * r;
+
+            return Constants.Poly6GradConstant(smoothingRadius) * diff * diff * dir;
+        }
+
 
         public static RenderTexture CreateDensityTexture(int width, int height, int depth)
             {
@@ -72,7 +144,7 @@ namespace Common
                 return texture;
             }
 
-        public static float ComputeDelta(float particleSpacing, float beta, float gradConstant, float smoothingRadius)
+        public static float ComputeDelta(Kernel pressureKernel, float particleSpacing, float beta, float smoothingRadius)
         {
             Vector3 gradSum = Vector3.zero;
             float dotGradSum = 0f;
@@ -95,7 +167,7 @@ namespace Common
 
                         if (r >= smoothingRadius) continue;
 
-                        Vector3 grad = Utils.CubicSplineGrad(offset, r, gradConstant, smoothingRadius);
+                        Vector3 grad = Utils.Grad(pressureKernel, offset, r, smoothingRadius);
 
                         gradSum += grad;
                         dotGradSum += Vector3.Dot(grad, grad);
