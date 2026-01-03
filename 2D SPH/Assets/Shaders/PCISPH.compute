@@ -1,4 +1,3 @@
-#pragma kernel InitialisePressures
 #pragma kernel CalculateNonPressureAcceleration
 #pragma kernel PredictPosition
 #pragma kernel CalculateNextPCISPHPressure
@@ -15,16 +14,10 @@ RWStructuredBuffer<float3> PredictedPositions;
 #include "PCISPH.hlsl"
 
 [numthreads(NumThreads, 1, 1)]
-void InitialisePressures(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    Pressures[id.x] = 0;
-}
-
-[numthreads(NumThreads, 1, 1)]
 void CalculateNonPressureAcceleration(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
+    Pressures[id.x] = 0;
     IntermediateAccelerations[id.x] = CalculatePCISPHAcceleration(id.x);
 }
 
