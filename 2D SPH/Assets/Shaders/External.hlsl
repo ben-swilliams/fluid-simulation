@@ -65,9 +65,13 @@ void Collisions(uint i) {
 
 float3 MouseForce(uint idx) {
     float3 diff = mousePos - Positions[idx];
-    if (dot(diff, diff) > mouseRadius * mouseRadius) return float3(0, 0, 0);
+    float r = length(diff);
+    if (r > mouseRadius) return float3(0, 0, 0);
 
-    float3 forceVector = normalize(diff) * power;
+    float t = r / mouseRadius;
+    float mag = lerp(power, 0, t);
+
+    float3 forceVector = normalize(diff) * mag;
 
     return forceVector / particleMass;
 }
