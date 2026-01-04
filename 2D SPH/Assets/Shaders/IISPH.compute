@@ -1,6 +1,4 @@
-#pragma kernel InitialisePressures
 #pragma kernel CalculateNonPressureAccelerationAndD
-#pragma kernel PredictVelocity
 #pragma kernel PredictDensityAndCalculateA
 #pragma kernel CalculatePressureSums
 #pragma kernel CalculateNextIISPHPressure
@@ -22,27 +20,17 @@ RWStructuredBuffer<float3> DPSum;
 #include "IISPH.hlsl"
 
 [numthreads(NumThreads, 1, 1)]
-void InitialisePressures(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    IterPressures[id.x] = 0;
-}
-
-[numthreads(NumThreads, 1, 1)]
 void CalculateNonPressureAccelerationAndD(uint3 id : SV_DispatchThreadID) {
     if (id.x >= instanceCount) return;
 
+    IterPressures[id.x] = 0;
+
     AccAndD accAndD = CalculateAccelerationAndD(id.x);
-    IntermediateAccelerations[id.x] = accAndD.acceleration;
-    Dii[id.x] = accAndD.D;
-}
-
-[numthreads(NumThreads, 1, 1)]
-void PredictVelocity(uint3 id : SV_DispatchThreadID) {
-    if (id.x >= instanceCount) return;
-
-    Velocities[id.x] += IntermediateAccelerations[id.x] * deltaTime;
+    
+    Velocities[id.x] += accAndD.acceleration * deltaTime;
     Velocities[id.x] = CollideVelocity(id.x);
+
+    Dii[id.x] = accAndD.D;
 }
 
 [numthreads(NumThreads, 1, 1)]

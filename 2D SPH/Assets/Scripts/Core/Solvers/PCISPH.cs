@@ -5,13 +5,12 @@ public class PCISPHManager
 {
     ComputeShader shader;
 
-    int InitialisePressures;
     int CalculateNonPressureAcceleration;
     int PredictPosition;
     int CalculateNextPCISPHPressure;
     int UpdatePCISPHVelocities;
 
-    int[] PCISPHPrePressureKernels => new int[] { InitialisePressures, CalculateNonPressureAcceleration };
+    int[] PCISPHPrePressureKernels => new int[] { CalculateNonPressureAcceleration };
     int[] PCISPHPressureKernels => new int[] { PredictPosition, CalculateNextPCISPHPressure };
     int[] PCISPHPostPressureKernels => new int[] { UpdatePCISPHVelocities };
 
@@ -29,7 +28,6 @@ public class PCISPHManager
         FindKernels();
 
         Dictionary<int, string[]> dependencies = new Dictionary<int, string[]> {
-            { InitialisePressures, new[] { "Pressures" }},
             { CalculateNonPressureAcceleration, new[] { "Offsets", "IntermediateAccelerations", "Densities", "Pressures", "Velocities", "Positions" } },
             { PredictPosition, new[] { "IntermediateAccelerations", "PredictedPositions", "Densities", "Offsets", "Pressures", "Velocities", "Positions" } },
             { CalculateNextPCISPHPressure, new[] { "PredictedPositions", "Pressures", "Densities", "Offsets", "Positions" } },
@@ -43,7 +41,6 @@ public class PCISPHManager
 
     void FindKernels()
     {
-        InitialisePressures = shader.FindKernel("InitialisePressures");
         CalculateNonPressureAcceleration = shader.FindKernel("CalculateNonPressureAcceleration");
         PredictPosition = shader.FindKernel("PredictPosition");
         CalculateNextPCISPHPressure = shader.FindKernel("CalculateNextPCISPHPressure");

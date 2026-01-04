@@ -5,16 +5,14 @@ public class IISPHManager
 {
     ComputeShader shader;
 
-    int InitialisePressures;
     int CalculateNonPressureAccelerationAndD;
-    int PredictVelocity;
     int PredictDensityAndCalculateA;
     int CalculatePressureSums;
     int CalculateNextIISPHPressure;
     int FinalisePressureIteration;
     int UpdateIISPHVelocities;
 
-    int[] IISPHPrePressureKernels => new int[] { InitialisePressures, CalculateNonPressureAccelerationAndD, PredictVelocity, PredictDensityAndCalculateA };
+    int[] IISPHPrePressureKernels => new int[] { CalculateNonPressureAccelerationAndD, PredictDensityAndCalculateA };
     int[] IISPHPressureKernels => new int[] { CalculatePressureSums, CalculateNextIISPHPressure, FinalisePressureIteration };
     int[] IISPHPostPressureKernels => new int[] { UpdateIISPHVelocities };
 
@@ -32,9 +30,7 @@ public class IISPHManager
         FindKernels();
 
         Dictionary<int, string[]> dependencies = new Dictionary<int, string[]> {
-            { InitialisePressures, new[] { "IterPressures" } },
-            { CalculateNonPressureAccelerationAndD, new[] { "Offsets", "IntermediateAccelerations", "Densities", "Dii", "Velocities", "Positions" } },
-            { PredictVelocity, new[] { "IntermediateAccelerations", "Velocities", "Positions" } },
+            { CalculateNonPressureAccelerationAndD, new[] { "IterPressures", "Offsets", "IntermediateAccelerations", "Densities", "Dii", "Velocities", "Positions" } },
             { PredictDensityAndCalculateA, new[] { "Densities", "Offsets", "Dii", "Aii", "Velocities", "Positions" } },
             { CalculatePressureSums, new[] { "Offsets", "Densities", "Dii", "Aii", "DPSum", "IterPressures", "Velocities", "Positions" } },
             { CalculateNextIISPHPressure, new[] { "Offsets", "Densities", "Dii", "Aii", "DPSum", "IterPressures", "Pressures", "Positions" } },
@@ -50,7 +46,6 @@ public class IISPHManager
     void FindKernels()
     {
         CalculateNonPressureAccelerationAndD = shader.FindKernel("CalculateNonPressureAccelerationAndD");
-        PredictVelocity = shader.FindKernel("PredictVelocity");
         PredictDensityAndCalculateA = shader.FindKernel("PredictDensityAndCalculateA");
         CalculatePressureSums = shader.FindKernel("CalculatePressureSums");
         CalculateNextIISPHPressure = shader.FindKernel("CalculateNextIISPHPressure");
