@@ -14,7 +14,7 @@ public class SpatialHashManager
     int ScanSuperBlockSums;
     int AddSuperBlockSums;
     int AddBlockSums;
-    int FinalizeScan;
+    int FinaliseScan;
 
     int binNumber;
     int threadCount;
@@ -45,7 +45,7 @@ public class SpatialHashManager
             { ScanSuperBlockSums, new[] { "SuperBlockSums" } },
             { AddSuperBlockSums, new[] { "BlockSums", "SuperBlockSums" } },
             { AddBlockSums, new[] { "Offsets", "CellCounts", "BlockSums" } },
-            { FinalizeScan, new[] { "Offsets" } },
+            { FinaliseScan, new[] { "Offsets" } },
             { Scatter, new[] { "LocalOffsets", "Offsets", "Velocities", "SortedVelocities", "Positions", "SortedPositions" } },
             { CopyBack, new[] { "SortedVelocities", "SortedPositions", "Velocities", "Positions" }},
         };
@@ -96,7 +96,7 @@ public class SpatialHashManager
         ScanSuperBlockSums = shader.FindKernel("ScanSuperBlockSums");
         AddSuperBlockSums = shader.FindKernel("AddSuperBlockSums");
         AddBlockSums = shader.FindKernel("AddBlockSums");
-        FinalizeScan = shader.FindKernel("FinalizeScan");
+        FinaliseScan = shader.FindKernel("FinaliseScan");
     }
 
     void HierarchicalScan(int binNumber)
@@ -138,7 +138,7 @@ public class SpatialHashManager
         }
 
         // Phase 4: Write final element (total particle count)
-        shader.Dispatch(FinalizeScan, 1, 1, 1);
+        shader.Dispatch(FinaliseScan, 1, 1, 1);
     }
 
     public bool ScanAndScatter(int binNumber)
