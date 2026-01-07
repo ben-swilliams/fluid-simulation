@@ -1,3 +1,5 @@
+float densityTexRadius;
+
 float2 CalculateDensities(uint i) {
     float density = Epsilon;
     float nearDensity = Epsilon;
@@ -42,7 +44,7 @@ float CalculateDensityAtWorld(float3 pos) {
         for (uint j = startIndex; j < endIndex; j++) {
             float3 offset = pos - Positions[j];
             float r = length(offset);
-            density += particleMass * DensityKernel(r);
+            density += particleMass * DensityKernel(r / densityTexRadius);
         }
     }
 
