@@ -15,6 +15,7 @@ public class Simulate : MonoBehaviour
     [SerializeField] int binNumber = 200000;
     [SerializeField] bool indexHash = true;
     [SerializeField] int densityTextureRes = 100;
+    [SerializeField] float densityTextureRadius = 1f;
 
 
     /*
@@ -157,6 +158,7 @@ public class Simulate : MonoBehaviour
             "gradConstant", gradConstant,
             "tableSize", binNumber,
             "useIndex", indexHash ? 1 : 0,
+            "densityTexRadius", densityTextureRadius,
         };
 
         compute.smoothingRadius = smoothingRadius;
