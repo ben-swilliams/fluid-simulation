@@ -134,10 +134,6 @@ public class Draw : MonoBehaviour
         SetValues();
         
         rays.Mat.SetVector("floorSize", floor.transform.localScale * 5); // 10 is size of plane mesh
-
-        Vector3 worldSunDir = RenderSettings.sun.transform.forward;
-        Vector3 uvwSunDir = raysCube.transform.worldToLocalMatrix.MultiplyVector(worldSunDir).normalized;
-        rays.Mat.SetVector("sunDir", -uvwSunDir);
     }
 
     void OnValidate()
