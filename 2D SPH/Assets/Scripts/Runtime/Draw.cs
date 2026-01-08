@@ -32,7 +32,7 @@ public class Draw : MonoBehaviour
     [SerializeField] float chequerFrequency;
     
     [Header("Marching cubes")]
-    [SerializeField] float isoLevel = 5;
+    [SerializeField] float isoLevel = 1;
     [SerializeField] Color fluidColour;
 
     [Header("Volumetric rays")]
@@ -283,7 +283,7 @@ public class Draw : MonoBehaviour
 
         if (drawMethod == DrawMethod.Rays)
         {
-            rays.RenderToCube(densityThreshold * restDensity);
+            rays.RenderToCube(densityTex, densityThreshold * restDensity);
         }
     }
 
@@ -310,10 +310,5 @@ public class Draw : MonoBehaviour
     {
         BindPositions(positionBuffer);
         BindColours(colourBuffer);
-    }
-
-    public void BindTexture(RenderTexture densityTex)
-    {
-        rays.BindTexture(densityTex);
     }
 }
