@@ -18,13 +18,9 @@ public class Rays
         this.cube.GetComponent<Renderer>().material = mat;
     }
 
-    public void BindTexture(RenderTexture densityTex)
+    public void RenderToCube(RenderTexture densityTex, float densityThreshold)
     {
         mat.SetTexture("DensityTex", densityTex);
-    }
-
-    public void RenderToCube(float densityThreshold)
-    {
         mat.SetFloat("densityThreshold", densityThreshold);
         cube.SetActive(true);
     }
