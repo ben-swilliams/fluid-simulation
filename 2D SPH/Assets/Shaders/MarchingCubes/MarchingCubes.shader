@@ -61,10 +61,11 @@
 
             float4 frag (Varyings IN) : SV_Target
             {
-                float shading = saturate(dot(GetMainLight().direction, IN.normal));
+                Light light = GetMainLight();
+                float shading = saturate(dot(light.direction, IN.normal));
                 shading = shading * 0.7 + 0.3;
 
-                return float4(col.rgb * shading, col.a);
+                return float4(col.rgb * shading * light.color, col.a);
             }
             ENDHLSL
           }

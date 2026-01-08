@@ -40,8 +40,8 @@ Shader "Custom/Floor" {
 
             float4 frag (Varyings IN) : SV_Target
             {
-                float3 lightDir = normalize(GetMainLight().direction.xyz);
-                float nDotL = max(0, dot(IN.normal, lightDir));
+                Light light = GetMainLight();
+                float nDotL = max(0, dot(IN.normal, light.direction));
 
                 float2 cell = floor(IN.worldPos.xz / frequency);
                 int2 cellInt = int2(cell);

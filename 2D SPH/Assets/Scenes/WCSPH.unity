@@ -10566,6 +10566,7 @@ MonoBehaviour:
   binNumber: 300000
   indexHash: 1
   densityTextureRes: 100
+  densityTextureRadius: 1
 --- !u!4 &1274155412
 Transform:
   m_ObjectHideFlags: 0
@@ -10629,13 +10630,14 @@ MonoBehaviour:
   colourProperty: 0
   billboard: 0
   floor: {fileID: 31137267}
-  checkerFrequency: 0
+  chequerFrequency: 0
+  skyMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  skyTint: {r: 0, g: 1, b: 0.56078434, a: 1}
   isoLevel: 1
   fluidColour: {r: 0, g: 0.325516, b: 1, a: 1}
   raysCube: {fileID: 717391552}
   densityMultiplier: 3
   densityThreshold: 1
-  sunIntensity: 2.75
   scatterCoeffs: {x: 2, y: 0.85, z: 0.7}
   maxRefractions: 4
   fluidIOR: 1.1

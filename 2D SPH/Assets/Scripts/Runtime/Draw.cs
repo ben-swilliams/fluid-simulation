@@ -30,6 +30,8 @@ public class Draw : MonoBehaviour
     [SerializeField, InspectorName("Billboard?")] bool billboard = false;
     [SerializeField] GameObject floor;
     [SerializeField] float chequerFrequency;
+    [SerializeField] Material skyMaterial;
+    [SerializeField] Color skyTint;
     
     [Header("Marching cubes")]
     [SerializeField] float isoLevel = 1;
@@ -39,7 +41,6 @@ public class Draw : MonoBehaviour
     [SerializeField] GameObject raysCube;
     [SerializeField] float densityMultiplier;
     [SerializeField] float densityThreshold;
-    [SerializeField] float sunIntensity;
     [SerializeField] Vector3 scatterCoeffs = new Vector3(1, 1, 1);
     [SerializeField] int maxRefractions = 1;
     [SerializeField] float fluidIOR = 1f;
@@ -49,6 +50,7 @@ public class Draw : MonoBehaviour
     */
     Material particleMaterial;
     Material cubesMaterial;
+    Material skyMaterialInstance;
     Bounds bounds;
     Mesh mesh;
 
@@ -111,6 +113,11 @@ public class Draw : MonoBehaviour
         particleMaterial.enableInstancing = true;
         particleMaterial.SetInt("billboard", billboard ? 1 : 0);
 
+        skyMaterialInstance = new Material(skyMaterial);
+        skyMaterialInstance.SetColor("_SkyTint", skyTint);
+        RenderSettings.skybox = skyMaterialInstance;
+        DynamicGI.UpdateEnvironment();
+
         bounds = new Bounds(Vector3.zero, Vector3.one * 1000f);
 
         if (!billboard) mesh = MeshGenerator.GenerateSphere(sphereResolution);
@@ -145,6 +152,8 @@ public class Draw : MonoBehaviour
         if (!Application.isPlaying || particleMaterial == null) return;
 
         particleMaterial.SetInt("billboard", billboard ? 1 : 0);
+
+        skyMaterialInstance.SetColor("_SkyTint", skyTint);
 
         SetColourValues();
 
@@ -212,12 +221,11 @@ public class Draw : MonoBehaviour
     void SetValues()
     {
         rays.Mat.SetFloat("densityMultiplier", densityMultiplier);
-        rays.Mat.SetFloat("sunIntensity", sunIntensity);
-        rays.Mat.SetColor("fluidColour", fluidColour);
         rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
         rays.Mat.SetInt("maxRefractions", maxRefractions);
         rays.Mat.SetFloat("chequerFrequency", chequerFrequency);
         rays.Mat.SetFloat("fluidIOR", fluidIOR);
+        rays.Mat.SetColor("skyTint", skyTint);
     }
 
     void SetColourValues()
