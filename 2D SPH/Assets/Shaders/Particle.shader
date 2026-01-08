@@ -85,7 +85,7 @@ Shader "Custom/Particle" {
 					float shading = saturate(dot(light.direction, IN.normal));
 					shading = shading * 0.7 + 0.3;
 
-					return float4(IN.col * shading, 1);
+					return float4(IN.col * shading * light.color, 1);
 				}
 			}
             ENDHLSL

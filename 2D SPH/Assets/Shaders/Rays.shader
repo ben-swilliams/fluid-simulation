@@ -30,9 +30,10 @@
             float3 sunDir;
             float3 scatterCoeffs;
             float3 floorSize;
+            float3 skyTint;
+            float3 sunColour;
 
             float densityMultiplier;
-            float sunIntensity;
             float densityThreshold;
 
             float fluidIOR;
@@ -189,7 +190,8 @@
             }
             
             float3 SampleEnvironment(float3 rayLoc, float3 rayDir) {
-                float3 light = GlossyEnvironmentReflection(rayDir, 0.0, 1.0);
+                // Skybox sample
+                float3 light = GlossyEnvironmentReflection(rayDir, 0.0, 1.0) * skyTint;
 
                 if (rayDir.y < 0) {
                     float t = rayLoc.y / -rayDir.y;
@@ -345,7 +347,7 @@
                 float3 light = SampleEnvironment(rayLoc, rayDir);
 
                 float sunDensity = DensityAlongRay(IN.uvwEntry, sunDir, lightStepSize);
-                float3 sunContribution = exp(-sunDensity * scatterCoeffs) * sunIntensity;
+                float3 sunContribution = exp(-sunDensity * scatterCoeffs) * GetMainLight().color;
                 light *= sunContribution;
 
                 totalLight += light * transmittance;
