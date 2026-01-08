@@ -78,6 +78,7 @@ public class Compute : MonoBehaviour
     [HideInInspector]
     public float smoothingRadius;
 
+    public float RestDensity => restDensity;
     public float SimulationSpeed => simulationSpeed;
     public float PhysicsTimeStep => physicsTimeStep;
     public Solver PressureSolver => pressureSolver;

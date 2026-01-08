@@ -213,7 +213,6 @@ public class Draw : MonoBehaviour
     {
         rays.Mat.SetFloat("densityMultiplier", densityMultiplier);
         rays.Mat.SetFloat("sunIntensity", sunIntensity);
-        rays.Mat.SetFloat("densityThreshold", densityThreshold);
         rays.Mat.SetColor("fluidColour", fluidColour);
         rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
         rays.Mat.SetInt("maxRefractions", maxRefractions);
@@ -254,7 +253,7 @@ public class Draw : MonoBehaviour
         Graphics.DrawProceduralIndirect(cubesMaterial, bounds, MeshTopology.Triangles, cubesArgsBuffer);
     }
 
-    public void DrawFrame(RenderTexture densityTex, bool started)
+    public void DrawFrame(RenderTexture densityTex, bool started, float restDensity)
     {
         if (particleArgsBuffer == null) return;
 
@@ -277,14 +276,14 @@ public class Draw : MonoBehaviour
         {
             rays.DisableRays();
 
-            ComputeBuffer triangles = marchingCubes.Run(densityTex, isoLevel);
+            ComputeBuffer triangles = marchingCubes.Run(densityTex, isoLevel * restDensity);
             DrawMesh(triangles);
             return;
         }
 
         if (drawMethod == DrawMethod.Rays)
         {
-            rays.RenderToCube();
+            rays.RenderToCube(densityThreshold * restDensity);
         }
     }
 
