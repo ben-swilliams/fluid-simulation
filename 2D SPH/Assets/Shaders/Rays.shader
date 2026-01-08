@@ -39,7 +39,7 @@
 
             int maxRefractions;
 
-            float checkerFrequency;
+            float chequerFrequency;
 
             static const float fluidStepSize = 0.005;
             static const float lightStepSize = 0.1;
@@ -179,7 +179,7 @@
             }
 
             float3 SampleFloor(float3 pos) {
-                float2 cell = floor(pos.xz / checkerFrequency);
+                float2 cell = floor(pos.xz / chequerFrequency);
                 int2 cellInt = int2(cell);
                 float checker = (cellInt.x & 1) ^ (cellInt.y & 1);
 

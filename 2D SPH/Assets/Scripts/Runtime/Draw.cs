@@ -29,7 +29,7 @@ public class Draw : MonoBehaviour
     [SerializeField] Property colourProperty;
     [SerializeField, InspectorName("Billboard?")] bool billboard = false;
     [SerializeField] GameObject floor;
-    [SerializeField] float checkerFrequency;
+    [SerializeField] float chequerFrequency;
     
     [Header("Marching cubes")]
     [SerializeField] float isoLevel = 5;
@@ -117,7 +117,7 @@ public class Draw : MonoBehaviour
         else mesh = MeshGenerator.GenerateQuad();
 
         floor.GetComponent<Renderer>().material = new Material(floorShader);
-        floor.GetComponent<Renderer>().material.SetFloat("frequency", checkerFrequency);
+        floor.GetComponent<Renderer>().material.SetFloat("frequency", chequerFrequency);
 
         Color.RGBToHSV(slowColour, out lowHue, out _, out _);
         Color.RGBToHSV(fastColour, out highHue, out _, out _);
@@ -153,7 +153,7 @@ public class Draw : MonoBehaviour
 
         SetValues();
 
-        floor.GetComponent<Renderer>().material.SetFloat("frequency", checkerFrequency);
+        floor.GetComponent<Renderer>().material.SetFloat("frequency", chequerFrequency);
     }
 
     void OnDestroy()
@@ -217,7 +217,7 @@ public class Draw : MonoBehaviour
         rays.Mat.SetColor("fluidColour", fluidColour);
         rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
         rays.Mat.SetInt("maxRefractions", maxRefractions);
-        rays.Mat.SetFloat("checkerFrequency", checkerFrequency);
+        rays.Mat.SetFloat("chequerFrequency", chequerFrequency);
         rays.Mat.SetFloat("fluidIOR", fluidIOR);
     }
 
