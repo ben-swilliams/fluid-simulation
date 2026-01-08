@@ -44,7 +44,6 @@
             static const float fluidStepSize = 0.005;
             static const float lightStepSize = 0.1;
             static const int maxSteps = 1024;
-            static const float3 skyColour = float3(1, 1, 1);
 
             struct Attributes {
                 float4 vertex : POSITION;
@@ -190,11 +189,9 @@
             }
             
             float3 SampleEnvironment(float3 rayLoc, float3 rayDir) {
-                float3 light;
-                if (rayDir.y >= 0) {
-                    // Ray going up, hits sky
-                    light = skyColour;
-                } else {
+                float3 light = GlossyEnvironmentReflection(rayDir, 0.0, 1.0);
+
+                if (rayDir.y < 0) {
                     float t = rayLoc.y / -rayDir.y;
                     if (t >= 0) {
                         // Hit the floor
@@ -203,10 +200,6 @@
 
                         if (abs(floorLocWorld.x) < floorSize.x && abs(floorLocWorld.z) < floorSize.z)
                             light = SampleFloor(floorLocWorld);
-                        else
-                            light = skyColour;
-                    } else {
-                        light = skyColour;
                     }
                 }
 

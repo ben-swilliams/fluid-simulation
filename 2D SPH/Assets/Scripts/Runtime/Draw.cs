@@ -36,6 +36,7 @@ public class Draw : MonoBehaviour
     [SerializeField] Color fluidColour;
 
     [Header("Volumetric rays")]
+    [SerializeField] Material skyMaterial;
     [SerializeField] GameObject raysCube;
     [SerializeField] float densityMultiplier;
     [SerializeField] float densityThreshold;
