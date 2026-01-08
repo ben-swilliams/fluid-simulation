@@ -23,8 +23,9 @@ public class Rays
         mat.SetTexture("DensityTex", densityTex);
     }
 
-    public void RenderToCube()
+    public void RenderToCube(float densityThreshold)
     {
+        mat.SetFloat("densityThreshold", densityThreshold);
         cube.SetActive(true);
     }
 

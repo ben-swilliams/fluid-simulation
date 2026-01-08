@@ -213,7 +213,6 @@ public class Draw : MonoBehaviour
     {
         rays.Mat.SetFloat("densityMultiplier", densityMultiplier);
         rays.Mat.SetFloat("sunIntensity", sunIntensity);
-        rays.Mat.SetFloat("densityThreshold", densityThreshold);
         rays.Mat.SetColor("fluidColour", fluidColour);
         rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
         rays.Mat.SetInt("maxRefractions", maxRefractions);
@@ -284,7 +283,7 @@ public class Draw : MonoBehaviour
 
         if (drawMethod == DrawMethod.Rays)
         {
-            rays.RenderToCube();
+            rays.RenderToCube(densityThreshold * restDensity);
         }
     }
 
