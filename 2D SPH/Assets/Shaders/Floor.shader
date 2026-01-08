@@ -41,7 +41,7 @@ Shader "Custom/Floor" {
             float4 frag (Varyings IN) : SV_Target
             {
                 Light light = GetMainLight();
-                float nDotL = max(0, dot(IN.normal, light.direction));
+                float shading = saturate(dot(IN.normal, light.direction)) * 0.7 + 0.3;
 
                 float2 cell = floor(IN.worldPos.xz / frequency);
                 int2 cellInt = int2(cell);
@@ -52,7 +52,7 @@ Shader "Custom/Floor" {
 
                 float3 finalColor = lerp(colorA, colorB, checker);
 
-                return float4(finalColor * nDotL, 1.0);
+                return float4(finalColor * shading, 1.0);
             }
             ENDHLSL
         }
