@@ -56,7 +56,7 @@ public class Simulate : MonoBehaviour
             if (drawer.DrawTarget != Draw.DrawMethod.Particles) DispatchTextureWrite();
         }
 
-        drawer.DrawFrame(densityTex, started, compute.RestDensity);
+        drawer.DrawFrame(densityTex, started, compute?.RestDensity ?? 0);
     }
 
 
