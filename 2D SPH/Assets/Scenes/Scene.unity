@@ -6591,7 +6591,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: f7e0f38f2d5da4dbfb0881d47a97cd3b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -10509,7 +10509,6 @@ MonoBehaviour:
   particleShader: {fileID: 4800000, guid: 86f6b5b4233e64ce79e43b45f3e9e726, type: 3}
   cubesShader: {fileID: 4800000, guid: be28bf623796248b5a5887ad5c4ecf54, type: 3}
   raysShader: {fileID: 4800000, guid: 76eb14923fd4e43d497e28066559c8e1, type: 3}
-  floorShader: {fileID: 4800000, guid: df34f46184a284a4fb09819c7772dede, type: 3}
   sphereResolution: 0
   fastColour: {r: 1, g: 0.14044955, b: 0, a: 1}
   slowColour: {r: 0, g: 0.69803923, b: 1, a: 1}

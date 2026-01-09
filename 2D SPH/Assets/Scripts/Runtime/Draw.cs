@@ -18,7 +18,6 @@ public class Draw : MonoBehaviour
     [SerializeField] Shader particleShader;
     [SerializeField] Shader cubesShader;
     [SerializeField] Shader raysShader;
-    [SerializeField] Shader floorShader;
 
     [Header("Appearance Settings")]
     [SerializeField, Range(0, 4)] int sphereResolution = 2;
@@ -122,8 +121,7 @@ public class Draw : MonoBehaviour
         if (!billboard) mesh = MeshGenerator.GenerateSphere(sphereResolution);
         else mesh = MeshGenerator.GenerateQuad();
 
-        floor.GetComponent<Renderer>().material = new Material(floorShader);
-        floor.GetComponent<Renderer>().material.SetFloat("frequency", chequerFrequency);
+        Shader.SetGlobalFloat("frequency", chequerFrequency);
 
         Color.RGBToHSV(slowColour, out lowHue, out _, out _);
         Color.RGBToHSV(fastColour, out highHue, out _, out _);
@@ -142,6 +140,8 @@ public class Draw : MonoBehaviour
 
         Color.RGBToHSV(slowColour, out lowHue, out _, out _);
         Color.RGBToHSV(fastColour, out highHue, out _, out _);
+        
+        Shader.SetGlobalFloat("frequency", chequerFrequency);
 
         if (!Application.isPlaying || particleMaterial == null) return;
 
@@ -155,8 +155,6 @@ public class Draw : MonoBehaviour
         else mesh = MeshGenerator.GenerateQuad();
 
         SetValues();
-
-        floor.GetComponent<Renderer>().material.SetFloat("frequency", chequerFrequency);
     }
 
     void OnDestroy()
