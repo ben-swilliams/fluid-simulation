@@ -39,7 +39,6 @@ public class Draw : MonoBehaviour
     [SerializeField] Color fluidColour;
 
     [Header("Volumetric rays")]
-    [SerializeField] GameObject raysCube;
     [SerializeField] float densityMultiplier;
     [SerializeField] float densityThreshold;
     [SerializeField] Vector3 scatterCoeffs = new Vector3(1, 1, 1);
