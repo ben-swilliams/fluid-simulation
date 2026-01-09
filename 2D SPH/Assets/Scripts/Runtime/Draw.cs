@@ -1,4 +1,5 @@
 using System;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class Draw : MonoBehaviour
@@ -63,7 +64,6 @@ public class Draw : MonoBehaviour
     float highHue;
 
     MarchingCubes marchingCubes;
-    Rays rays;
 
     /*
     Public getters
@@ -130,10 +130,9 @@ public class Draw : MonoBehaviour
         Color.RGBToHSV(fastColour, out highHue, out _, out _);
 
         marchingCubes = new MarchingCubes(cubesCompute);
-        rays = new Rays(raysShader, raysCube);
         SetValues();
         
-        rays.Mat.SetVector("floorSize", floor.transform.localScale * 5); // 10 is size of plane mesh
+        Shader.SetGlobalVector("floorSize", floor.transform.localScale * 5); // 10 is size of plane mesh
     }
 
     void OnValidate()
@@ -216,12 +215,12 @@ public class Draw : MonoBehaviour
 
     void SetValues()
     {
-        rays.Mat.SetFloat("densityMultiplier", densityMultiplier);
-        rays.Mat.SetVector("scatterCoeffs", scatterCoeffs);
-        rays.Mat.SetInt("maxRefractions", maxRefractions);
-        rays.Mat.SetFloat("chequerFrequency", chequerFrequency);
-        rays.Mat.SetFloat("fluidIOR", fluidIOR);
-        rays.Mat.SetColor("skyTint", skyTint);
+        Shader.SetGlobalFloat("densityMultiplier", densityMultiplier);
+        Shader.SetGlobalVector("scatterCoeffs", scatterCoeffs);
+        Shader.SetGlobalInt("maxRefractions", maxRefractions);
+        Shader.SetGlobalFloat("chequerFrequency", chequerFrequency);
+        Shader.SetGlobalFloat("fluidIOR", fluidIOR);
+        Shader.SetGlobalColor("skyTint", skyTint);
     }
 
     void SetColourValues()
@@ -257,14 +256,25 @@ public class Draw : MonoBehaviour
         Graphics.DrawProceduralIndirect(cubesMaterial, bounds, MeshTopology.Triangles, cubesArgsBuffer);
     }
 
-    public void DrawFrame(RenderTexture densityTex, bool started, float restDensity)
+    public void DrawFrame(RenderTexture densityTex, bool started, float restDensity, float4x4 worldToContainer)
     {
         if (particleArgsBuffer == null) return;
 
+        // Always update ray shader state
+        if (drawMethod == DrawMethod.Rays && started)
+        {
+            Shader.EnableKeyword("RAYS_ENABLED");
+            Shader.SetGlobalMatrix("worldToContainer", worldToContainer);
+            Shader.SetGlobalTexture("DensityTex", densityTex);
+            Shader.SetGlobalFloat("densityThreshold", densityThreshold);
+        }
+        else
+        {
+            Shader.DisableKeyword("RAYS_ENABLED");
+        }
+
         if (!started || (drawMethod == DrawMethod.Particles))
         {
-            rays.DisableRays();
-
             Graphics.DrawMeshInstancedIndirect(
                 mesh,
                 0,
@@ -278,16 +288,9 @@ public class Draw : MonoBehaviour
 
         if (drawMethod == DrawMethod.Cubes)
         {
-            rays.DisableRays();
-
             ComputeBuffer triangles = marchingCubes.Run(densityTex, isoLevel * restDensity);
             DrawMesh(triangles);
             return;
-        }
-
-        if (drawMethod == DrawMethod.Rays)
-        {
-            rays.RenderToCube(densityTex, densityThreshold * restDensity);
         }
     }
 
