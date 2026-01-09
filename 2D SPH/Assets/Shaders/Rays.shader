@@ -288,29 +288,35 @@
                 return tMax >= tMin && tMax > 0;
             }
 
-            float4 frag (Varyings IN) : SV_Target {
-                #ifndef RAYS_ENABLED
-                    return float4(0, 0, 0, 0);
-                #endif
-
-                float2 screenUV = IN.uv;
-
-                float3 viewVector = ComputeWorldSpacePosition(screenUV, 1.0, UNITY_MATRIX_I_VP) - _WorldSpaceCameraPos;
+            bool IntersectWithContainer(float2 uv, out float3 origin, out float3 rayDir) {
+                float3 viewVector = ComputeWorldSpacePosition(uv, 1.0, UNITY_MATRIX_I_VP) - _WorldSpaceCameraPos;
 
                 float3 worldRayOrigin = _WorldSpaceCameraPos;
                 float3 worldRayDir = normalize(viewVector);
 
                 float3 localRayOrigin = mul(worldToContainer, float4(worldRayOrigin, 1)).xyz;
-                float3 localRayDir = normalize(mul((float3x3)worldToContainer, worldRayDir));
+                rayDir = normalize(mul((float3x3)worldToContainer, worldRayDir));
 
                 float tMin;
                 float tMax;
-                bool boxIntersect = RayBoxIntersection(localRayOrigin, localRayDir, tMin, tMax);
+                bool boxIntersect = RayBoxIntersection(localRayOrigin, rayDir, tMin, tMax);
 
-                float3 entry = localRayOrigin + max(0.0, tMin) * localRayDir;
+                origin = localRayOrigin + max(0.0, tMin) * rayDir;
 
-                float3 rayLoc = entry;
-                float3 rayDir = localRayDir;
+                return boxIntersect;
+            }
+
+            float4 frag (Varyings IN) : SV_Target {
+                #ifndef RAYS_ENABLED
+                    return float4(0, 0, 0, 0);
+                #endif
+
+                float3 rayLoc;
+                float3 rayDir;
+
+                bool boxIntersect = IntersectWithContainer(IN.uv, rayLoc, rayDir);
+                if (!boxIntersect) return float4(0, 0, 0, 0);
+
                 bool inFluid = IsInFluid(rayLoc);
 
                 float3 totalLight = float3(0, 0, 0);
@@ -379,7 +385,7 @@
                 // Final environment contribution
                 Light light = GetMainLight();
                 float3 envLight = SampleEnvironment(rayLoc, rayDir);
-                float sunDensity = DensityAlongRay(entry, -light.direction, lightStepSize);
+                float sunDensity = DensityAlongRay(rayLoc, -light.direction, lightStepSize);
                 envLight *= exp(-sunDensity * scatterCoeffs) * light.color;
                 totalLight += envLight * transmittance;
 
