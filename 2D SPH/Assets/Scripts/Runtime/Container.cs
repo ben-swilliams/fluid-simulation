@@ -54,7 +54,7 @@ public class Container : MonoBehaviour
         );
     }
 
-    public float4x4 NormalisedMatrix()
+    public Matrix4x4 NormalisedMatrix()
     {
         Vector3 scale = transform.lossyScale;
         Vector3 position = transform.position;

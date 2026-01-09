@@ -256,7 +256,7 @@ public class Draw : MonoBehaviour
         Graphics.DrawProceduralIndirect(cubesMaterial, bounds, MeshTopology.Triangles, cubesArgsBuffer);
     }
 
-    public void DrawFrame(RenderTexture densityTex, bool started, float restDensity, float4x4 worldToContainer)
+    public void DrawFrame(RenderTexture densityTex, bool started, float restDensity, Matrix4x4 worldToContainer)
     {
         if (particleArgsBuffer == null) return;
 
@@ -265,6 +265,7 @@ public class Draw : MonoBehaviour
         {
             Shader.EnableKeyword("RAYS_ENABLED");
             Shader.SetGlobalMatrix("worldToContainer", worldToContainer);
+            Shader.SetGlobalMatrix("containerToWorld", worldToContainer.inverse);
             Shader.SetGlobalTexture("DensityTex", densityTex);
             Shader.SetGlobalFloat("densityThreshold", densityThreshold);
         }
