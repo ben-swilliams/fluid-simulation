@@ -1,3 +1,4 @@
+using Unity.Mathematics;
 using UnityEngine;
 
 public class Rays
@@ -18,11 +19,11 @@ public class Rays
         this.cube.GetComponent<Renderer>().material = mat;
     }
 
-    public void RenderToCube(RenderTexture densityTex, float densityThreshold)
+    public void RenderToCube(RenderTexture densityTex, float densityThreshold, float4x4 worldToContainer)
     {
-        mat.SetTexture("DensityTex", densityTex);
-        mat.SetFloat("densityThreshold", densityThreshold);
-        cube.SetActive(true);
+        Shader.SetGlobalMatrix("worldtoContainer", worldToContainer);
+        Shader.SetGlobalTexture("DensityTex", densityTex);
+        Shader.SetGlobalFloat("densityThreshold", densityThreshold);
     }
 
     public void DisableRays()

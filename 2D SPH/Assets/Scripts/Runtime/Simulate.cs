@@ -24,6 +24,7 @@ public class Simulate : MonoBehaviour
     Spawn spawner;
     Draw drawer;
     Compute compute;
+    Container container;
     bool started;
     float accumulator = 0f;
     int maxStepsPerFrame = 3;
@@ -44,6 +45,7 @@ public class Simulate : MonoBehaviour
     {
         spawner = GetComponent<Spawn>();
         drawer = GetComponent<Draw>();
+        container = GetComponentInChildren<Container>();
     }
 
     void Update()
@@ -56,7 +58,7 @@ public class Simulate : MonoBehaviour
             if (drawer.DrawTarget != Draw.DrawMethod.Particles) DispatchTextureWrite();
         }
 
-        drawer.DrawFrame(densityTex, started, compute?.RestDensity ?? 0);
+        drawer.DrawFrame(densityTex, started, compute?.RestDensity ?? 0, container.NormalisedMatrix());
     }
 
 
@@ -96,7 +98,7 @@ public class Simulate : MonoBehaviour
         instanceCount = spawner.InstanceCount;
 
         if (indexHash)
-            binNumber = Utils.CalculateCellNumber(GetComponentInChildren<Container>().Boundary, smoothingRadius);
+            binNumber = Utils.CalculateCellNumber(container.Boundary, smoothingRadius);
 
         compute = GetComponent<Compute>();
         compute.Initialise(binNumber, spawner.ExtractPositions(), Utils.GenerateVelocityData(instanceCount));
@@ -171,7 +173,9 @@ public class Simulate : MonoBehaviour
     {
         smoothingRadius = Mathf.Max(0.01f, smoothingRadius);
         stepSize = Mathf.Max(0, stepSize);
-        binNumber = indexHash ? Utils.CalculateCellNumber(GetComponentInChildren<Container>().Boundary, smoothingRadius) : Mathf.Max(1, binNumber);
+
+        if (container)
+            binNumber = indexHash ? Utils.CalculateCellNumber(container.Boundary, smoothingRadius) : Mathf.Max(1, binNumber);
     }
 
     void HandleKeyPresses()
@@ -222,7 +226,7 @@ public class Simulate : MonoBehaviour
     {
         if (compute == null) return;
 
-        Vector3 bounds = GetComponentInChildren<Container>().Boundary;
+        Vector3 bounds = container.Boundary;
         float maxAxis = Mathf.Max(bounds.x, bounds.y, bounds.z);
         int width = Mathf.RoundToInt(bounds.x / maxAxis * densityTextureRes);
         int height = Mathf.RoundToInt(bounds.y / maxAxis * densityTextureRes);
@@ -263,8 +267,6 @@ public class Simulate : MonoBehaviour
         if (compute == null || spawner == null) return;
 
         float cellSize = smoothingRadius;
-
-        Container container = GetComponentInChildren<Container>();
 
         int maxX = Mathf.CeilToInt(container.Boundary.x / cellSize) - 1;
         int maxY = Mathf.CeilToInt(container.Boundary.y / cellSize) - 1;

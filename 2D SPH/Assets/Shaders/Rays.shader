@@ -20,12 +20,16 @@
             #pragma vertex vert
             #pragma fragment frag
             #pragma target 5.0
+            #pragma multi_compile _ RAYS_ENABLED
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
             Texture3D<float4> DensityTex;
             SamplerState samplerDensityTex;
+
+            float4x4 worldToContainer;
+            float4x4 containerToWorld;
 
             float3 scatterCoeffs;
             float3 floorSize;
@@ -45,30 +49,28 @@
             static const int maxSteps = 1024;
 
             struct Attributes {
-                float4 vertex : POSITION;
+                uint vertexID : SV_VertexID;
             };
 
             struct Varyings
             {
-                float4 pos : SV_POSITION;
-                float3 uvwEntry : TEXCOORD0;
-                float3 uvwRayDir : TEXCOORD1;
+                float4 positionCS : SV_POSITION;  // Clip space position
+                float2 uv : TEXCOORD0;             // Screen UV (0-1 range)
             };
 
             Varyings vert(Attributes IN)
             {
                 Varyings OUT;
-                OUT.pos = TransformObjectToHClip(IN.vertex.xyz);
-                OUT.uvwEntry = IN.vertex.xyz + 0.5;
 
-                float3 worldPos = TransformObjectToWorld(IN.vertex.xyz);
-                float3 worldRayDir = normalize(worldPos - GetCameraPositionWS());
-                OUT.uvwRayDir = mul((float3x3)unity_WorldToObject, worldRayDir);
+                OUT.positionCS = GetFullScreenTriangleVertexPosition(IN.vertexID);
+
+                OUT.uv = GetFullScreenTriangleTexCoord(IN.vertexID);
 
                 return OUT;
             }
 
             float SampleDensity(float3 uvw) {
+                if (any(uvw < 0) || any(uvw > 1)) return 0;
                 float sample = DensityTex.SampleLevel(samplerDensityTex, uvw, 0).r;
 
                 return max(0, sample - densityThreshold);
@@ -195,8 +197,8 @@
                     float t = rayLoc.y / -rayDir.y;
                     if (t >= 0) {
                         // Hit the floor
-                        float3 floorLocUVW = rayLoc + t * rayDir;
-                        float3 floorLocWorld = TransformObjectToWorld(floorLocUVW - 0.5);
+                        float3 floorLocUVW = rayLoc + t * rayDir;  // Already in 0-1 space
+                        float3 floorLocWorld = mul(containerToWorld, float4(floorLocUVW, 1.0)).xyz;
 
                         if (abs(floorLocWorld.x) < floorSize.x && abs(floorLocWorld.z) < floorSize.z)
                             light = SampleFloor(floorLocWorld);
@@ -271,10 +273,50 @@
                 return ri;
             }
 
-            float4 frag (Varyings IN) : SV_Target
+            bool RayBoxIntersection(float3 rayOrigin, float3 rayDir, out float tMin, out float tMax)
             {
-                float3 rayLoc = IN.uvwEntry;
-                float3 rayDir = normalize(IN.uvwRayDir);
+                float3 invDir = 1.0 / rayDir;
+                float3 t0 = (0.0 - rayOrigin) * invDir;
+                float3 t1 = (1.0 - rayOrigin) * invDir;
+
+                float3 tmin3 = min(t0, t1);
+                float3 tmax3 = max(t0, t1);
+
+                tMin = max(max(tmin3.x, tmin3.y), tmin3.z);
+                tMax = min(min(tmax3.x, tmax3.y), tmax3.z);
+
+                return tMax >= tMin && tMax > 0;
+            }
+
+            bool IntersectWithContainer(float2 uv, out float3 origin, out float3 rayDir) {
+                float3 viewVector = ComputeWorldSpacePosition(uv, 1.0, UNITY_MATRIX_I_VP) - _WorldSpaceCameraPos;
+
+                float3 worldRayOrigin = _WorldSpaceCameraPos;
+                float3 worldRayDir = normalize(viewVector);
+
+                float3 localRayOrigin = mul(worldToContainer, float4(worldRayOrigin, 1)).xyz;
+                rayDir = normalize(mul((float3x3)worldToContainer, worldRayDir));
+
+                float tMin;
+                float tMax;
+                bool boxIntersect = RayBoxIntersection(localRayOrigin, rayDir, tMin, tMax);
+
+                origin = localRayOrigin + max(0.0, tMin) * rayDir;
+
+                return boxIntersect;
+            }
+
+            float4 frag (Varyings IN) : SV_Target {
+                #ifndef RAYS_ENABLED
+                    return float4(0, 0, 0, 0);
+                #endif
+
+                float3 rayLoc;
+                float3 rayDir;
+
+                bool boxIntersect = IntersectWithContainer(IN.uv, rayLoc, rayDir);
+                if (!boxIntersect) return float4(0, 0, 0, 0);
+
                 bool inFluid = IsInFluid(rayLoc);
 
                 float3 totalLight = float3(0, 0, 0);
@@ -343,7 +385,7 @@
                 // Final environment contribution
                 Light light = GetMainLight();
                 float3 envLight = SampleEnvironment(rayLoc, rayDir);
-                float sunDensity = DensityAlongRay(IN.uvwEntry, -light.direction, lightStepSize);
+                float sunDensity = DensityAlongRay(rayLoc, -light.direction, lightStepSize);
                 envLight *= exp(-sunDensity * scatterCoeffs) * light.color;
                 totalLight += envLight * transmittance;
 
