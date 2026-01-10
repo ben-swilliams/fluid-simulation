@@ -46,6 +46,9 @@ public abstract class Tweakable : MonoBehaviour
     public void Set(string name, float value)
     {
         if (settings.TryGetValue(name, out var f))
+        {
             f.SetValue(this, value);
+            UpdateSettings();
+        }
     }
 }
