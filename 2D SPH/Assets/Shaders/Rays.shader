@@ -348,7 +348,6 @@
                     }
                 }
 
-                // Main refraction loop - unified logic
                 for (int ref = 0; ref < maxRefractions; ref++) {
                     float stepSize = inFluid ? lightStepSize * (ref + 1) : lightStepSize * (ref + 1);
                     
@@ -368,7 +367,6 @@
 
                     bool traceReflection = reflectDensity * raysInfo.reflectCoeff > refractDensity * raysInfo.refractCoeff;
                     
-                    // Add the "boring light" from the path not taken
                     float3 boringDir = traceReflection ? raysInfo.refractDir : raysInfo.reflectDir;
                     float boringCoeff = traceReflection ? raysInfo.refractCoeff : raysInfo.reflectCoeff;
                     float boringDensity = traceReflection ? refractDensity : reflectDensity;
@@ -376,13 +374,11 @@
                     float3 boringTransmittance = exp(-boringDensity * scatterCoeffs);
                     totalLight += SampleEnvironment(rayLoc, boringDir) * boringCoeff * boringTransmittance * transmittance;
                     
-                    // Continue along chosen path
                     rayDir = traceReflection ? raysInfo.reflectDir : raysInfo.refractDir;
                     inFluid = traceReflection ? inFluid : !inFluid;
                     transmittance *= traceReflection ? raysInfo.reflectCoeff : raysInfo.refractCoeff;
                 }
 
-                // Final environment contribution
                 Light light = GetMainLight();
                 float3 envLight = SampleEnvironment(rayLoc, rayDir);
                 float sunDensity = DensityAlongRay(rayLoc, -light.direction, lightStepSize);
