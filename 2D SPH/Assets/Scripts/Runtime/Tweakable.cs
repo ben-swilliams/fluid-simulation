@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public abstract class Tweakable : MonoBehaviour
 {
@@ -15,6 +16,7 @@ public abstract class Tweakable : MonoBehaviour
     {
         BuildCache();
     }
+
     void BuildCache()
     {
         settings = new Dictionary<string, FieldInfo>();
@@ -25,8 +27,7 @@ public abstract class Tweakable : MonoBehaviour
                      BindingFlags.NonPublic |
                      BindingFlags.Public))
         {
-            if (f.IsDefined(typeof(SerializeField), true) &&
-                f.FieldType == typeof(float)) // only expose floats
+            if (f.IsDefined(typeof(SerializeField), true))
             {
                 settings[f.Name] = f;
             }
@@ -47,8 +48,21 @@ public abstract class Tweakable : MonoBehaviour
     {
         if (settings.TryGetValue(name, out var f))
         {
-            f.SetValue(this, value);
+            if (f.FieldType == typeof(int))
+                f.SetValue(this, Mathf.FloorToInt(value));
+            else
+                f.SetValue(this, value);
             UpdateSettings();
         }
+    }
+
+    public float Get(string name)
+    {
+        if (settings.TryGetValue(name, out var f))
+        {
+            return float.Parse(f.GetValue(this).ToString());
+        }
+
+        return 0f;
     }
 }

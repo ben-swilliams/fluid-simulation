@@ -3,17 +3,9 @@ using UnityEngine.UI;
 
 public class UIHandler : MonoBehaviour
 {
-    [SerializeField] Simulate sim;
     [SerializeField] Color selectedColour;
     [SerializeField] Button[] tabButtons;
     [SerializeField] GameObject[] settings;
-    [SerializeField] GameObject WCSPHSettings;
-    [SerializeField] GameObject IISPHSettings;
-    [SerializeField] GameObject PCISPHSettings;
-
-    [SerializeField] GameObject VelocitySettings;
-    [SerializeField] GameObject DensitySettings;
-    [SerializeField] GameObject PressureSettings;
 
     int selectedIndex = 0;
 
@@ -22,10 +14,6 @@ public class UIHandler : MonoBehaviour
         tabButtons[0].GetComponent<Image>().color = selectedColour;
         SelectTab(0);
         RegisterListeners();
-
-        WCSPHSettings.SetActive(true);
-        IISPHSettings.SetActive(false);
-        PCISPHSettings.SetActive(false);
     }
 
     void RegisterListeners()
@@ -54,53 +42,5 @@ public class UIHandler : MonoBehaviour
     {
         tabButtons[index].GetComponent<Image>().color = selectedColour;
         tabButtons[selectedIndex].GetComponent<Image>().color = Color.white;
-    }
-
-    public void SelectSolverSettings(int solver)
-    {
-        if (selectedIndex != 2) return;
-
-        if (solver == 0)
-        {
-            WCSPHSettings.SetActive(true);
-            IISPHSettings.SetActive(false);
-            PCISPHSettings.SetActive(false);
-        }
-        if (solver == 1)
-        {
-            IISPHSettings.SetActive(true);
-            WCSPHSettings.SetActive(false);
-            PCISPHSettings.SetActive(false);
-        }
-        if (solver == 2)
-        {
-            IISPHSettings.SetActive(false);
-            WCSPHSettings.SetActive(false);
-            PCISPHSettings.SetActive(true);
-        }
-    }
-
-    public void SelectPropertySettings(int property)
-    {
-        if (selectedIndex != 3) return;
-
-        if (property == 0)
-        {
-            VelocitySettings.SetActive(true);
-            DensitySettings.SetActive(false);
-            PressureSettings.SetActive(false);
-        }
-        if (property == 1)
-        {
-            VelocitySettings.SetActive(false);
-            DensitySettings.SetActive(true);
-            PressureSettings.SetActive(false);
-        }
-        if (property == 2)
-        {
-            VelocitySettings.SetActive(false);
-            DensitySettings.SetActive(false);
-            PressureSettings.SetActive(true);
-        }
     }
 }

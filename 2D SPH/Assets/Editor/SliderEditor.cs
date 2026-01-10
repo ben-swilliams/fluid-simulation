@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(Slider))]
+[CustomEditor(typeof(SliderHandler))]
 public class SliderEditor : Editor
 {
     SerializedProperty targetScriptProp;
