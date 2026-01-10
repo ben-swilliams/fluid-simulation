@@ -11,6 +11,7 @@ public class UIHandler : MonoBehaviour
 
     void Start()
     {
+        for (int i = 0; i < tabButtons.Length; i++) settings[i].SetActive(false);
         tabButtons[0].GetComponent<Image>().color = selectedColour;
         SelectTab(0);
         RegisterListeners();

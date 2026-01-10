@@ -1,8 +1,11 @@
 using UnityEditor;
 using UnityEngine;
+using TMPro;
+using System.Reflection;
+using System;
 
-[CustomEditor(typeof(SliderHandler))]
-public class SliderEditor : Editor
+[CustomEditor(typeof(DropdownHandler))]
+public class DropdownEditor : Editor
 {
     SerializedProperty targetScriptProp;
     SerializedProperty targetPropertyProp;
@@ -57,6 +60,38 @@ public class SliderEditor : Editor
 
             if (index >= 0 && index < names.Count)
                 targetPropertyProp.stringValue = names[index];
+
+            if (!string.IsNullOrEmpty(targetPropertyProp.stringValue))
+            {
+                var handler = (DropdownHandler)serializedObject.targetObject;
+                var dropdown = handler.GetComponent<TMP_Dropdown>();
+
+                if (dropdown != null)
+                {
+                    var fieldInfo = target.GetType().GetField(targetPropertyProp.stringValue,
+                        BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+                    if (fieldInfo != null && fieldInfo.FieldType.IsEnum)
+                    {
+                        if (GUILayout.Button("Populate Dropdown Options from Enum"))
+                        {
+                            Undo.RecordObject(dropdown, "Populate Dropdown");
+
+                            dropdown.options.Clear();
+                            var enumNames = Enum.GetNames(fieldInfo.FieldType);
+
+                            foreach (var enumName in enumNames)
+                            {
+                                dropdown.options.Add(new TMP_Dropdown.OptionData(enumName));
+                            }
+
+                            dropdown.RefreshShownValue();
+                            EditorUtility.SetDirty(dropdown);
+                            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(dropdown.gameObject.scene);
+                        }
+                    }
+                }
+            }
         }
         else
         {

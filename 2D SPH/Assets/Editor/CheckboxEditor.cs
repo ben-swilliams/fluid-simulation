@@ -19,6 +19,33 @@ public class CheckboxEditor : Editor
 
         EditorGUILayout.PropertyField(targetScriptProp);
 
+        if (targetScriptProp.objectReferenceValue != null)
+        {
+            var component = targetScriptProp.objectReferenceValue as Component;
+            if (component != null)
+            {
+                var allTweakables = component.GetComponents<Tweakable>();
+                if (allTweakables.Length > 1)
+                {
+                    var labels = new string[allTweakables.Length];
+                    int currentIndex = 0;
+
+                    for (int i = 0; i < allTweakables.Length; i++)
+                    {
+                        labels[i] = allTweakables[i].GetType().Name;
+                        if (allTweakables[i] == targetScriptProp.objectReferenceValue)
+                            currentIndex = i;
+                    }
+
+                    int newIndex = EditorGUILayout.Popup("Component", currentIndex, labels);
+                    if (newIndex != currentIndex)
+                    {
+                        targetScriptProp.objectReferenceValue = allTweakables[newIndex];
+                    }
+                }
+            }
+        }
+
         var target = targetScriptProp.objectReferenceValue as Tweakable;
 
         if (target != null)

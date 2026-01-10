@@ -84,12 +84,7 @@ public class Simulate : Tweakable
 
     void OnValidate()
     {
-        ValidateInspectorProperties();
-
-        if (!Application.isPlaying || !started) return;
-
-        UpdateVariables();
-        UpdateBoundary();
+        UpdateSettings();
     }
 
     void StartSimulation()
@@ -160,9 +155,12 @@ public class Simulate : Tweakable
             "densityTexRadius", densityTextureRadius,
         };
 
-        compute.smoothingRadius = smoothingRadius;
-        compute.SetValues(keyValues);
-        compute.UpdateSettings();
+        if (compute)
+        {
+            compute.smoothingRadius = smoothingRadius;
+            compute.SetValues(keyValues);
+            compute.UpdateSettings();
+        }
 
         UpdateBoundary();
         UpdateDensityTexture();
@@ -170,6 +168,11 @@ public class Simulate : Tweakable
 
     public override void UpdateSettings()
     {
+    
+        ValidateInspectorProperties();
+
+        if (!Application.isPlaying || !started) return;
+
         UpdateVariables();
         UpdateBoundary();
     }

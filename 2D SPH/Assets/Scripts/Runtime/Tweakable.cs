@@ -52,6 +52,8 @@ public abstract class Tweakable : MonoBehaviour
                 f.SetValue(this, Mathf.FloorToInt(value));
             else if (f.FieldType == typeof(bool))
                 f.SetValue(this, value > 0);
+            else if (f.FieldType.IsEnum)
+                f.SetValue(this, Enum.ToObject(f.FieldType, Mathf.FloorToInt(value)));
             else
                 f.SetValue(this, value);
             UpdateSettings();
@@ -66,6 +68,10 @@ public abstract class Tweakable : MonoBehaviour
             {
                 bool bValue = (bool)f.GetValue(this);
                 return bValue ? 1f : 0f;
+            }
+            if (f.FieldType.IsEnum)
+            {
+                return Convert.ToInt32(f.GetValue(this));
             }
             return float.Parse(f.GetValue(this).ToString());
         }

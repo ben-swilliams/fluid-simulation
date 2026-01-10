@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class Draw : MonoBehaviour
+public class Draw : Tweakable
 {
     public enum Property { Velocity, Density, Pressure }
     public enum DrawMethod { Particles, Cubes, Rays }
@@ -39,7 +39,9 @@ public class Draw : MonoBehaviour
     [Header("Volumetric rays")]
     [SerializeField] float densityMultiplier;
     [SerializeField] float densityThreshold;
-    [SerializeField] Vector3 scatterCoeffs = new Vector3(1, 1, 1);
+    [SerializeField] float scatterR = 2f;
+    [SerializeField] float scatterG = 0.85f;
+    [SerializeField] float scatterB = 0.7f;
     [SerializeField] int maxRefractions = 1;
     [SerializeField] float fluidIOR = 1f;
 
@@ -133,27 +135,7 @@ public class Draw : MonoBehaviour
 
     void OnValidate()
     {
-        maxSpeed = Mathf.Max(0, maxSpeed);
-        maxDensityFluctuation = Mathf.Clamp01(maxDensityFluctuation);
-        maxPressure = Mathf.Max(0, maxPressure);
-
-        Color.RGBToHSV(slowColour, out lowHue, out _, out _);
-        Color.RGBToHSV(fastColour, out highHue, out _, out _);
-        
-        Shader.SetGlobalFloat("frequency", chequerFrequency);
-
-        if (!Application.isPlaying || particleMaterial == null) return;
-
-        particleMaterial.SetInt("billboard", billboard ? 1 : 0);
-
-        skyMaterialInstance.SetColor("_SkyTint", skyTint);
-
-        SetColourValues();
-
-        if (!billboard) mesh = MeshGenerator.GenerateSphere(sphereResolution);
-        else mesh = MeshGenerator.GenerateQuad();
-
-        SetValues();
+        UpdateSettings();
     }
 
     void OnDestroy()
@@ -212,7 +194,7 @@ public class Draw : MonoBehaviour
     void SetValues()
     {
         Shader.SetGlobalFloat("densityMultiplier", densityMultiplier);
-        Shader.SetGlobalVector("scatterCoeffs", scatterCoeffs);
+        Shader.SetGlobalVector("scatterCoeffs", new Vector3(scatterR, scatterG, scatterB));
         Shader.SetGlobalInt("maxRefractions", maxRefractions);
         Shader.SetGlobalFloat("chequerFrequency", chequerFrequency);
         Shader.SetGlobalFloat("fluidIOR", fluidIOR);
@@ -252,6 +234,30 @@ public class Draw : MonoBehaviour
         Graphics.DrawProceduralIndirect(cubesMaterial, bounds, MeshTopology.Triangles, cubesArgsBuffer);
     }
 
+    public override void UpdateSettings()
+    {
+        maxSpeed = Mathf.Max(0, maxSpeed);
+        maxDensityFluctuation = Mathf.Clamp01(maxDensityFluctuation);
+        maxPressure = Mathf.Max(0, maxPressure);
+
+        Color.RGBToHSV(slowColour, out lowHue, out _, out _);
+        Color.RGBToHSV(fastColour, out highHue, out _, out _);
+        
+        Shader.SetGlobalFloat("frequency", chequerFrequency);
+
+        if (!Application.isPlaying || particleMaterial == null) return;
+
+        particleMaterial.SetInt("billboard", billboard ? 1 : 0);
+
+        skyMaterialInstance.SetColor("_SkyTint", skyTint);
+
+        SetColourValues();
+
+        if (!billboard) mesh = MeshGenerator.GenerateSphere(sphereResolution);
+        else mesh = MeshGenerator.GenerateQuad();
+
+        SetValues();
+    }
     public void DrawFrame(RenderTexture densityTex, bool started, float restDensity, Matrix4x4 worldToContainer)
     {
         if (particleArgsBuffer == null) return;
