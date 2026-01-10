@@ -50,6 +50,8 @@ public abstract class Tweakable : MonoBehaviour
         {
             if (f.FieldType == typeof(int))
                 f.SetValue(this, Mathf.FloorToInt(value));
+            else if (f.FieldType == typeof(bool))
+                f.SetValue(this, value > 0);
             else
                 f.SetValue(this, value);
             UpdateSettings();
@@ -60,6 +62,11 @@ public abstract class Tweakable : MonoBehaviour
     {
         if (settings.TryGetValue(name, out var f))
         {
+            if (f.FieldType == typeof(bool))
+            {
+                bool bValue = (bool)f.GetValue(this);
+                return bValue ? 1f : 0f;
+            }
             return float.Parse(f.GetValue(this).ToString());
         }
 
