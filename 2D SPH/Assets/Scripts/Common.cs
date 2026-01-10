@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace Common
 {
-    public enum Solver { WCSPH, IISPH, PCISPH };
+    public enum Solver { WCSPH, PCISPH, IISPH };
     public enum Kernel {Cubic, Spiky, Poly6};
     public class Constants
     {

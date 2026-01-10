@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Common;
 using UnityEngine;
 
-public class Compute : MonoBehaviour
+public class Compute : Tweakable
 {
     // Shaders
     [SerializeField] ComputeShader spatialCompute;
@@ -173,7 +173,7 @@ public class Compute : MonoBehaviour
     {
         ValidateInspectorProperties();
 
-        UpdateVariables();
+        UpdateSettings();
     }
 
     void UpdateWaveForce()
@@ -201,7 +201,7 @@ public class Compute : MonoBehaviour
         simulationSpeed = Mathf.Clamp01(newSpeed);
     }
 
-    public void UpdateVariables()
+    public override void UpdateSettings()
     {
         physicsTimeStep = 1f / Utils.SolverSteps(pressureSolver);
 

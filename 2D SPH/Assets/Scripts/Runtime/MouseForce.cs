@@ -1,7 +1,6 @@
 using UnityEngine;
-using UnityEngine.Rendering;
 
-class MouseForce : MonoBehaviour
+class MouseForce : Tweakable
 {
     /*
     Inspector properties
@@ -23,25 +22,6 @@ class MouseForce : MonoBehaviour
 
     bool repulse = false;
 
-    /*
-    Public getters/setters
-    */
-    public float Power
-    {
-        get => power;
-        set => power = value;
-    }
-
-    public float Radius
-    {
-        get => radius;
-        set
-        {
-            radius = value;
-            sphere.transform.localScale = Vector3.one * radius;
-        }
-    }
-
     void Start()
     {
         sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -58,12 +38,7 @@ class MouseForce : MonoBehaviour
 
     void OnValidate()
     {
-        power = Mathf.Max(0, power);
-
-        if (!Application.isPlaying || sphere == null) return;
-
-        // triggers sphere re-size
-        Radius = radius;
+        UpdateSettings();
     }
 
     void HandleScroll()
@@ -102,5 +77,14 @@ class MouseForce : MonoBehaviour
         Vector3 pos = Camera.main.ScreenToWorldPoint(mouse);
 
         return pos;
+    }
+
+    public override void UpdateSettings()
+    {
+        power = Mathf.Max(0, power);
+
+        if (!Application.isPlaying || sphere == null) return;
+
+        sphere.transform.localScale = Vector3.one * radius;
     }
 }

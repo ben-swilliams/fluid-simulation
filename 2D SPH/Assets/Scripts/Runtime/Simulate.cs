@@ -1,9 +1,8 @@
-using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Common;
 
-public class Simulate : MonoBehaviour
+public class Simulate : Tweakable
 {
     /*
     Inspector properties
@@ -85,12 +84,7 @@ public class Simulate : MonoBehaviour
 
     void OnValidate()
     {
-        ValidateInspectorProperties();
-
-        if (!Application.isPlaying || !started) return;
-
-        UpdateVariables();
-        UpdateBoundary();
+        UpdateSettings();
     }
 
     void StartSimulation()
@@ -161,12 +155,26 @@ public class Simulate : MonoBehaviour
             "densityTexRadius", densityTextureRadius,
         };
 
-        compute.smoothingRadius = smoothingRadius;
-        compute.SetValues(keyValues);
-        compute.UpdateVariables();
+        if (compute)
+        {
+            compute.smoothingRadius = smoothingRadius;
+            compute.SetValues(keyValues);
+            compute.UpdateSettings();
+        }
 
         UpdateBoundary();
         UpdateDensityTexture();
+    }
+
+    public override void UpdateSettings()
+    {
+    
+        ValidateInspectorProperties();
+
+        if (!Application.isPlaying || !started) return;
+
+        UpdateVariables();
+        UpdateBoundary();
     }
 
     public void ValidateInspectorProperties()

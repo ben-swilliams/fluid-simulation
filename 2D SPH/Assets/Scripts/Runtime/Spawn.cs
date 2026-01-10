@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Spawn : MonoBehaviour
+public class Spawn : Tweakable
 {
     /*
     Inspector properties
@@ -69,6 +69,18 @@ public class Spawn : MonoBehaviour
 
     void OnValidate()
     {
+        UpdateSettings();
+    }
+
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.white;
+
+        Gizmos.DrawWireCube(transform.position + new Vector3(spawnPosition.x, spawnPosition.y, spawnPosition.z), new Vector3(spawnArea.x, spawnArea.y, spawnArea.z));
+    }
+
+    public override void UpdateSettings()
+    {
         Simulate sim = GetComponent<Simulate>();
         ValidateInspectorProperties();
         sim.ValidateInspectorProperties();
@@ -80,13 +92,6 @@ public class Spawn : MonoBehaviour
         if (!sim.Started) RecreatePositions();
 
         GetComponent<Draw>().UpdateSize(size);
-    }
-
-    void OnDrawGizmos()
-    {
-        Gizmos.color = Color.white;
-
-        Gizmos.DrawWireCube(transform.position + new Vector3(spawnPosition.x, spawnPosition.y, spawnPosition.z), new Vector3(spawnArea.x, spawnArea.y, spawnArea.z));
     }
 
     public void RecreatePositions()
