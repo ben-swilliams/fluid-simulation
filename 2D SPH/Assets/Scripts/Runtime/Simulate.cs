@@ -206,6 +206,15 @@ public class Simulate : Tweakable
             UpdateVariables();
         }
 
+        if (UnityEngine.InputSystem.Keyboard.current.digit0Key.wasPressedThisFrame)
+            SceneManager.LoadScene("Scene");
+        if (UnityEngine.InputSystem.Keyboard.current.digit1Key.wasPressedThisFrame)
+            SceneManager.LoadScene("WCSPH");
+        if (UnityEngine.InputSystem.Keyboard.current.digit2Key.wasPressedThisFrame)
+            SceneManager.LoadScene("PCISPH");
+        if (UnityEngine.InputSystem.Keyboard.current.digit3Key.wasPressedThisFrame)
+            SceneManager.LoadScene("IISPH");
+
         HandleSpeedControls();
     }
 
