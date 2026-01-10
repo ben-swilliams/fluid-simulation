@@ -100,21 +100,8 @@ public class Simulate : Tweakable
         InitialiseVariables();
         UpdateBoundary();
         BindExternalBuffers();
-        InitialiseLeapFrogVelocities();
 
         started = true;
-    }
-
-    void InitialiseLeapFrogVelocities()
-    {
-        object[] halfStep = new object[] { "deltaTime", compute.PhysicsTimeStep * 0.5f };
-        // Set half timestep for initialization
-        compute.SetValues(halfStep);
-
-        compute.RunPhysicsStep(binNumber);
-
-        object[] fullStep = new object[] { "deltaTime", compute.PhysicsTimeStep };
-        compute.SetValues(fullStep);
     }
 
     void BindExternalBuffers()
