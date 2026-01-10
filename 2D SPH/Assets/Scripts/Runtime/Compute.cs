@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Common;
 using UnityEngine;
 
-public class Compute : MonoBehaviour
+public class Compute : Tweakable
 {
     // Shaders
     [SerializeField] ComputeShader spatialCompute;
