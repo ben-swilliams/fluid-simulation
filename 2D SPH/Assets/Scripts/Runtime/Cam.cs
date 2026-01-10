@@ -8,10 +8,6 @@ public class Cam : MonoBehaviour
 
     float currentOrbitAngle = 0f;
 
-    void Start()
-    {
-    }
-
     void Update()
     {
         if (Application.isPlaying)

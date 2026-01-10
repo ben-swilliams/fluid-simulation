@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Rendering;
 
 class MouseForce : Tweakable
 {
@@ -23,25 +22,6 @@ class MouseForce : Tweakable
 
     bool repulse = false;
 
-    /*
-    Public getters/setters
-    */
-    public float Power
-    {
-        get => power;
-        set => power = value;
-    }
-
-    public float Radius
-    {
-        get => radius;
-        set
-        {
-            radius = value;
-            sphere.transform.localScale = Vector3.one * radius;
-        }
-    }
-
     void Start()
     {
         sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -58,12 +38,7 @@ class MouseForce : Tweakable
 
     void OnValidate()
     {
-        power = Mathf.Max(0, power);
-
-        if (!Application.isPlaying || sphere == null) return;
-
-        // triggers sphere re-size
-        Radius = radius;
+        UpdateSettings();
     }
 
     void HandleScroll()
@@ -106,6 +81,10 @@ class MouseForce : Tweakable
 
     public override void UpdateSettings()
     {
-        return;
+        power = Mathf.Max(0, power);
+
+        if (!Application.isPlaying || sphere == null) return;
+
+        sphere.transform.localScale = Vector3.one * radius;
     }
 }
