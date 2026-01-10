@@ -173,7 +173,7 @@ public class Compute : Tweakable
     {
         ValidateInspectorProperties();
 
-        UpdateVariables();
+        UpdateSettings();
     }
 
     void UpdateWaveForce()
@@ -201,7 +201,7 @@ public class Compute : Tweakable
         simulationSpeed = Mathf.Clamp01(newSpeed);
     }
 
-    public void UpdateVariables()
+    public override void UpdateSettings()
     {
         physicsTimeStep = 1f / Utils.SolverSteps(pressureSolver);
 

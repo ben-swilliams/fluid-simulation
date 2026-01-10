@@ -7,6 +7,6 @@ public class Slider : MonoBehaviour
     
     public void ChangeSetting(float x)
     {
-       targetScript.ChangeSetting(targetProperty, x); 
+       targetScript.Set(targetProperty, x); 
     }
 }

@@ -1,32 +1,51 @@
-using System.Collections.Generic;
 using System.Reflection;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class Tweakable : MonoBehaviour
+public abstract class Tweakable : MonoBehaviour
 {
     Dictionary<string, FieldInfo> settings;
 
     void Awake()
     {
+        BuildCache();
+    }
+
+    void OnValidate()
+    {
+        BuildCache();
+    }
+    void BuildCache()
+    {
         settings = new Dictionary<string, FieldInfo>();
 
         var type = GetType();
         foreach (var f in type.GetFields(
-                    BindingFlags.Instance |
-                    BindingFlags.NonPublic |
-                    BindingFlags.Public))
+                     BindingFlags.Instance |
+                     BindingFlags.NonPublic |
+                     BindingFlags.Public))
         {
-            if (f.IsDefined(typeof(SerializeField), true))
+            if (f.IsDefined(typeof(SerializeField), true) &&
+                f.FieldType == typeof(float)) // only expose floats
             {
                 settings[f.Name] = f;
             }
         }
     }
 
-    public void ChangeSetting(string targetProperty, float newValue)
-    {
-        if (!settings.TryGetValue(targetProperty, out var f)) return;
+    public abstract void UpdateSettings();
 
-        f.SetValue(this, newValue);
+    public List<string> GetTweakableNames()
+    {
+        if (settings == null)
+            BuildCache();
+
+        return new List<string>(settings.Keys);
+    }
+
+    public void Set(string name, float value)
+    {
+        if (settings.TryGetValue(name, out var f))
+            f.SetValue(this, value);
     }
 }

@@ -1,9 +1,8 @@
-using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Common;
 
-public class Simulate : MonoBehaviour
+public class Simulate : Tweakable
 {
     /*
     Inspector properties
@@ -163,10 +162,16 @@ public class Simulate : MonoBehaviour
 
         compute.smoothingRadius = smoothingRadius;
         compute.SetValues(keyValues);
-        compute.UpdateVariables();
+        compute.UpdateSettings();
 
         UpdateBoundary();
         UpdateDensityTexture();
+    }
+
+    public override void UpdateSettings()
+    {
+        UpdateVariables();
+        UpdateBoundary();
     }
 
     public void ValidateInspectorProperties()

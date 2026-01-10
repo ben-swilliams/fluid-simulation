@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-class MouseForce : MonoBehaviour
+class MouseForce : Tweakable
 {
     /*
     Inspector properties
@@ -102,5 +102,10 @@ class MouseForce : MonoBehaviour
         Vector3 pos = Camera.main.ScreenToWorldPoint(mouse);
 
         return pos;
+    }
+
+    public override void UpdateSettings()
+    {
+        return;
     }
 }

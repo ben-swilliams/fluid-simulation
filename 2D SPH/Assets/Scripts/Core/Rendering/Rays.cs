@@ -1,4 +1,3 @@
-using Unity.Mathematics;
 using UnityEngine;
 
 public class Rays
@@ -19,7 +18,7 @@ public class Rays
         this.cube.GetComponent<Renderer>().material = mat;
     }
 
-    public void RenderToCube(RenderTexture densityTex, float densityThreshold, float4x4 worldToContainer)
+    public void RenderToCube(RenderTexture densityTex, float densityThreshold, Matrix4x4 worldToContainer)
     {
         Shader.SetGlobalMatrix("worldtoContainer", worldToContainer);
         Shader.SetGlobalTexture("DensityTex", densityTex);
