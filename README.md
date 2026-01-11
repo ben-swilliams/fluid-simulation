@@ -42,3 +42,5 @@ Both the Unity Editor version and the standalone builds include a built-in UI th
 - Visualisation and interaction with the fluid simulation
 
 A complete description of each parameter and control is provided in **Appendix E of the dissertation PDF**.
+
+Instructions for simulation time controls are shown in each scene, as well as scene switching with the 0-3 keys.
