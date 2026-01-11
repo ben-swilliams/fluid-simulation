@@ -9,14 +9,14 @@ EditorBuildSettings:
     path: Assets/Scenes/Scene.unity
     guid: e1aecdff6383f475e98c8ef6f856028c
   - enabled: 1
-    path: Assets/Scenes/Legacy/OldWCSPH.unity
-    guid: c07a668f07eaa4473b12ca10c74fe91f
+    path: Assets/Scenes/WCSPH.unity
+    guid: 3b69eeb71120740f4a48a9ba2fe65625
   - enabled: 1
-    path: Assets/Scenes/Legacy/OldPCISPH.unity
-    guid: 801d084515cc34e3bb36992aff8cfa54
+    path: Assets/Scenes/PCISPH.unity
+    guid: ccdfabeaeabdc44f8a065d7a2687a041
   - enabled: 1
-    path: Assets/Scenes/Legacy/OldIISPH.unity
-    guid: 49927e2bf0e6a4c4cb7a173c826b6225
+    path: Assets/Scenes/IISPH.unity
+    guid: f7e2e8814ecee425fb04626315f2ceaf
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0
