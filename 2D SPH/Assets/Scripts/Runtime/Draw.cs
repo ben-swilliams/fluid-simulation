@@ -222,9 +222,10 @@ public class Draw : Tweakable
 
         SetValues();
     }
-    public void DrawFrame(RenderTexture densityTex, bool started, float restDensity, Matrix4x4 worldToContainer)
+    public void DrawFrame(int instanceCount, RenderTexture densityTex, bool started, float restDensity, Matrix4x4 worldToContainer)
     {
         if (particleArgsBuffer == null) return;
+        InitialiseArgsBuffer(instanceCount);
 
         // Always update ray shader state
         if (drawMethod == DrawMethod.Rays && started)
