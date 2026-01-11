@@ -38,6 +38,8 @@
             float densityMultiplier;
             float densityThreshold;
 
+            float specularPower;
+            float specularMultiplier;
             float fluidIOR;
 
             int maxRefractions;
@@ -189,9 +191,12 @@
                 return lerp(colorA, colorB, checker);
             }
             
-            float3 SampleEnvironment(float3 rayLoc, float3 rayDir) {
+            float3 SampleEnvironment(float3 rayLoc, float3 rayDir, Light sun) {
                 // Skybox sample
                 float3 light = GlossyEnvironmentReflection(rayDir, 0.0, 1.0) * skyTint;
+                float sunAlignment = max(0, dot(rayDir, sun.direction));
+                float sunSpecular = pow(sunAlignment, specularPower);
+                light += sun.color * sunSpecular * specularMultiplier;
 
                 if (rayDir.y < 0) {
                     float t = rayLoc.y / -rayDir.y;
@@ -322,6 +327,8 @@
                 float3 totalLight = float3(0, 0, 0);
                 float3 transmittance = 1;
 
+                Light light = GetMainLight();
+
                 // Handle initial entry if outside fluid
                 if (!inFluid) {
                     SurfacePoint sp = FindSurfaceAlongRay(rayLoc, rayDir, fluidStepSize, true);
@@ -336,12 +343,12 @@
                         SurfacePoint refractSp = FindSurfaceAlongRay(rayLoc, raysInfo.refractDir, fluidStepSize, false);
                         if (refractSp.isSurface) {
                             float3 refractTransmittance = exp(-refractSp.densityEnRoute * scatterCoeffs);
-                            totalLight += SampleEnvironment(refractSp.uvw, raysInfo.refractDir) * raysInfo.refractCoeff * refractTransmittance * transmittance;
+                            totalLight += SampleEnvironment(refractSp.uvw, raysInfo.refractDir, light) * raysInfo.refractCoeff * refractTransmittance * transmittance;
                         }
                         rayDir = raysInfo.reflectDir;
                         transmittance *= raysInfo.reflectCoeff;
                     } else {
-                        totalLight += SampleEnvironment(rayLoc, raysInfo.reflectDir) * raysInfo.reflectCoeff * transmittance;
+                        totalLight += SampleEnvironment(rayLoc, raysInfo.reflectDir, light) * raysInfo.reflectCoeff * transmittance;
                         rayDir = raysInfo.refractDir;
                         inFluid = true;
                         transmittance *= raysInfo.refractCoeff;
@@ -372,15 +379,14 @@
                     float boringDensity = traceReflection ? refractDensity : reflectDensity;
                     
                     float3 boringTransmittance = exp(-boringDensity * scatterCoeffs);
-                    totalLight += SampleEnvironment(rayLoc, boringDir) * boringCoeff * boringTransmittance * transmittance;
+                    totalLight += SampleEnvironment(rayLoc, boringDir, light) * boringCoeff * boringTransmittance * transmittance;
                     
                     rayDir = traceReflection ? raysInfo.reflectDir : raysInfo.refractDir;
                     inFluid = traceReflection ? inFluid : !inFluid;
                     transmittance *= traceReflection ? raysInfo.reflectCoeff : raysInfo.refractCoeff;
                 }
 
-                Light light = GetMainLight();
-                float3 envLight = SampleEnvironment(rayLoc, rayDir);
+                float3 envLight = SampleEnvironment(rayLoc, rayDir, light);
                 float sunDensity = DensityAlongRay(rayLoc, -light.direction, lightStepSize);
                 envLight *= exp(-sunDensity * scatterCoeffs) * light.color;
                 totalLight += envLight * transmittance;
