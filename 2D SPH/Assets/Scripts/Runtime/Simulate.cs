@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Common;
+using UnityEngine.Rendering.Universal;
 
 public class Simulate : Tweakable
 {
@@ -15,6 +16,11 @@ public class Simulate : Tweakable
     [SerializeField] bool indexHash = true;
     [SerializeField] int densityTextureRes = 100;
     [SerializeField] float densityTextureRadius = 1f;
+
+    [Header("Light Settings")]
+    [SerializeField] Color lightColor;
+    [SerializeField] float lightIntensity;
+    [SerializeField] float lightRotation;
 
 
     /*
@@ -153,10 +159,21 @@ public class Simulate : Tweakable
         UpdateDensityTexture();
     }
 
+    void UpdateLight()
+    {
+        Light sun = RenderSettings.sun;
+        sun.intensity = lightIntensity;
+        sun.color = lightColor;
+        
+        Vector3 oldAngles = sun.transform.eulerAngles;
+        sun.transform.eulerAngles = new Vector3(lightRotation, oldAngles.y, oldAngles.z);
+    }
+
     public override void UpdateSettings()
     {
     
         ValidateInspectorProperties();
+        UpdateLight();
 
         if (!Application.isPlaying || !started) return;
 
