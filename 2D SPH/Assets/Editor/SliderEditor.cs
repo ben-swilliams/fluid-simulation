@@ -6,11 +6,13 @@ public class SliderEditor : Editor
 {
     SerializedProperty targetScriptProp;
     SerializedProperty targetPropertyProp;
+    SerializedProperty labelProp;
 
     void OnEnable()
     {
         targetScriptProp = serializedObject.FindProperty("targetScript");
         targetPropertyProp = serializedObject.FindProperty("targetProperty");
+        labelProp = serializedObject.FindProperty("label");
     }
 
     public override void OnInspectorGUI()
@@ -62,6 +64,8 @@ public class SliderEditor : Editor
         {
             EditorGUILayout.PropertyField(targetPropertyProp);
         }
+
+        EditorGUILayout.PropertyField(labelProp);
 
         serializedObject.ApplyModifiedProperties();
     }
