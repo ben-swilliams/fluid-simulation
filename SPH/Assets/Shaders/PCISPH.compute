@@ -1,0 +1,50 @@
+#pragma kernel CalculateNonPressureAcceleration
+#pragma kernel PredictPosition
+#pragma kernel CalculateNextPCISPHPressure
+#pragma kernel UpdatePCISPHVelocities
+
+RWStructuredBuffer<float3> PredictedPositions;
+
+#include "Common.hlsl"
+#include "Partition.hlsl"
+#include "Kernels.hlsl"
+#include "Viscosity.hlsl"
+#include "Pressure.hlsl"
+#include "External.hlsl"
+#include "PCISPH.hlsl"
+
+[numthreads(NumThreads, 1, 1)]
+void CalculateNonPressureAcceleration(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Pressures[id.x] = 0;
+    IntermediateAccelerations[id.x] = CalculatePCISPHAcceleration(id.x);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void PredictPosition(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    float3 predictedVelocity = Velocities[id.x] + (IntermediateAccelerations[id.x] + CalculatePCISPHPressureForce(id.x)) * deltaTime;
+
+    PredictedPositions[id.x] = Positions[id.x] + predictedVelocity * deltaTime;
+}
+
+
+[numthreads(NumThreads, 1, 1)]
+void CalculateNextPCISPHPressure(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Pressures[id.x] += CalculatePressureChange(id.x);
+}
+
+[numthreads(NumThreads, 1, 1)]
+void UpdatePCISPHVelocities(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= instanceCount) return;
+
+    Velocities[id.x] += (IntermediateAccelerations[id.x] + CalculatePCISPHPressureForce(id.x)) * deltaTime;
+    float mag = length(Velocities[id.x]);
+    if (mag > maxVelocity) {
+        Velocities[id.x] = maxVelocity * Velocities[id.x] / mag;
+    }
+}

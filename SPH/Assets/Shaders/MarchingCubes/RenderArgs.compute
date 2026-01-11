@@ -1,0 +1,13 @@
+#pragma kernel SetRenderArgs
+
+RWStructuredBuffer<uint> RenderArgs;
+
+[numthreads(1,1,1)]
+void SetRenderArgs(uint3 id : SV_DispatchThreadID)
+{
+    RenderArgs[0] *= 3;
+    RenderArgs[1] = 1; // Instance count
+    RenderArgs[2] = 0; // Submesh index
+    RenderArgs[3] = 0; // Base vertex
+    RenderArgs[4] = 0; // Offset
+}
