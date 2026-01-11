@@ -4743,6 +4743,8 @@ MonoBehaviour:
   fluidColour: {r: 0, g: 0.16084719, b: 1, a: 1}
   densityMultiplier: 3
   densityThreshold: 1
+  specularMultiplier: 20
+  specularPower: 64
   scatterR: 2
   scatterG: 0.85
   scatterB: 0.7

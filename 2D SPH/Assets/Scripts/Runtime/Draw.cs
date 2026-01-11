@@ -39,6 +39,8 @@ public class Draw : Tweakable
     [Header("Volumetric rays")]
     [SerializeField] float densityMultiplier;
     [SerializeField] float densityThreshold;
+    [SerializeField] float specularMultiplier = 1f;
+    [SerializeField] float specularPower = 16f;
     [SerializeField] float scatterR = 2f;
     [SerializeField] float scatterG = 0.85f;
     [SerializeField] float scatterB = 0.7f;
@@ -235,6 +237,8 @@ public class Draw : Tweakable
             Shader.SetGlobalMatrix("containerToWorld", worldToContainer.inverse);
             Shader.SetGlobalTexture("DensityTex", densityTex);
             Shader.SetGlobalFloat("densityThreshold", densityThreshold);
+            Shader.SetGlobalFloat("specularPower", specularPower);
+            Shader.SetGlobalFloat("specularMultiplier", specularMultiplier);
         }
         else
         {
