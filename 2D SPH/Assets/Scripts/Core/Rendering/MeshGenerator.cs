@@ -76,10 +76,13 @@ public static class MeshGenerator
         return sphere;
 	}
 
-    static int GetMidpoint(int v0, int v1, System.Collections.Generic.List<Vector3> vertices, System.Collections.Generic.Dictionary<long, int> cache)
+    static int GetMidpoint(int v0, int v1, System.Collections.Generic.List<Vector3> vertices,
+    System.Collections.Generic.Dictionary<long, int> cache)
     {
         // Create unique key for edge
-        long key = ((long)Mathf.Min(v0, v1) << 32) | (long)Mathf.Max(v0, v1);
+        int min = v0 < v1 ? v0 : v1;
+        int max = v0 < v1 ? v1 : v0;
+        long key = ((long)min << 32) | (uint)max;
 
         if (cache.TryGetValue(key, out int midpoint))
             return midpoint;

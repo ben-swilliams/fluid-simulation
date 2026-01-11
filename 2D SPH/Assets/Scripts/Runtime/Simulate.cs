@@ -57,7 +57,7 @@ public class Simulate : Tweakable
             if (drawer.DrawTarget != Draw.DrawMethod.Particles) DispatchTextureWrite();
         }
 
-        drawer.DrawFrame(densityTex, started, compute?.RestDensity ?? 0, container.NormalisedMatrix());
+        drawer.DrawFrame(spawner.InstanceCount, densityTex, started, compute?.RestDensity ?? 0, container.NormalisedMatrix());
     }
 
 
