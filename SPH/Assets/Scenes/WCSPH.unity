@@ -11230,6 +11230,10 @@ PrefabInstance:
       propertyPath: targetScript
       value: 
       objectReference: {fileID: 1274155417}
+    - target: {fileID: 6937172995218014102, guid: fb4262362ae774fe589a726ef16c3a8f, type: 3}
+      propertyPath: m_text
+      value: Viscosity
+      objectReference: {fileID: 0}
     - target: {fileID: 6949837906462524312, guid: fb4262362ae774fe589a726ef16c3a8f, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -11442,6 +11446,10 @@ PrefabInstance:
       propertyPath: m_AnchorMin.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7746630873841398006, guid: fb4262362ae774fe589a726ef16c3a8f, type: 3}
+      propertyPath: m_text
+      value: Surface tension
+      objectReference: {fileID: 0}
     - target: {fileID: 7790252650752681431, guid: fb4262362ae774fe589a726ef16c3a8f, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -11457,6 +11465,10 @@ PrefabInstance:
     - target: {fileID: 7951569752078832576, guid: fb4262362ae774fe589a726ef16c3a8f, type: 3}
       propertyPath: m_text
       value: Max refs
+      objectReference: {fileID: 0}
+    - target: {fileID: 7968239566712368478, guid: fb4262362ae774fe589a726ef16c3a8f, type: 3}
+      propertyPath: m_text
+      value: XSPH
       objectReference: {fileID: 0}
     - target: {fileID: 8029645895166351170, guid: fb4262362ae774fe589a726ef16c3a8f, type: 3}
       propertyPath: label
